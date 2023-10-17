@@ -1,1 +1,4 @@
 # Xplor
+
+# Dependencies
+### GLFW
