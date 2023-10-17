@@ -46,15 +46,10 @@ int main(int argc, char **argv) {
     // changes size
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-    //GLenum error = glGetError();
-    //if (error != GL_NO_ERROR) {
-    //    // Handle OpenGL error here
-    //    return -10;
-    //}
 
     // Give GLAD the address of OpenGL function pointers GLFW
     // will give us the right ones for the OS we are using
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress));
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         // GLAD need to have a context to check the OpenGL version against
         std::cout << "Failed to initialize GLAD" << std::endl;
