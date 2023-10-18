@@ -49,8 +49,14 @@ add_library(
     ${imgui_SOURCE_DIR}/imgui_draw.cpp
     ${imgui_SOURCE_DIR}/imgui_widgets.cpp
     ${imgui_SOURCE_DIR}/imgui_tables.cpp
+    ${imgui_SOURCE_DIR}/imgui_demo.cpp
+    ${IMGUI_BACKENDS}/imgui_impl_glfw.cpp
+    ${IMGUI_BACKENDS}/imgui_impl_opengl3.cpp
 )
-
+target_include_directories(
+    imgui PRIVATE
+    ${imgui_SOURCE_DIR}
+)
 
 #--------------  Linking --------------
 target_include_directories(
