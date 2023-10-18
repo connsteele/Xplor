@@ -159,6 +159,9 @@ int main(int argc, char **argv) {
     
     //---- Cleanup ----
     //-----------------------------------------------------
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
     glfwDestroyWindow(window);
     glfwTerminate();
     return 0;
