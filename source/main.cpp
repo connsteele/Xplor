@@ -174,20 +174,28 @@ int main(int argc, char **argv) {
 
     // Vertex Buffer Setup
     float vertices[] = {
-        -0.5f, -0.5f, 0.0f, // left  
-         0.5f, -0.5f, 0.0f, // right 
-         0.0f,  0.5f, 0.0f  // top   
+     0.5f,  0.5f, 0.0f,  // top right    0
+     0.5f, -0.5f, 0.0f,  // bottom right 1
+    -0.5f, -0.5f, 0.0f,  // bottom left  2
+    -0.5f,  0.5f, 0.0f   // top left     3
+    };
+    unsigned int indices[] = {  // note that we start from 0!
+        0, 1, 3,   // first triangle
+        1, 2, 3    // second triangle
     };
 
-    uint32_t VBO, VAO;
+    uint32_t VBO, VAO, EBO;
     glGenVertexArrays(1, &VAO); // Generate one VAO
-    glGenBuffers(1, &VBO); // Generate one buffer object in the OGL Context
+    glGenBuffers(1, &VBO); // Generate one buffer object in the OGL Context'
+    glGenBuffers(1, &EBO); // EBO allows us to use indicies for drawing order
   
     glBindVertexArray(VAO); // bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
     glBindBuffer(GL_ARRAY_BUFFER, VBO); // Bind the buffer object to a buffer type
     // Copy data into the buffer object bound to target. The target here
     // is  GL_ARRAYBUFFER which is bound to the VBO.
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
 
     // Tell OpenGL how to interpret the vertex data per attribute
@@ -262,7 +270,9 @@ int main(int argc, char **argv) {
         //--- OpenGL Rendering
         glUseProgram(shaderProgram);
         glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        // glDrawArrays(GL_TRIANGLES, 0, 3); // Draw the tris directly
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); // Draw based on indicies
+        glBindVertexArray(0); // Unbind the VAO
 
 
 
