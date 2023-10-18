@@ -75,9 +75,10 @@ int main(int argc, char **argv) {
 
     const char* fragShaderSource = "#version 330 core\n"
         "out vec4 FragColor;\n"
+        "uniform vec4 CustomColor;\n"
         "void main()\n"
         "{\n"
-        "    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+        "    FragColor = CustomColor;\n"
         "}\n";
 
 
@@ -171,6 +172,12 @@ int main(int argc, char **argv) {
     glDeleteShader(vertexShader);
     glDeleteProgram(fragShader);
 
+    // Setup Uniforms
+    auto customColorLocation = glGetUniformLocation(shaderProgram, "CustomColor");
+    if (customColorLocation != -1) {
+        glUniform4f(customColorLocation, 1.0f, 0.5f, 0.2f, 1.0f); // Set the color value
+    }
+
 
     // Vertex Buffer Setup
     float vertices[] = {
@@ -212,6 +219,7 @@ int main(int argc, char **argv) {
     bool show_demo_window = true;
     bool show_another_window = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    ImVec4 rect_color = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
     while (!glfwWindowShouldClose(window)) // Render till the close flag is true
     {
         //--- Input
@@ -235,6 +243,7 @@ int main(int argc, char **argv) {
 
             ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
             ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+            ImGui::ColorEdit3("rectangle color", (float*)&rect_color); // Edit 3 floats representing a color
 
             if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
                 counter++;
@@ -270,6 +279,7 @@ int main(int argc, char **argv) {
         //--- OpenGL Rendering
         glUseProgram(shaderProgram);
         glBindVertexArray(VAO);
+        glUniform4f(customColorLocation, rect_color.x, rect_color.y, rect_color.z, rect_color.w);
         // glDrawArrays(GL_TRIANGLES, 0, 3); // Draw the tris directly
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); // Draw based on indicies
         glBindVertexArray(0); // Unbind the VAO
