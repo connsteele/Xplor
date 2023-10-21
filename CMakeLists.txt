@@ -3,7 +3,12 @@ set(CMAKE_CXX_STANDARD 17) # Sets C++ Version
 
 # Define the Project name and add source files
 project(Xplor-Engine)
-set(SOURCES source/main.cpp)
+set(
+    SOURCES 
+    source/main.cpp
+    source/shader.cpp
+    include/shader.hpp
+)
 # file(GLOB SOURCES "source/*.cpp") # Just get all .cpp files
 add_executable(${CMAKE_PROJECT_NAME} ${SOURCES})
 # Set start up project
@@ -59,6 +64,7 @@ target_include_directories(
 )
 
 #--------------  Linking --------------
+include_directories(include)
 target_include_directories(
     Xplor-Engine PRIVATE
     ${imgui_SOURCE_DIR}
