@@ -67,6 +67,14 @@ void printHardwareInfo()
     std::cout << "OpenGL Version: " << major << "." << minor << std::endl;
 }
 
+struct imgData
+{
+    int width;
+    int height;
+    int channels;
+    unsigned char* data;
+};
+
 
 int main(int argc, char **argv) {
     //---- Setup dependencies ----
@@ -118,31 +126,52 @@ int main(int argc, char **argv) {
     std::string resources = "..//resources";
 
     //--- Image Loading
-    int imgWidth, imgHeight, nrChannels;
+    imgData imageBox;
+    stbi_set_flip_vertically_on_load(true); // Align the coordinates
     std::string imagePath = resources + "//images//woodBox.jpg";
     // Fill Variables with image data
-    unsigned char* imgData = stbi_load(imagePath.c_str(), &imgWidth, &imgHeight, &nrChannels, 0);
-    if (!imgData)
+    imageBox.data = stbi_load(imagePath.c_str(), &imageBox.width, &imageBox.height, &imageBox.channels, 0);
+    if (!imageBox.data)
     {
         std::cout << "Error: Image failed to load" << std::endl;
     }
     //--- Texture generation
-    uint32_t texture;
+    uint32_t texture1;
     // Generate one texture and store it
-    glGenTextures(1, &texture);
+    glGenTextures(1, &texture1);
     // Bind the texture
-    glBindTexture(GL_TEXTURE_2D, texture);
+    glBindTexture(GL_TEXTURE_2D, texture1);
     // Set the texture filtering and wrapping
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     // Generate the bound texture
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imgWidth, imgHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, imgData);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imageBox.width, imageBox.height, 0, GL_RGB, GL_UNSIGNED_BYTE, imageBox.data);
     // Generate mipmaps for the bound texture
     glGenerateMipmap(GL_TEXTURE_2D);
     // Free the image data once the texture has been created
-    stbi_image_free(imgData);
+    stbi_image_free(imageBox.data);
+
+    // Get the second texture
+    imgData imageDog;
+    imagePath = resources + "//images//dog.png";
+    imageDog.data = stbi_load(imagePath.c_str(), &imageDog.width, &imageDog.height, &imageDog.channels, 0);
+    if (!imageDog.data) 
+    {
+        std::cout << "Error: Image failed to load" << std::endl;
+    }
+    uint32_t texture2;
+    glGenTextures(1, &texture2);
+    glBindTexture(GL_TEXTURE_2D, texture2);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageDog.width, imageDog.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageDog.data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+    stbi_image_free(imageDog.data);
+
 
 
     // ImGui Setup
@@ -308,19 +337,24 @@ int main(int argc, char **argv) {
             
         //--- OpenGL Rendering
         shaderProgram.useProgram();
+        shaderProgram.setInt("customTexture2", 1); // Tell our shader about the extra texture uniform
         glBindVertexArray(VAO);
         // glUniform4f(customColorLocation, rect_color.x, rect_color.y, rect_color.z, rect_color.w);
         if (renderRect)
         {
-            glBindTexture(GL_TEXTURE_2D, texture);
+            glActiveTexture(GL_TEXTURE0); // activate the first texture so it can be bound (this one is bound by default)
+            glBindTexture(GL_TEXTURE_2D, texture1);
+            glActiveTexture(GL_TEXTURE1); // active the second texture so it can also be used
+            glBindTexture(GL_TEXTURE_2D, texture2);
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); // Draw based on indicies
-            glBindVertexArray(0); // Unbind the VAO
         }
         else
         {
             glDrawArrays(GL_TRIANGLES, 0, 3); // Draw the tris directly
         }
-        
+        // Unbinds
+        glBindVertexArray(0); // Unbind the VAO
+        glBindTexture(GL_TEXTURE_2D, 0); // Unbind the texture
         
 
         //--- ImGui Window Rendering
