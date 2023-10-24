@@ -5,6 +5,7 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <memory>
+#include "shader.hpp"
 
 // Implement the GLFW callback function prototype
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
@@ -53,6 +54,18 @@ void new_ImGui_Frame()
     ImGui::NewFrame();
 }
 
+void printHardwareInfo()
+{
+    auto vendor = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
+    auto openglVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+    auto renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
+    std::cout << "Vendor: " << vendor << "\nRenderer: " << renderer << std::endl;
+    int major, minor;
+    glGetIntegerv(GL_MAJOR_VERSION, &major);
+    glGetIntegerv(GL_MINOR_VERSION, &minor);
+    std::cout << "OpenGL Version: " << major << "." << minor << std::endl;
+}
+
 
 int main(int argc, char **argv) {
     //---- Setup dependencies ----
@@ -67,18 +80,22 @@ int main(int argc, char **argv) {
     //---- Setup Declerations ------
     //-----------------------------------------------------
     const char* vertexShaderSource = "#version 330 core\n"
-        "layout (location = 0) in vec3 aPos;\n"
+        "layout (location = 0) in vec3 aPos;\n" 
+        "layout (location = 1) in vec3 aColor;\n"
+        "out vec3 ourColor;\n" // output to frag shader
         "void main()\n"
         "{\n"
-        "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+        "   ourColor = aColor;\n" 
+        "   gl_Position = vec4(aPos, 1.0);\n"
         "}\0";
 
     const char* fragShaderSource = "#version 330 core\n"
+        "in vec3 ourColor;\n"
         "out vec4 FragColor;\n"
-        "uniform vec4 CustomColor;\n"
+        "uniform vec4 customColor;\n"
         "void main()\n"
         "{\n"
-        "    FragColor = CustomColor;\n"
+        "    FragColor = vec4(ourColor, 1.0);\n"
         "}\n";
 
 
@@ -118,7 +135,8 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    
+
+
     // ImGui Setup
     ImGuiIO io;
     if (!setupImGui(window, io))
@@ -126,91 +144,88 @@ int main(int argc, char **argv) {
         // Throw error
     }
    
+    // Change these to be relative to the current dir
+    const char* vertexShaderPath = "F://Repos//Xplor//resources//shaders//simple.vs";
+    const char* fragmentShaderPath = "F://Repos//Xplor//resources//shaders//simple.fs";
 
-    // Shader Building and Compilation
-    uint32_t vertexShader;
-    vertexShader = glCreateShader(GL_VERTEX_SHADER); // Creates an empty shader object
-    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL); // Specify shaders and their source
-    glCompileShader(vertexShader);
+    Xplor::Shader shaderProgram = Xplor::Shader::Shader(vertexShaderPath, fragmentShaderPath);
+    shaderProgram.useProgram();
 
-    uint32_t fragShader;
-    fragShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragShader, 1, &fragShaderSource, NULL);
-    glCompileShader(fragShader);
-
-    // Check for shader compilation errors
-    int32_t shaderCompileStatus;
-    char shaderCompileLog[512];
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &shaderCompileStatus);
-    if (!shaderCompileStatus)
-    {
-        glGetShaderInfoLog(vertexShader, 512, NULL, shaderCompileLog);
-        std::cout << "ERROR: SHADER_VERTEX Compilation FAILED\n" << shaderCompileLog << std::endl;
-    }
-    glGetShaderiv(fragShader, GL_COMPILE_STATUS, &shaderCompileStatus);
-    if (!shaderCompileStatus)
-    {
-        glGetShaderInfoLog(vertexShader, 512, NULL, shaderCompileLog);
-        std::cout << "ERROR: SHADER_FRAGMENT Compilation FAILED\n" << shaderCompileLog << std::endl;
-    }
-
-
-    // Link Shaders to a shader program object
-    uint32_t shaderProgram;
-    shaderProgram = glCreateProgram(); // Create a program object
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragShader);
-    glLinkProgram(shaderProgram);
-    glGetProgramiv(shaderProgram, GL_COMPILE_STATUS, &shaderCompileStatus);
-    if (!shaderCompileStatus)
-    {
-        glGetProgramInfoLog(shaderProgram, 512, NULL, shaderCompileLog);
-        std::cout << "ERROR: SHADER_PROGRAM Compilation FAILED\n" << shaderCompileLog << std::endl;
-    }
-    glUseProgram(shaderProgram); // If compilation is fine use the program
-    // Once the shaders are linked we can delete them
-    glDeleteShader(vertexShader);
-    glDeleteProgram(fragShader);
-
-    // Setup Uniforms
-    auto customColorLocation = glGetUniformLocation(shaderProgram, "CustomColor");
-    if (customColorLocation != -1) {
-        glUniform4f(customColorLocation, 1.0f, 0.5f, 0.2f, 1.0f); // Set the color value
-    }
 
 
     // Vertex Buffer Setup
-    float vertices[] = {
+    // Rectangle
+    float verticesRectangle[] = {
      0.5f,  0.5f, 0.0f,  // top right    0
      0.5f, -0.5f, 0.0f,  // bottom right 1
     -0.5f, -0.5f, 0.0f,  // bottom left  2
     -0.5f,  0.5f, 0.0f   // top left     3
     };
-    unsigned int indices[] = {  // note that we start from 0!
+    unsigned int indicesRectangle[] = {  // note that we start from 0!
         0, 1, 3,   // first triangle
         1, 2, 3    // second triangle
     };
+    // Colored Triangle
+    float verticesColorsTriangle[] = {
+        // positions         // colors
+         0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,   // bottom right
+        -0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   // bottom left
+         0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f    // top
+    };
+
+
 
     uint32_t VBO, VAO, EBO;
     glGenVertexArrays(1, &VAO); // Generate one VAO
     glGenBuffers(1, &VBO); // Generate one buffer object in the OGL Context'
     glGenBuffers(1, &EBO); // EBO allows us to use indicies for drawing order
-  
+    
+
     glBindVertexArray(VAO); // bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
     glBindBuffer(GL_ARRAY_BUFFER, VBO); // Bind the buffer object to a buffer type
-    // Copy data into the buffer object bound to target. The target here
-    // is  GL_ARRAYBUFFER which is bound to the VBO.
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    bool renderRect = false;
+    if (renderRect)
+    {
+        
+        // Copy data into the buffer object bound to target. The target here
+        // is  GL_ARRAYBUFFER which is bound to the VBO.
+        glBufferData(GL_ARRAY_BUFFER, sizeof(verticesRectangle), verticesRectangle, GL_STATIC_DRAW);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indicesRectangle), indicesRectangle, GL_STATIC_DRAW);
 
 
-    // Tell OpenGL how to interpret the vertex data per attribute
-    // Here we are accessing the first attribute and checking the 3 vertex points
-    // which are 4 bytes (32bits) each so our stides need to be in steps of 4. We want
-    // to begin at the start of the array
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), static_cast < void*>(0));
-    glEnableVertexAttribArray(0); // Enable this vertex attribute
+        // Tell OpenGL how to interpret the vertex data per attribute
+        // Here we are accessing the first attribute and checking the 3 vertex points
+        // which are 4 bytes (32bits) each so our stides need to be in steps of 4. We want
+        // to begin at the start of the array
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), static_cast <void*>(0));
+        glEnableVertexAttribArray(0); // Enable this vertex attribute
+    }
+    else
+    {
+        // Copy colored triangle data into the array buffer
+        glBufferData(GL_ARRAY_BUFFER, sizeof(verticesColorsTriangle), verticesColorsTriangle, GL_STATIC_DRAW);
+
+        // set the stride to 6: We have 3 floats defining vertex pos and 3 defining vertex colors
+        // Position attribute
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), reinterpret_cast<void*>(0));
+        glEnableVertexAttribArray(0);
+        // Color attribute, start at an offset of 3 from the beginning of the array
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), reinterpret_cast<void*>(3 * sizeof(float)));
+        glEnableVertexAttribArray(1); // Enable this vertex attribute
+    }
+
+
+
+    // Query hardware information
+    printHardwareInfo();
+
+
+
+    // Query the max amount of vertex attribs we can use
+    int maxAttributes;
+    glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &maxAttributes);
+    std::cout << "Maxmimum number of vertex attributes supported: " << maxAttributes << std::endl;
 
 
     //---- Render Loop ----
@@ -271,12 +286,20 @@ int main(int argc, char **argv) {
         glClear(GL_COLOR_BUFFER_BIT);
             
         //--- OpenGL Rendering
-        glUseProgram(shaderProgram);
+        shaderProgram.useProgram();
         glBindVertexArray(VAO);
-        glUniform4f(customColorLocation, rect_color.x, rect_color.y, rect_color.z, rect_color.w);
-        // glDrawArrays(GL_TRIANGLES, 0, 3); // Draw the tris directly
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); // Draw based on indicies
-        glBindVertexArray(0); // Unbind the VAO
+        // glUniform4f(customColorLocation, rect_color.x, rect_color.y, rect_color.z, rect_color.w);
+        if (renderRect)
+        {
+            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); // Draw based on indicies
+            glBindVertexArray(0); // Unbind the VAO
+        }
+        else
+        {
+            glDrawArrays(GL_TRIANGLES, 0, 3); // Draw the tris directly
+        }
+        
+        
 
         //--- ImGui Window Rendering
         ImGui::Render();
@@ -284,6 +307,7 @@ int main(int argc, char **argv) {
         glfwGetFramebufferSize(window, &display_w, &display_h);
         glViewport(0, 0, display_w, display_h);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
 
 
         // Swap the front and back buffers
@@ -296,7 +320,6 @@ int main(int argc, char **argv) {
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
     glDeleteBuffers(1, &EBO);
-    glDeleteProgram(shaderProgram);
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
