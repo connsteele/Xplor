@@ -151,56 +151,6 @@ int main(int argc, char **argv) {
     Xplor::Shader shaderProgram = Xplor::Shader::Shader(vertexShaderPath, fragmentShaderPath);
     shaderProgram.useProgram();
 
-    // Shader Building and Compilation
-    //uint32_t vertexShader;
-    //vertexShader = glCreateShader(GL_VERTEX_SHADER); // Creates an empty shader object
-    //glShaderSource(vertexShader, 1, &vertexShaderSource, NULL); // Specify shaders and their source
-    //glCompileShader(vertexShader);
-
-    //uint32_t fragShader;
-    //fragShader = glCreateShader(GL_FRAGMENT_SHADER);
-    //glShaderSource(fragShader, 1, &fragShaderSource, NULL);
-    //glCompileShader(fragShader);
-
-    //// Check for shader compilation errors
-    //int32_t shaderCompileStatus;
-    //char shaderCompileLog[512];
-    //glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &shaderCompileStatus);
-    //if (!shaderCompileStatus)
-    //{
-    //    glGetShaderInfoLog(vertexShader, 512, NULL, shaderCompileLog);
-    //    std::cout << "ERROR: SHADER_VERTEX Compilation FAILED\n" << shaderCompileLog << std::endl;
-    //}
-    //glGetShaderiv(fragShader, GL_COMPILE_STATUS, &shaderCompileStatus);
-    //if (!shaderCompileStatus)
-    //{
-    //    glGetShaderInfoLog(vertexShader, 512, NULL, shaderCompileLog);
-    //    std::cout << "ERROR: SHADER_FRAGMENT Compilation FAILED\n" << shaderCompileLog << std::endl;
-    //}
-
-
-    //// Link Shaders to a shader program object
-    //uint32_t shaderProgram;
-    //shaderProgram = glCreateProgram(); // Create a program object
-    //glAttachShader(shaderProgram, vertexShader);
-    //glAttachShader(shaderProgram, fragShader);
-    //glLinkProgram(shaderProgram);
-    //glGetProgramiv(shaderProgram, GL_COMPILE_STATUS, &shaderCompileStatus);
-    //if (!shaderCompileStatus)
-    //{
-    //    glGetProgramInfoLog(shaderProgram, 512, NULL, shaderCompileLog);
-    //    std::cout << "ERROR: SHADER_PROGRAM Compilation FAILED\n" << shaderCompileLog << std::endl;
-    //}
-    //glUseProgram(shaderProgram); // If compilation is fine use the program
-    //// Once the shaders are linked we can delete them
-    //glDeleteShader(vertexShader);
-    //glDeleteProgram(fragShader);
-
-    //// Setup Uniforms
-    //auto customColorLocation = glGetUniformLocation(shaderProgram, "customColor");
-    //if (customColorLocation != -1) {
-    //    glUniform4f(customColorLocation, 1.0f, 0.5f, 0.2f, 1.0f); // Set the color value
-    //}
 
 
     // Vertex Buffer Setup
