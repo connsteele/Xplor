@@ -3,6 +3,7 @@
 #include "imgui_impl_opengl3.h"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <stb_image.h>
 #include <iostream>
 #include <memory>
 #include "shader.hpp"
@@ -66,6 +67,14 @@ void printHardwareInfo()
     std::cout << "OpenGL Version: " << major << "." << minor << std::endl;
 }
 
+struct imgData
+{
+    int width;
+    int height;
+    int channels;
+    unsigned char* data;
+};
+
 
 int main(int argc, char **argv) {
     //---- Setup dependencies ----
@@ -76,27 +85,6 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-
-    //---- Setup Declerations ------
-    //-----------------------------------------------------
-    const char* vertexShaderSource = "#version 330 core\n"
-        "layout (location = 0) in vec3 aPos;\n" 
-        "layout (location = 1) in vec3 aColor;\n"
-        "out vec3 ourColor;\n" // output to frag shader
-        "void main()\n"
-        "{\n"
-        "   ourColor = aColor;\n" 
-        "   gl_Position = vec4(aPos, 1.0);\n"
-        "}\0";
-
-    const char* fragShaderSource = "#version 330 core\n"
-        "in vec3 ourColor;\n"
-        "out vec4 FragColor;\n"
-        "uniform vec4 customColor;\n"
-        "void main()\n"
-        "{\n"
-        "    FragColor = vec4(ourColor, 1.0);\n"
-        "}\n";
 
 
     //---- Set the attributes for the window ----
@@ -135,6 +123,55 @@ int main(int argc, char **argv) {
         return -1;
     }
 
+    std::string resources = "..//resources";
+
+    //--- Image Loading
+    imgData imageBox;
+    stbi_set_flip_vertically_on_load(true); // Align the coordinates
+    std::string imagePath = resources + "//images//woodBox.jpg";
+    // Fill Variables with image data
+    imageBox.data = stbi_load(imagePath.c_str(), &imageBox.width, &imageBox.height, &imageBox.channels, 0);
+    if (!imageBox.data)
+    {
+        std::cout << "Error: Image failed to load" << std::endl;
+    }
+    //--- Texture generation
+    uint32_t texture1;
+    // Generate one texture and store it
+    glGenTextures(1, &texture1);
+    // Bind the texture
+    glBindTexture(GL_TEXTURE_2D, texture1);
+    // Set the texture filtering and wrapping
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    // Generate the bound texture
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imageBox.width, imageBox.height, 0, GL_RGB, GL_UNSIGNED_BYTE, imageBox.data);
+    // Generate mipmaps for the bound texture
+    glGenerateMipmap(GL_TEXTURE_2D);
+    // Free the image data once the texture has been created
+    stbi_image_free(imageBox.data);
+
+    // Get the second texture
+    imgData imageDog;
+    imagePath = resources + "//images//dog.png";
+    imageDog.data = stbi_load(imagePath.c_str(), &imageDog.width, &imageDog.height, &imageDog.channels, 0);
+    if (!imageDog.data) 
+    {
+        std::cout << "Error: Image failed to load" << std::endl;
+    }
+    uint32_t texture2;
+    glGenTextures(1, &texture2);
+    glBindTexture(GL_TEXTURE_2D, texture2);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageDog.width, imageDog.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageDog.data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+    stbi_image_free(imageDog.data);
+
 
 
     // ImGui Setup
@@ -144,33 +181,40 @@ int main(int argc, char **argv) {
         // Throw error
     }
    
-    // Change these to be relative to the current dir
-    const char* vertexShaderPath = "F://Repos//Xplor//resources//shaders//simple.vs";
-    const char* fragmentShaderPath = "F://Repos//Xplor//resources//shaders//simple.fs";
+    //--- Shader Creation
+    std::string vertexShaderPath = resources + "//shaders//simple.vs";
+    std::string fragmentShaderPath = resources + "//shaders//simple.fs";
 
-    Xplor::Shader shaderProgram = Xplor::Shader::Shader(vertexShaderPath, fragmentShaderPath);
-    shaderProgram.useProgram();
-
+    Xplor::Shader shaderProgram = Xplor::Shader::Shader(vertexShaderPath.c_str(), fragmentShaderPath.c_str());
+    shaderProgram.useProgram();    
 
 
     // Vertex Buffer Setup
     // Rectangle
     float verticesRectangle[] = {
-     0.5f,  0.5f, 0.0f,  // top right    0
-     0.5f, -0.5f, 0.0f,  // bottom right 1
-    -0.5f, -0.5f, 0.0f,  // bottom left  2
-    -0.5f,  0.5f, 0.0f   // top left     3
+        // positions          // colors         // tex coords 1    // tex coords 2
+         0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,       2.0f, 2.0f,   // top right
+         0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,       2.0f, 0.0f,   // bottom right
+        -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,       0.0f, 0.0f,   // bottom left
+        -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f,       0.0f, 2.0f    // top left 
     };
     unsigned int indicesRectangle[] = {  // note that we start from 0!
         0, 1, 3,   // first triangle
         1, 2, 3    // second triangle
     };
+
     // Colored Triangle
     float verticesColorsTriangle[] = {
         // positions         // colors
          0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,   // bottom right
         -0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   // bottom left
          0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f    // top
+    };
+    float triangleTexCoords[] = {
+        0.0f, 0.0f, // Bottom Left
+        1.0f, 0.0f, // Bottom Right
+        0.5f, 1.0f  // Top Middle
+        
     };
 
 
@@ -183,7 +227,7 @@ int main(int argc, char **argv) {
 
     glBindVertexArray(VAO); // bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
     glBindBuffer(GL_ARRAY_BUFFER, VBO); // Bind the buffer object to a buffer type
-    bool renderRect = false;
+    bool renderRect = true;
     if (renderRect)
     {
         
@@ -198,8 +242,16 @@ int main(int argc, char **argv) {
         // Here we are accessing the first attribute and checking the 3 vertex points
         // which are 4 bytes (32bits) each so our stides need to be in steps of 4. We want
         // to begin at the start of the array
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), static_cast <void*>(0));
-        glEnableVertexAttribArray(0); // Enable this vertex attribute
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 10 * sizeof(float), reinterpret_cast<void*>(0));
+        glEnableVertexAttribArray(0);
+        // define and enable color input
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 10 * sizeof(float), reinterpret_cast<void*>(3 * sizeof(float)) );
+        glEnableVertexAttribArray(1);
+        // define and enable texture coordinates input
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 10 * sizeof(float), reinterpret_cast<void*>(6 * sizeof(float)) );
+        glEnableVertexAttribArray(2);
+        glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 10 * sizeof(float), reinterpret_cast<void*>(8 * sizeof(float)));
+        glEnableVertexAttribArray(3);
     }
     else
     {
@@ -287,18 +339,24 @@ int main(int argc, char **argv) {
             
         //--- OpenGL Rendering
         shaderProgram.useProgram();
+        shaderProgram.setInt("customTexture2", 1); // Tell our shader about the extra texture uniform
         glBindVertexArray(VAO);
         // glUniform4f(customColorLocation, rect_color.x, rect_color.y, rect_color.z, rect_color.w);
         if (renderRect)
         {
+            glActiveTexture(GL_TEXTURE0); // activate the first texture so it can be bound (this one is bound by default)
+            glBindTexture(GL_TEXTURE_2D, texture1);
+            glActiveTexture(GL_TEXTURE1); // active the second texture so it can also be used
+            glBindTexture(GL_TEXTURE_2D, texture2);
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); // Draw based on indicies
-            glBindVertexArray(0); // Unbind the VAO
         }
         else
         {
             glDrawArrays(GL_TRIANGLES, 0, 3); // Draw the tris directly
         }
-        
+        // Unbinds
+        glBindVertexArray(0); // Unbind the VAO
+        glBindTexture(GL_TEXTURE_2D, 0); // Unbind the texture
         
 
         //--- ImGui Window Rendering
