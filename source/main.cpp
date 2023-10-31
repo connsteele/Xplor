@@ -4,8 +4,10 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <stb_image.h>
-#include <iostream>
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <iostream>
 #include <memory>
 #include "shader.hpp"
 
@@ -281,6 +283,10 @@ int main(int argc, char **argv) {
     std::cout << "Maxmimum number of vertex attributes supported: " << maxAttributes << std::endl;
 
 
+    // Transformations
+    uint32_t liveTransformLoc = glGetUniformLocation(shaderProgram.getID(), "liveTransform");
+
+
     //---- Render Loop ----
     //-----------------------------------------------------
     glfwSwapInterval(1); // Enables vsync
@@ -349,6 +355,16 @@ int main(int argc, char **argv) {
             glBindTexture(GL_TEXTURE_2D, texture1);
             glActiveTexture(GL_TEXTURE1); // active the second texture so it can also be used
             glBindTexture(GL_TEXTURE_2D, texture2);
+
+            // Update Transform Uniforms
+            glm::mat4 liveTransform = glm::mat4(1.0f);
+            liveTransform = glm::translate(liveTransform, glm::vec3(0.5f, -1.0f, 0.0f));
+            liveTransform = glm::rotate(liveTransform, static_cast<float>(glfwGetTime()), glm::vec3(0.0f, 0.0f, 1.0f));
+
+            glUniformMatrix4fv(liveTransformLoc, 1, GL_FALSE, glm::value_ptr(liveTransform));
+
+
+
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); // Draw based on indicies
         }
         else

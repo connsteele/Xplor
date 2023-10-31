@@ -21,6 +21,12 @@ namespace Xplor
 		~Shader();
 
 		/// <summary>
+		/// 
+		/// </summary>
+		/// <returns></returns>
+		uint32_t getID();
+
+		/// <summary>
 		/// Use the current shader program
 		/// </summary>
 		void useProgram();
