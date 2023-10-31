@@ -4,6 +4,9 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <stb_image.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 #include <memory>
 #include "shader.hpp"
@@ -15,6 +18,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     // This actually performs the transformation of 2D coordinates to screen locations
     glViewport(0, 0, width, height);
 }
+
 
 // Handle all incoming keyboard and mouse events
 void processInputs(GLFWwindow* window)
@@ -280,19 +284,49 @@ int main(int argc, char **argv) {
     std::cout << "Maxmimum number of vertex attributes supported: " << maxAttributes << std::endl;
 
 
+    // Transformations
+    uint32_t liveTransformLoc = glGetUniformLocation(shaderProgram.getID(), "liveTransform");
+
+
     //---- Render Loop ----
     //-----------------------------------------------------
     glfwSwapInterval(1); // Enables vsync
+    float previousFrameTime = static_cast<float>(glfwGetTime());
     bool show_demo_window = true;
     bool show_another_window = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
     ImVec4 rect_color = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
     while (!glfwWindowShouldClose(window)) // Render till the close flag is true
     {
+        //--- Update Delta Time
+        float currentFrameTime = static_cast<float>(glfwGetTime());
+        float deltaTime = currentFrameTime - previousFrameTime;
+        previousFrameTime = currentFrameTime;
+
         //--- Input
         //-----------------------------------------------------
         processInputs(window);
-        
+        glm::mat4 liveTransform = glm::mat4(1.0f);
+        static glm::vec3 move(0.0f);
+        float moveSpeed = 1.0f;
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        {
+            move.y += moveSpeed * deltaTime;
+        }
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        {
+            move.y -= moveSpeed * deltaTime;
+        }
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        {
+            move.x += moveSpeed * deltaTime;
+        }
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        {
+            move.x -= moveSpeed * deltaTime;
+        }
+        liveTransform = glm::translate(liveTransform, glm::vec3(0.5f, -0.5f, 0.0f) + move);
+
         // Process pending events and update the window state
         glfwPollEvents();
 
@@ -348,7 +382,22 @@ int main(int argc, char **argv) {
             glBindTexture(GL_TEXTURE_2D, texture1);
             glActiveTexture(GL_TEXTURE1); // active the second texture so it can also be used
             glBindTexture(GL_TEXTURE_2D, texture2);
+
+            // Update Transform Uniforms
+            liveTransform = glm::rotate(liveTransform, static_cast<float>(glfwGetTime()), glm::vec3(0.0f, 0.0f, 1.0f));
+            glUniformMatrix4fv(liveTransformLoc, 1, GL_FALSE, glm::value_ptr(liveTransform));
+
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); // Draw based on indicies
+
+            // Draw a second square
+            liveTransform = glm::mat4(1.0f);
+            liveTransform = glm::translate(liveTransform, glm::vec3(-0.5f, 0.5f, 0.0f));
+            liveTransform = glm::rotate(liveTransform, static_cast<float>(glfwGetTime()), glm::vec3(0.0f, 0.0f, 1.0f));
+            liveTransform = glm::scale(liveTransform, glm::vec3(glm::abs(sin(glfwGetTime()))));
+            glUniformMatrix4fv(liveTransformLoc, 1, GL_FALSE, glm::value_ptr(liveTransform));
+
+
+            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); // Draw a second container after updating the transformation
         }
         else
         {

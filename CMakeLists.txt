@@ -42,6 +42,14 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(GLAD)
 
+# Specify where to get GLM
+FetchContent_Declare(
+    GLM
+    GIT_REPOSITORY https://github.com/g-truc/glm.git
+    GIT_TAG  0.9.9.8
+)
+FetchContent_MakeAvailable(GLM)
+
 # Specify where to get Dear ImGui
 FetchContent_Declare(
     imgui
@@ -77,11 +85,14 @@ target_include_directories(
     ${imgui_SOURCE_DIR}
     ${IMGUI_BACKENDS}
     ${GLAD_BUILD_DIR}/include/glad # Just fixes intellisense issues
+    ${GLM_SOURCE_DIR}
 )
+
 target_link_libraries(
     Xplor-Engine PRIVATE
     glfw
     glad
+    glm
     imgui
 )
 

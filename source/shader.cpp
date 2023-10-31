@@ -66,6 +66,11 @@ Xplor::Shader::~Shader()
 	glDeleteProgram(shaderID);
 }
 
+uint32_t Xplor::Shader::getID()
+{
+	return shaderID;
+}
+
 void Xplor::Shader::useProgram()
 {
 	glUseProgram(shaderID);
