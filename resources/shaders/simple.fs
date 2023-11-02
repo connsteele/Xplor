@@ -18,7 +18,7 @@ void main()
 
     // Don't render transparent areas
     vec4 color1 = texture(customTexture1, texCoords1);
-    vec4 color2 = texture(customTexture2, vec2(-texCoords2.x, texCoords2.y));
+    vec4 color2 = texture(customTexture2, texCoords1);
 
     // Output color is a weighted sum using the alpha from color 2
     FragColor = mix (

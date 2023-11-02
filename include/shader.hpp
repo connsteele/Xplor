@@ -31,6 +31,11 @@ namespace Xplor
 		/// </summary>
 		void useProgram();
 
+		/// <summary>
+		/// Call glUseProgram(0) to stop usage of current shader
+		/// </summary>
+		void endProgram();
+
 		//--- Perhaps refactor these to use generics
 		/// <summary>
 		/// 
