@@ -193,22 +193,66 @@ int main(int argc, char **argv) {
         // Throw error
     }
    
+
     //--- Shader Creation
+    //----------------------------------------
     std::string vertexShaderPath = resources + "//shaders//simple.vs";
     std::string fragmentShaderPath = resources + "//shaders//simple.fs";
 
     Xplor::Shader shaderProgram = Xplor::Shader::Shader(vertexShaderPath.c_str(), fragmentShaderPath.c_str());
     shaderProgram.useProgram();    
+    // Inform the shader where the texture samplers are located
+    shaderProgram.setInt("customTexture1", 0);
+    shaderProgram.setInt("customTexture2", 1);
+    // Enable depth testing
+    glEnable(GL_DEPTH_TEST);
+    shaderProgram.endProgram();
 
 
     // Vertex Buffer Setup
     // Rectangle
     float verticesRectangle[] = {
-        // positions          // colors         // tex coords 1    // tex coords 2
-         0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,       2.0f, 2.0f,   // top right
-         0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,       2.0f, 0.0f,   // bottom right
-        -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,       0.0f, 0.0f,   // bottom left
-        -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f,       0.0f, 2.0f    // top left 
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+     0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
     };
     unsigned int indicesRectangle[] = {  // note that we start from 0!
         0, 1, 3,   // first triangle
@@ -227,6 +271,50 @@ int main(int argc, char **argv) {
         1.0f, 0.0f, // Bottom Right
         0.5f, 1.0f  // Top Middle
         
+    };
+    // Cube
+    float verticesCube[] = {
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+     0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
     };
 
 
@@ -254,16 +342,11 @@ int main(int argc, char **argv) {
         // Here we are accessing the first attribute and checking the 3 vertex points
         // which are 4 bytes (32bits) each so our stides need to be in steps of 4. We want
         // to begin at the start of the array
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 10 * sizeof(float), reinterpret_cast<void*>(0));
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), reinterpret_cast<void*>(0));
         glEnableVertexAttribArray(0);
-        // define and enable color input
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 10 * sizeof(float), reinterpret_cast<void*>(3 * sizeof(float)) );
-        glEnableVertexAttribArray(1);
         // define and enable texture coordinates input
-        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 10 * sizeof(float), reinterpret_cast<void*>(6 * sizeof(float)) );
-        glEnableVertexAttribArray(2);
-        glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 10 * sizeof(float), reinterpret_cast<void*>(8 * sizeof(float)));
-        glEnableVertexAttribArray(3);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), reinterpret_cast<void*>(3 * sizeof(float)) );
+        glEnableVertexAttribArray(1);
     }
     else
     {
@@ -323,9 +406,8 @@ int main(int argc, char **argv) {
         //--- Input
         //-----------------------------------------------------
         processInputs(window);
-        glm::mat4 liveTransform = glm::mat4(1.0f);
-        static glm::vec3 move(0.0f);
-        float moveSpeed = 1.0f;
+        glm::vec3 move(0.0f);
+        float moveSpeed = 5.f;
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         {
             move.y += moveSpeed * deltaTime;
@@ -342,7 +424,9 @@ int main(int argc, char **argv) {
         {
             move.x -= moveSpeed * deltaTime;
         }
-        liveTransform = glm::translate(liveTransform, glm::vec3(0.5f, -0.5f, 0.0f) + move);
+        // Rotate the model
+        modelMatrix = glm::translate(modelMatrix, move);
+        modelMatrix = glm::rotate(modelMatrix, glm::radians(50.0f) * deltaTime, glm::vec3(0.f, 0.f, 1.0f));
 
         // Process pending events and update the window state
         glfwPollEvents();
@@ -390,11 +474,13 @@ int main(int argc, char **argv) {
             
         //--- OpenGL Rendering
         shaderProgram.useProgram();
-        shaderProgram.setInt("customTexture2", 1); // Tell our shader about the extra texture uniform
+        glClear(GL_DEPTH_BUFFER_BIT);
         glBindVertexArray(VAO);
         // glUniform4f(customColorLocation, rect_color.x, rect_color.y, rect_color.z, rect_color.w);
         if (renderRect)
         {
+            
+            
             // Send coordinate matrices to the shader
             int locModel = glGetUniformLocation(shaderProgram.getID(), "model");
             glUniformMatrix4fv(locModel, 1, GL_FALSE, glm::value_ptr(modelMatrix));
@@ -410,20 +496,11 @@ int main(int argc, char **argv) {
             glBindTexture(GL_TEXTURE_2D, texture2);
 
             // Update Transform Uniforms
-            liveTransform = glm::rotate(liveTransform, static_cast<float>(glfwGetTime()), glm::vec3(0.0f, 0.0f, 1.0f));
-            glUniformMatrix4fv(liveTransformLoc, 1, GL_FALSE, glm::value_ptr(liveTransform));
+            //liveTransform = glm::rotate(liveTransform, static_cast<float>(glfwGetTime()), glm::vec3(0.0f, 0.0f, 1.0f));
+            //glUniformMatrix4fv(liveTransformLoc, 1, GL_FALSE, glm::value_ptr(liveTransform));
 
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); // Draw based on indicies
-
-            // Draw a second square
-            liveTransform = glm::mat4(1.0f);
-            liveTransform = glm::translate(liveTransform, glm::vec3(-0.5f, 0.5f, 0.0f));
-            liveTransform = glm::rotate(liveTransform, static_cast<float>(glfwGetTime()), glm::vec3(0.0f, 0.0f, 1.0f));
-            liveTransform = glm::scale(liveTransform, glm::vec3(glm::abs(sin(glfwGetTime()))));
-            glUniformMatrix4fv(liveTransformLoc, 1, GL_FALSE, glm::value_ptr(liveTransform));
-
-
-            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); // Draw a second container after updating the transformation
+            glDrawArrays(GL_TRIANGLES, 0, 36);
         }
         else
         {
@@ -432,6 +509,7 @@ int main(int argc, char **argv) {
         // Unbinds
         glBindVertexArray(0); // Unbind the VAO
         glBindTexture(GL_TEXTURE_2D, 0); // Unbind the texture
+        shaderProgram.endProgram();
         
 
         //--- ImGui Window Rendering

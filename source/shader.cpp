@@ -76,6 +76,11 @@ void Xplor::Shader::useProgram()
 	glUseProgram(shaderID);
 }
 
+void Xplor::Shader::endProgram()
+{
+	glUseProgram(0);
+}
+
 void Xplor::Shader::setBool(const std::string& name, bool value) const
 {
 	glUniform1i(glGetUniformLocation(shaderID, name.c_str()), static_cast<int>(value));
