@@ -202,8 +202,8 @@ int main(int argc, char **argv) {
     Xplor::Shader shaderProgram = Xplor::Shader::Shader(vertexShaderPath.c_str(), fragmentShaderPath.c_str());
     shaderProgram.useProgram();    
     // Inform the shader where the texture samplers are located
-    shaderProgram.setInt("customTexture1", 0);
-    shaderProgram.setInt("customTexture2", 1);
+    shaderProgram.setUniform("customTexture1", 0);
+    shaderProgram.setUniform("customTexture2", 1);
     // Enable depth testing
     glEnable(GL_DEPTH_TEST);
     shaderProgram.endProgram();
@@ -211,7 +211,7 @@ int main(int argc, char **argv) {
 
     // Vertex Buffer Setup
     // Rectangle
-    float verticesRectangle[] = {
+    float verticesCube[] = {
     -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
      0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
      0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
@@ -254,24 +254,6 @@ int main(int argc, char **argv) {
     -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
     -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
     };
-    unsigned int indicesRectangle[] = {  // note that we start from 0!
-        0, 1, 3,   // first triangle
-        1, 2, 3    // second triangle
-    };
-
-    // Colored Triangle
-    float verticesColorsTriangle[] = {
-        // positions         // colors
-         0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,   // bottom right
-        -0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   // bottom left
-         0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f    // top
-    };
-    float triangleTexCoords[] = {
-        0.0f, 0.0f, // Bottom Left
-        1.0f, 0.0f, // Bottom Right
-        0.5f, 1.0f  // Top Middle
-        
-    };
     // Cubes
     glm::vec3 cubePositions[] = {
     glm::vec3(0.0f,  0.0f,  0.0f),
@@ -296,41 +278,21 @@ int main(int argc, char **argv) {
 
     glBindVertexArray(VAO); // bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
     glBindBuffer(GL_ARRAY_BUFFER, VBO); // Bind the buffer object to a buffer type
-    bool renderRect = true;
-    if (renderRect)
-    {
-        
-        // Copy data into the buffer object bound to target. The target here
-        // is  GL_ARRAYBUFFER which is bound to the VBO.
-        glBufferData(GL_ARRAY_BUFFER, sizeof(verticesRectangle), verticesRectangle, GL_STATIC_DRAW);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indicesRectangle), indicesRectangle, GL_STATIC_DRAW);
+
+    // Copy data into the buffer object bound to target. The target here
+    // is  GL_ARRAYBUFFER which is bound to the VBO.
+    glBufferData(GL_ARRAY_BUFFER, sizeof(verticesCube), verticesCube, GL_STATIC_DRAW);
 
 
-        // Tell OpenGL how to interpret the vertex data per attribute
-        // Here we are accessing the first attribute and checking the 3 vertex points
-        // which are 4 bytes (32bits) each so our stides need to be in steps of 4. We want
-        // to begin at the start of the array
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), reinterpret_cast<void*>(0));
-        glEnableVertexAttribArray(0);
-        // define and enable texture coordinates input
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), reinterpret_cast<void*>(3 * sizeof(float)) );
-        glEnableVertexAttribArray(1);
-    }
-    else
-    {
-        // Copy colored triangle data into the array buffer
-        glBufferData(GL_ARRAY_BUFFER, sizeof(verticesColorsTriangle), verticesColorsTriangle, GL_STATIC_DRAW);
-
-        // set the stride to 6: We have 3 floats defining vertex pos and 3 defining vertex colors
-        // Position attribute
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), reinterpret_cast<void*>(0));
-        glEnableVertexAttribArray(0);
-        // Color attribute, start at an offset of 3 from the beginning of the array
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), reinterpret_cast<void*>(3 * sizeof(float)));
-        glEnableVertexAttribArray(1); // Enable this vertex attribute
-    }
-
+    // Tell OpenGL how to interpret the vertex data per attribute
+    // Here we are accessing the first attribute and checking the 3 vertex points
+    // which are 4 bytes (32bits) each so our stides need to be in steps of 4. We want
+    // to begin at the start of the array
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), reinterpret_cast<void*>(0));
+    glEnableVertexAttribArray(0);
+    // define and enable texture coordinates input
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), reinterpret_cast<void*>(3 * sizeof(float)) );
+    glEnableVertexAttribArray(1);
 
 
     // Query hardware information
@@ -360,7 +322,7 @@ int main(int argc, char **argv) {
     //---- Render Loop ----
     //-----------------------------------------------------
     glfwSwapInterval(1); // Enables vsync
-    float previousFrameTime = static_cast<float>(glfwGetTime());
+    float previousFrameTime = 0.0f;
     bool show_demo_window = true;
     bool show_another_window = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
@@ -446,48 +408,43 @@ int main(int argc, char **argv) {
         glClear(GL_DEPTH_BUFFER_BIT);
         glBindVertexArray(VAO);
         // glUniform4f(customColorLocation, rect_color.x, rect_color.y, rect_color.z, rect_color.w);
-        if (renderRect)
-        {
             
             
-            // Send coordinate matrices to the shader
-            int locModel = glGetUniformLocation(shaderProgram.getID(), "model");
-            glUniformMatrix4fv(locModel, 1, GL_FALSE, glm::value_ptr(modelMatrix));
-            int locView = glGetUniformLocation(shaderProgram.getID(), "view");
-            glUniformMatrix4fv(locView, 1, GL_FALSE, glm::value_ptr(viewMatrix));
-            int locProjection = glGetUniformLocation(shaderProgram.getID(), "projection");
-            glUniformMatrix4fv(locProjection, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
+        // Send coordinate matrices to the shader
+        int locModel = glGetUniformLocation(shaderProgram.getID(), "model");
+        glUniformMatrix4fv(locModel, 1, GL_FALSE, glm::value_ptr(modelMatrix));
+        int locView = glGetUniformLocation(shaderProgram.getID(), "view");
+        glUniformMatrix4fv(locView, 1, GL_FALSE, glm::value_ptr(viewMatrix));
+        int locProjection = glGetUniformLocation(shaderProgram.getID(), "projection");
+        glUniformMatrix4fv(locProjection, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
 
 
-            glActiveTexture(GL_TEXTURE0); // activate the first texture so it can be bound (this one is bound by default)
-            glBindTexture(GL_TEXTURE_2D, texture1);
-            glActiveTexture(GL_TEXTURE1); // active the second texture so it can also be used
-            glBindTexture(GL_TEXTURE_2D, texture2);
+        glActiveTexture(GL_TEXTURE0); // activate the first texture so it can be bound (this one is bound by default)
+        glBindTexture(GL_TEXTURE_2D, texture1);
+        glActiveTexture(GL_TEXTURE1); // active the second texture so it can also be used
+        glBindTexture(GL_TEXTURE_2D, texture2);
 
-            // Draw 10 cubes
-            glBindVertexArray(VAO);
-            for (unsigned int i = 0; i < 10; i++)
-            {
-                glm::mat4 model = glm::mat4(1.0f);
-                model = glm::translate(model, cubePositions[i]);
-                float angle = 20.0f * i;
-                if (i % 3 == 0)  // every 3rd iteration (including the first) we set the angle using GLFW's time function.
-                    angle = glfwGetTime() * 45.0f;
-                model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-                //shaderProgram.setMat4("model", model);
-                glUniformMatrix4fv(glGetUniformLocation(shaderProgram.getID(), "model"), 1, GL_FALSE, glm::value_ptr(model));
-
-                glDrawArrays(GL_TRIANGLES, 0, 36);
-            }
-
-            // Draw one cube
-            //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); // Draw based on indicies
-            //glDrawArrays(GL_TRIANGLES, 0, 36);
-        }
-        else
+        // Draw 10 cubes
+        glBindVertexArray(VAO);
+        for (unsigned int i = 0; i < 10; i++)
         {
-            glDrawArrays(GL_TRIANGLES, 0, 3); // Draw the tris directly
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, cubePositions[i]);
+            float angle = 20.0f * i;
+            if (i % 3 == 0)  // every 3rd iteration (including the first) we set the angle using GLFW's time function.
+                angle = glfwGetTime() * 45.0f;
+            model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+            //shaderProgram.setMat4("model", model);
+            //glUniformMatrix4fv(glGetUniformLocation(shaderProgram.getID(), "model"), 1, GL_FALSE, glm::value_ptr(model));
+            shaderProgram.setUniform("model", model);
+
+            glDrawArrays(GL_TRIANGLES, 0, 36);
         }
+
+        // Draw one cube
+        //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); // Draw based on indicies
+        //glDrawArrays(GL_TRIANGLES, 0, 36);
+
         // Unbinds
         glBindVertexArray(0); // Unbind the VAO
         glBindTexture(GL_TEXTURE_2D, 0); // Unbind the texture

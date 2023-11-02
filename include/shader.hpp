@@ -2,6 +2,8 @@
 #define SHADER_H
 
 #include <glad/glad.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include <string>
 
@@ -36,28 +38,35 @@ namespace Xplor
 		/// </summary>
 		void endProgram();
 
-		//--- Perhaps refactor these to use generics
 		/// <summary>
-		/// 
+		/// Defines a integer value for the shader
 		/// </summary>
 		/// <param name="name"></param>
 		/// <param name="value"></param>
-		void setBool(const std::string &name, bool value) const;
+		void setUniform(const std::string& name, int value) const;
 
 		/// <summary>
-		/// 
+		/// Defines a 4x4 glm matrix for the shader
 		/// </summary>
 		/// <param name="name"></param>
 		/// <param name="value"></param>
-		void setInt(const std::string &name, int value) const;
+		void setUniform(const std::string& name, glm::mat4 value) const;
 
 		/// <summary>
-		/// 
+		/// Defines a boolean uniform for the shader
 		/// </summary>
 		/// <param name="name"></param>
 		/// <param name="value"></param>
-		void setFloat(const std::string &name, float value) const;
-		// --- End refactor zone
+		void setUniform(const std::string& name, bool value) const;
+
+
+		/// <summary>
+		/// Defines a float uniform for the shader
+		/// </summary>
+		/// <param name="name"></param>
+		/// <param name="value"></param>
+		void setUniform(const std::string& name, float value) const;
+
 
 	protected:
 		// Program ID
