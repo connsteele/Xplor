@@ -12,9 +12,14 @@ out vec2 texCoords2;
 uniform mat4 transform;
 uniform mat4 liveTransform;
 
+// Coordinate Spaces
+uniform mat4 model;
+uniform mat4 view;
+uniform mat4 projection;
+
 void main()
 {
-   gl_Position = liveTransform * vec4(aPos, 1.0);
+   gl_Position = projection * view * model * liveTransform * vec4(aPos, 1.0f);
    ourColor = aColor;
    texCoords1 = aTexCoord;
    texCoords2 = bTexCoord;

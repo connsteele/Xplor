@@ -17,6 +17,14 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     // Set the drawing location to the bottom left of the window and set the rendering area
     // This actually performs the transformation of 2D coordinates to screen locations
     glViewport(0, 0, width, height);
+
+
+    float aspectRatio = static_cast<float>(width) / static_cast<float>(height);
+
+    // Update your projection matrix to match the new aspect ratio
+    // For example, if you're using a perspective projection:
+    // glm::mat4 projection = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 100.0f);
+    // glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(projection));
 }
 
 
@@ -288,6 +296,15 @@ int main(int argc, char **argv) {
     uint32_t liveTransformLoc = glGetUniformLocation(shaderProgram.getID(), "liveTransform");
 
 
+    // 3D Coordinates
+    glm::mat4 modelMatrix = glm::mat4(1.0f);
+    modelMatrix = glm::rotate(modelMatrix, glm::radians(-45.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    glm::mat4 viewMatrix = glm::mat4(1.0f);
+    viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0f, 0.0f, -3.0f)); // move the camera away from the scene
+    glm::mat4 projectionMatrix;
+    projectionMatrix = glm::perspective(glm::radians(70.0f), 1280.f / 720.f, 0.1f, 100.f); // aspect ratio should be recalced on viewport size change
+
+
     //---- Render Loop ----
     //-----------------------------------------------------
     glfwSwapInterval(1); // Enables vsync
@@ -378,6 +395,15 @@ int main(int argc, char **argv) {
         // glUniform4f(customColorLocation, rect_color.x, rect_color.y, rect_color.z, rect_color.w);
         if (renderRect)
         {
+            // Send coordinate matrices to the shader
+            int locModel = glGetUniformLocation(shaderProgram.getID(), "model");
+            glUniformMatrix4fv(locModel, 1, GL_FALSE, glm::value_ptr(modelMatrix));
+            int locView = glGetUniformLocation(shaderProgram.getID(), "view");
+            glUniformMatrix4fv(locView, 1, GL_FALSE, glm::value_ptr(viewMatrix));
+            int locProjection = glGetUniformLocation(shaderProgram.getID(), "projection");
+            glUniformMatrix4fv(locProjection, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
+
+
             glActiveTexture(GL_TEXTURE0); // activate the first texture so it can be bound (this one is bound by default)
             glBindTexture(GL_TEXTURE_2D, texture1);
             glActiveTexture(GL_TEXTURE1); // active the second texture so it can also be used
