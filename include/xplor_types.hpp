@@ -19,7 +19,7 @@ namespace Xplor {
 
 
 	// This should be moved to its own file later
-	struct componentTransform {
+	struct Transform {
 		glm::mat4 model;
 	};
 

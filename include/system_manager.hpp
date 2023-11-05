@@ -25,7 +25,15 @@ namespace Xplor
 		}
 
 		template<typename T>
-		void SetMask(EntityMask mask);
+		void SetMask(EntityMask mask)
+		{
+			const char* systemTypeName = typeid(T).name();
+
+			assert(m_mapSystems.find(systemTypeName) != m_mapSystems.end()
+				&& "System cannot be found: Register system before using");
+
+			m_mapMasks.insert({ systemTypeName, mask });
+		}
 
 		void EntityDeleted(EntityID entity);
 

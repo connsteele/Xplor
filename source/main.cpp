@@ -144,10 +144,18 @@ int main(int argc, char **argv) {
     Xplor::EngineManager engineManager;
     engineManager.Init();
     Xplor::EntityID gameObj = engineManager.CreateEntity();
-    engineManager.RegisterComponent<Xplor::componentTransform>();
-    engineManager.AddComponent(gameObj, Xplor::componentTransform{glm::mat4(1.0f)});
+    engineManager.RegisterComponent<Xplor::Transform>();
+    engineManager.AddComponent(gameObj, Xplor::Transform{glm::mat4(1.0f)});
+    Xplor::Transform comp = engineManager.GetComponent<Xplor::Transform>(gameObj);
+    Xplor::ComponentType compType = engineManager.GetComponentType<Xplor::Transform>();
+    engineManager.RemoveComponent<Xplor::Transform>(gameObj);
+
+    Xplor::EntityMask eMask;
     engineManager.RegisterSystem<Xplor::RenderSystem>();
+    engineManager.SetSystemMask<Xplor::RenderSystem>(eMask);
     Xplor::EntityID id = engineManager.CreateEntity();
+
+    engineManager.DeleteEntity(gameObj);
 
 
 

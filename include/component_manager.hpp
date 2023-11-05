@@ -51,10 +51,18 @@ namespace Xplor
 		}
 
 		template<typename T>
-		void RemoveComponent(EntityID entity);
+		void RemoveComponent(EntityID entity)
+		{
+			// Remove a component element from the component array for an entity
+			GetComponentArray<T>()->RemoveData(entity);
+		}
 
 		template <typename T>
-		T& GetComponent(EntityID entity);
+		T& GetComponent(EntityID entity)\
+		{
+			// Get component element to the component array for an entity
+			return GetComponentArray<T>()->GetData(entity);
+		}
 
 
 		void EntityDestroyed(EntityID entity);

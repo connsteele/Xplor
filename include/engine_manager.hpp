@@ -54,13 +54,30 @@ namespace Xplor
         }
 
         template<typename T>
-        void RemoveComponent(EntityID entity);
+        void RemoveComponent(EntityID entity)
+        {
+            m_componentManager->RemoveComponent<T>(entity);
+
+            // Update the bitmask assocaited with the entity
+            auto mask = m_entityManager->GetMask(entity);
+            mask.set(m_componentManager->GetComponentType<T>(), false);
+            m_entityManager->SetMask(entity, mask);
+
+            // Alert the system manager of a mask change
+            m_systemManager->EntityMaskChange(entity, mask);
+        }
 
         template<typename T>
-        T& GetComponent(EntityID entity);
+        T& GetComponent(EntityID entity)
+        {
+            return m_componentManager->GetComponent<T>(entity);
+        }
 
         template<typename T>
-        ComponentType GetComponentType();
+        ComponentType GetComponentType()
+        {
+            return m_componentManager->GetComponentType<T>();
+        }
 
         //----- System Methods
         template<typename T>
@@ -70,7 +87,10 @@ namespace Xplor
         }
 
         template<typename T>
-        void SetSystemMask(EntityMask mask);
+        void SetSystemMask(EntityMask mask)
+        {
+            m_systemManager->SetMask<T>(mask);
+        }
 
 
     private:

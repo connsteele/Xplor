@@ -1,17 +1,6 @@
 #include <system_manager.hpp>
 
 
-template<typename T>
-void Xplor::SystemManager::SetMask(EntityMask mask)
-{
-	const char* systemTypeName = typeid(T).name();
-
-	assert(m_mapSystems.find(typeName) != m_mapSystems.end()
-		&& "System cannot be found: Register system before using");
-
-	m_mapMasks.insert({systemTypeName, mask});
-}
-
 void Xplor::SystemManager::EntityDeleted(EntityID entity)
 {
 	// Erase a destroyed entity from all system lists
