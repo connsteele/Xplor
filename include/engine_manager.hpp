@@ -33,7 +33,10 @@ namespace Xplor
 
         //----- Component Methods
         template<typename T>
-        void RegisterComponent();
+        void RegisterComponent()
+        {
+            m_componentManager->RegisterComponent<T>();
+        }
 
         template<typename T>
         void AddComponent(EntityID entity, T component);

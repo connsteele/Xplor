@@ -14,10 +14,25 @@ namespace Xplor
 		// I want to change this to work with my component class instead
 		// probably
 		template<typename T>
-		void RegisterComponent();
+		void RegisterComponent()
+		{
+			const char* typeName = typeid(T).name();
+
+			assert((m_mapComponentTypes.find(typeName) == m_mapComponentTypes.end())
+				&& "Cannot register a component type more than once");
+
+			// Add the component type to the map
+			m_mapComponentTypes.insert({ typeName, m_freeComponentType });
+
+			// Create a component array for the new component type and add it to the map
+			m_mapComponentArrays.insert({ typeName, std::make_shared < ComponentArray<T> >() });
+
+			m_freeComponentType++;
+
+		}
 
 		template<typename T>
-		Component GetComponentType();
+		ComponentType GetComponentType();
 
 		template<typename T>
 		void AddComponent(EntityID entity, T component);

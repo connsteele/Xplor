@@ -22,7 +22,7 @@ void Xplor::ComponentArray<T>::DeleteData(EntityID entityID)
 {
 	// make sure the component exists before carrying through
 	assert((m_mapEntityToIndex.find(entityID) != m_mapEntityToIndex.end())
-	&& "Cannot delete, component not found in entity")
+		&& "Cannot delete, component not found in entity");
 
 	// Move the last element into the deleted elements spot
 	size_t indexReplace = m_mapEntityToIndex[entityID];
@@ -49,11 +49,10 @@ void Xplor::ComponentArray<T>::EntityDeleted(EntityID entityID)
 {
 	// Notify each component array that an entity has been destroyed
 	// If it has a component for that entity, it will remove it
-	for (auto const& pair : m_mapComponentArrays)
+	if (m_mapEntityToIndex.find(entityID) != m_mapEntityToIndex.end())
 	{
-		auto const& component = pair.second;
-
-		component->EntityDeleted(entity);
+		// Remove the entity's component if it existed
+		DeleteData(entityID);
 	}
 }
 
@@ -67,3 +66,4 @@ T& Xplor::ComponentArray<T>::GetData(EntityID entityID)
 }
 
 
+template void Xplor::ComponentArray<Xplor::componentTransform>::EntityDeleted(EntityID entityID);

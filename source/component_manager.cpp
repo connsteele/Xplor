@@ -1,25 +1,9 @@
 #include <component_manager.hpp>
+#include <transform_component.hpp>
 
-template <typename T>
-void Xplor::ComponentManager::RegisterComponent()
-{
-	const char* typeName = typeid(T).name();
-
-	assert((m_mapComponentTypes.find(typeName) == m_mapComponentTypes.end())
-		&& "Cannot register a component type more than once");
-
-	// Add the component type to the map
-	m_mapComponentTypes.insert({ typeName, m_freeComponentType });
-
-	// Create a component array for the new component type and add it to the map
-	m_mapComponentArrays.insert({ typename, std::make_shared < ComponentArray<T> >() });
-
-	m_freeComponentType++;
-
-}
 
 template<typename T>
-Xplor::Component Xplor::ComponentManager::GetComponentType()
+Xplor::ComponentType Xplor::ComponentManager::GetComponentType()
 {
 	const char* typeName = typeid(T).name();
 
@@ -72,6 +56,7 @@ void Xplor::ComponentManager::EntityDestroyed(EntityID entity)
 	{
 		auto const& component = pair.second;
 
-		component->EntityDestroyed(entity);
+		component->EntityDeleted(entity);
 	}
 }
+

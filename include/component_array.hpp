@@ -2,6 +2,7 @@
 
 #include <xplor_types.hpp>
 #include <unordered_map>
+#include <array>
 
 // Uses virtual inheritance, this interface is used to the component manager
 // can tell generic component arrays an entity has been destroyed and update
@@ -10,7 +11,7 @@ class IComponentArray
 {
 public:
 	virtual ~IComponentArray() = default;
-	virtual void EntityDestroyed(Xplor::EntityID entityID) = 0;
+	virtual void EntityDeleted(Xplor::EntityID entityID) = 0;
 };
 
 namespace Xplor

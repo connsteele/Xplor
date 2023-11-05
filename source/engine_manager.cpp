@@ -1,4 +1,5 @@
 #include "engine_manager.hpp"
+#include "transform_component.hpp"
 
 void Xplor::EngineManager::Init()
 {
@@ -17,12 +18,6 @@ void Xplor::EngineManager::DeleteEntity(EntityID entity)
 	m_entityManager->DeleteEntity(entity);
 }
 
-
-template<typename T>
-void Xplor::EngineManager::RegisterComponent()
-{
-	m_componentManager->RegisterComponent<T>();
-}
 
 template<typename T>
 void Xplor::EngineManager::AddComponent(EntityID entity, T component)
@@ -73,10 +68,7 @@ std::shared_ptr<T> Xplor::EngineManager::RegisterSystem()
 }
 
 template<typename T>
-void Xplor::EngineManager::SetSystemMask(EntityMask mask)
+void Xplor::EngineManager::SetSystemMask(Xplor::EntityMask mask)
 {
 	m_systemManager->SetMask<T>(mask);
 }
-
-
-
