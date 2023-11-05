@@ -39,7 +39,19 @@ namespace Xplor
         }
 
         template<typename T>
-        void AddComponent(EntityID entity, T component);
+        void AddComponent(EntityID entity, T component)
+        {
+            // Update the relevant component array
+            m_componentManager->AddComponent<T>(entity, component);
+
+            // Set the bitmask associated with the entity
+            auto mask = m_entityManager->GetMask(entity);
+            mask.set(m_componentManager->GetComponentType<T>(), true);
+            m_entityManager->SetMask(entity, mask);
+
+            // Alert the system manager of a mask change
+            m_systemManager->EntityMaskChange(entity, mask);
+        }
 
         template<typename T>
         void RemoveComponent(EntityID entity);

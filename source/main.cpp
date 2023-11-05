@@ -142,7 +142,9 @@ int main(int argc, char **argv) {
     //---------------------------------
     Xplor::EngineManager engineManager;
     engineManager.Init();
+    Xplor::EntityID gameObj = engineManager.CreateEntity();
     engineManager.RegisterComponent<Xplor::componentTransform>();
+    engineManager.AddComponent(gameObj, Xplor::componentTransform{glm::mat4(1.0f)});
     //engineManager.RegisterSystem<int>();
     Xplor::EntityID id = engineManager.CreateEntity();
 

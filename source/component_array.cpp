@@ -1,23 +1,6 @@
 #include <component_array.hpp>
 
 template<typename T>
-void Xplor::ComponentArray<T>::AddData(EntityID entityID, T component)
-{
-	// Get the entry at the end of the array
-	size_t index = m_activeSize;
-	// Update mappings
-	m_mapEntityToIndex[entityID] = index;
-	m_mapIndexToEntity[index] = entityID;
-	// Actually put the component into the array
-	m_components[index] = component;
-
-	// Update where the end of the active array is
-	m_activeSize++;
-
-	return;
-}
-
-template<typename T>
 void Xplor::ComponentArray<T>::DeleteData(EntityID entityID)
 {
 	// make sure the component exists before carrying through

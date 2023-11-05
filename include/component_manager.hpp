@@ -32,10 +32,23 @@ namespace Xplor
 		}
 
 		template<typename T>
-		ComponentType GetComponentType();
+		ComponentType GetComponentType()
+		{
+			const char* typeName = typeid(T).name();
+
+			assert((m_mapComponentTypes.find(typeName) != m_mapComponentTypes.end()) &&
+				"Component type is not registered");
+
+			// Return the component type to create masks
+			return m_mapComponentTypes[typeName];
+		}
 
 		template<typename T>
-		void AddComponent(EntityID entity, T component);
+		void AddComponent(EntityID entity, T component)
+		{
+			// Add a component element to the component array for an entity
+			GetComponentArray<T>()->AddData(entity, component);
+		}
 
 		template<typename T>
 		void RemoveComponent(EntityID entity);
@@ -59,7 +72,15 @@ namespace Xplor
 
 		// Convenience function to get the statically casted pointer to the ComponentArray of type T.
 		template<typename T>
-		std::shared_ptr<ComponentArray<T>> GetComponentArray();
+		std::shared_ptr<ComponentArray<T>> GetComponentArray()
+		{
+			const char* typeName = typeid(T).name();
+
+			assert((m_mapComponentTypes.find(typeName) != m_mapComponentTypes.end())
+				&& "Component not registered");
+
+			return std::static_pointer_cast<ComponentArray<T>>(m_mapComponentArrays[typeName]);
+		}
 
 	}; // end class
 }; // end namespace

@@ -22,7 +22,21 @@ namespace Xplor
 
 	public:
 
-		void AddData(EntityID entityID, T component);
+		void AddData(EntityID entityID, T component)
+		{
+			// Get the entry at the end of the array
+			size_t index = m_activeSize;
+			// Update mappings
+			m_mapEntityToIndex[entityID] = index;
+			m_mapIndexToEntity[index] = entityID;
+			// Actually put the component into the array
+			m_components[index] = component;
+
+			// Update where the end of the active array is
+			m_activeSize++;
+
+			return;
+		}
 
 		void DeleteData(EntityID entityID);
 
@@ -48,7 +62,7 @@ namespace Xplor
 
 
 		// Current active array size
-		size_t m_activeSize;
+		size_t m_activeSize{};
 
 
 	}; // end class
