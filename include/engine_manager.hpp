@@ -64,7 +64,10 @@ namespace Xplor
 
         //----- System Methods
         template<typename T>
-        std::shared_ptr<T> RegisterSystem();
+        std::shared_ptr<T> RegisterSystem()
+        {
+            return m_systemManager->RegisterSystem<T>();
+        }
 
         template<typename T>
         void SetSystemMask(EntityMask mask);

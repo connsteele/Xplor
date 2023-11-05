@@ -46,12 +46,6 @@ Xplor::ComponentType Xplor::EngineManager::GetComponentType()
 }
 
 template<typename T>
-std::shared_ptr<T> Xplor::EngineManager::RegisterSystem()
-{
-	return m_systemManager->RegisterSystem<T>();
-}
-
-template<typename T>
 void Xplor::EngineManager::SetSystemMask(Xplor::EntityMask mask)
 {
 	m_systemManager->SetMask<T>(mask);

@@ -12,6 +12,7 @@
 // #include "transform_component.hpp"
 #include "shader.hpp"
 #include "engine_manager.hpp"
+#include "render_system.hpp"
 
 // Implement the GLFW callback function prototype
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
@@ -145,7 +146,7 @@ int main(int argc, char **argv) {
     Xplor::EntityID gameObj = engineManager.CreateEntity();
     engineManager.RegisterComponent<Xplor::componentTransform>();
     engineManager.AddComponent(gameObj, Xplor::componentTransform{glm::mat4(1.0f)});
-    //engineManager.RegisterSystem<int>();
+    engineManager.RegisterSystem<Xplor::RenderSystem>();
     Xplor::EntityID id = engineManager.CreateEntity();
 
 

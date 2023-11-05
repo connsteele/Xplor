@@ -17,6 +17,7 @@ set(
     source/component.cpp
     source/transform_component.cpp
     source/system.cpp
+    source/render_system.cpp
     include/xplor_types.hpp
     include/shader.hpp
     include/engine_manager.hpp
@@ -27,6 +28,7 @@ set(
     include/component.hpp
     include/transform_component.hpp
     include/system.hpp
+    include/render_system.hpp
     third-party/stb/stb_image.cpp
 )
 

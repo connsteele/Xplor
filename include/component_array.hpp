@@ -47,7 +47,7 @@ namespace Xplor
 
 	private:
 		// Packed array of components (of type T)
-		std::array<T, MAX_ENTITIES> m_components;
+		std::array<T, MAX_ENTITIES> m_components{};
 
 
 		// NOTE: unordered maps have a performance penatly since it is
@@ -55,10 +55,10 @@ namespace Xplor
 		// like find, insert and delete allowing for easy checking
 
 		// Map from an EntityID to a component array index
-		std::unordered_map<EntityID, size_t> m_mapEntityToIndex;
+		std::unordered_map<EntityID, size_t> m_mapEntityToIndex{};
 
 		// Map from a component array index to an EntityID
-		std::unordered_map<size_t, EntityID> m_mapIndexToEntity;
+		std::unordered_map<size_t, EntityID> m_mapIndexToEntity{};
 
 
 		// Current active array size

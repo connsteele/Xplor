@@ -1,18 +1,5 @@
 #include <system_manager.hpp>
 
-template<typename T>
-std::shared_ptr<T> Xplor::SystemManager::RegisterSystem()
-{
-	const char* systemTypeName = typeid(T).name();
-
-	assert(m_mapSystems.find(typeName) == m_mapSystems.end()
-		&& "Cannot register system: System is already registered");
-
-	// Create a pointer to the system
-	auto system = std::make_shared<T>();
-	m_mapSystems.insert({systemTypeName, system});
-	return system
-}
 
 template<typename T>
 void Xplor::SystemManager::SetMask(EntityMask mask)
