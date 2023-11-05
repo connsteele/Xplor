@@ -9,7 +9,9 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 #include <memory>
+// #include "transform_component.hpp"
 #include "shader.hpp"
+#include "engine_manager.hpp"
 
 // Implement the GLFW callback function prototype
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
@@ -87,7 +89,6 @@ struct imgData
     unsigned char* data;
 };
 
-
 int main(int argc, char **argv) {
     //---- Setup dependencies ----
     //-----------------------------------------------------
@@ -135,7 +136,17 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    std::string resources = "..//resources";
+    const std::string resources = "..//resources";
+
+    //----- Create the engine manager
+    //---------------------------------
+    Xplor::EngineManager engineManager;
+    engineManager.Init();
+    engineManager.RegisterComponent<Xplor::componentTransform>();
+    //engineManager.RegisterSystem<int>();
+    Xplor::EntityID id = engineManager.CreateEntity();
+
+
 
     //--- Image Loading
     imgData imageBox;
@@ -308,7 +319,6 @@ int main(int argc, char **argv) {
 
     // Transformations
     uint32_t liveTransformLoc = glGetUniformLocation(shaderProgram.getID(), "liveTransform");
-
 
     // 3D Coordinates
     glm::mat4 modelMatrix = glm::mat4(1.0f);

@@ -1,22 +1,46 @@
 cmake_minimum_required(VERSION 3.27)
 set(CMAKE_CXX_STANDARD 17) # Sets C++ Version
 
-# Define the Project name and add source files
+# Define the projects name and add source files
+project(Xplor-Editor)
 project(Xplor-Engine)
 
 set(
-    SOURCES 
+    SOURCES_ENGINE
     source/main.cpp
     source/shader.cpp
+    source/engine_manager.cpp
+    source/entity_manager.cpp
+    source/component_array.cpp
+    source/component_manager.cpp
+    source/system_manager.cpp
+    source/component.cpp
+    source/transform_component.cpp
+    source/system.cpp
+    include/xplor_types.hpp
     include/shader.hpp
+    include/engine_manager.hpp
+    include/entity_manager.hpp
+    include/component_array.hpp
+    include/component_manager.hpp
+    include/system_manager.hpp
+    include/component.hpp
+    include/transform_component.hpp
+    include/system.hpp
     third-party/stb/stb_image.cpp
 )
 
+set(
+    SOURCES_EDITOR
+    source/main.cpp
+)
+
 # file(GLOB SOURCES "source/*.cpp") # Just get all .cpp files
-add_executable(${CMAKE_PROJECT_NAME} ${SOURCES})
+# ${CMAKE_PROJECT_NAME} returns the last project set
+add_executable(Xplor-Engine ${SOURCES_ENGINE})
+add_executable(Xplor-Editor ${SOURCES_EDITOR})
 # Set start up project
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT Xplor-Engine)
-
 
 #--------------  Dependencies --------------
 
