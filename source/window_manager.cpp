@@ -103,3 +103,14 @@ void WindowManager::SetVsync(VsyncInterval interval)
 	glfwSwapInterval(static_cast<int>(interval));
 }
 
+void WindowManager::PrintHardwareInfo()
+{
+	auto vendor = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
+	auto openglVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+	auto renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
+	std::cout << "Vendor: " << vendor << "\nRenderer: " << renderer << std::endl;
+	int major, minor;
+	glGetIntegerv(GL_MAJOR_VERSION, &major);
+	glGetIntegerv(GL_MINOR_VERSION, &minor);
+	std::cout << "OpenGL Version: " << major << "." << minor << std::endl;
+}

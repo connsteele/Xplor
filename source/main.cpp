@@ -10,25 +10,8 @@
 // #include "transform_component.hpp"
 #include "shader.hpp"
 #include "engine_manager.hpp"
-#include "render_system.hpp"
 #include "window_manager.hpp"
-
-
-
-
-
-
-void printHardwareInfo()
-{
-    auto vendor = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
-    auto openglVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
-    auto renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
-    std::cout << "Vendor: " << vendor << "\nRenderer: " << renderer << std::endl;
-    int major, minor;
-    glGetIntegerv(GL_MAJOR_VERSION, &major);
-    glGetIntegerv(GL_MINOR_VERSION, &minor);
-    std::cout << "OpenGL Version: " << major << "." << minor << std::endl;
-}
+#include "game_object.hpp"
 
 struct imgData
 {
@@ -44,75 +27,67 @@ int main(int argc, char **argv) {
     WindowManager windowManager;
     windowManager.Init();
 
+    Xplor::PropObject cube;
+
 
     const std::string resources = "..//resources";
 
     //----- Create the engine manager
     //---------------------------------
-    Xplor::EngineManager engineManager;
-    engineManager.Init();
-    Xplor::EntityID gameObj = engineManager.CreateEntity();
-    engineManager.RegisterComponent<Xplor::Transform>();
-    engineManager.AddComponent(gameObj, Xplor::Transform{glm::mat4(1.0f)});
-    Xplor::Transform comp = engineManager.GetComponent<Xplor::Transform>(gameObj);
-    Xplor::ComponentType compType = engineManager.GetComponentType<Xplor::Transform>();
-    engineManager.RemoveComponent<Xplor::Transform>(gameObj);
-
-    Xplor::EntityMask eMask;
-    engineManager.RegisterSystem<Xplor::RenderSystem>();
-    engineManager.SetSystemMask<Xplor::RenderSystem>(eMask);
-    Xplor::EntityID id = engineManager.CreateEntity();
-
-    engineManager.DeleteEntity(gameObj);
 
 
 
     //--- Image Loading
-    imgData imageBox;
-    stbi_set_flip_vertically_on_load(true); // Align the coordinates
-    std::string imagePath = resources + "//images//woodBox.jpg";
-    // Fill Variables with image data
-    imageBox.data = stbi_load(imagePath.c_str(), &imageBox.width, &imageBox.height, &imageBox.channels, 0);
-    if (!imageBox.data)
-    {
-        std::cout << "Error: Image failed to load" << std::endl;
-    }
-    //--- Texture generation
-    uint32_t texture1;
-    // Generate one texture and store it
-    glGenTextures(1, &texture1);
-    // Bind the texture
-    glBindTexture(GL_TEXTURE_2D, texture1);
-    // Set the texture filtering and wrapping
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    // Generate the bound texture
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imageBox.width, imageBox.height, 0, GL_RGB, GL_UNSIGNED_BYTE, imageBox.data);
-    // Generate mipmaps for the bound texture
-    glGenerateMipmap(GL_TEXTURE_2D);
-    // Free the image data once the texture has been created
-    stbi_image_free(imageBox.data);
+    cube.AddTexture("//images//woodBox.jpg", Xplor::ImageFormat::jpg);
+    //cube.InitTexture();
+    cube.AddTexture("//images//dog.png", Xplor::ImageFormat::png);
+    //cube.InitTexture();
 
-    // Get the second texture
-    imgData imageDog;
-    imagePath = resources + "//images//dog.png";
-    imageDog.data = stbi_load(imagePath.c_str(), &imageDog.width, &imageDog.height, &imageDog.channels, 0);
-    if (!imageDog.data) 
-    {
-        std::cout << "Error: Image failed to load" << std::endl;
-    }
-    uint32_t texture2;
-    glGenTextures(1, &texture2);
-    glBindTexture(GL_TEXTURE_2D, texture2);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageDog.width, imageDog.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageDog.data);
-    glGenerateMipmap(GL_TEXTURE_2D);
-    stbi_image_free(imageDog.data);
+    //imgData imageBox;
+    //stbi_set_flip_vertically_on_load(true); // Align the coordinates
+    //std::string imagePath = resources + "//images//woodBox.jpg";
+    //// Fill Variables with image data
+    //imageBox.data = stbi_load(imagePath.c_str(), &imageBox.width, &imageBox.height, &imageBox.channels, 0);
+    //if (!imageBox.data)
+    //{
+    //    std::cout << "Error: Image failed to load" << std::endl;
+    //}
+    ////--- Texture generation
+    //uint32_t texture1;
+    //// Generate one texture and store it
+    //glGenTextures(1, &texture1);
+    //// Bind the texture
+    //glBindTexture(GL_TEXTURE_2D, texture1);
+    //// Set the texture filtering and wrapping
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    //// Generate the bound texture
+    //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imageBox.width, imageBox.height, 0, GL_RGB, GL_UNSIGNED_BYTE, imageBox.data);
+    //// Generate mipmaps for the bound texture
+    //glGenerateMipmap(GL_TEXTURE_2D);
+    //// Free the image data once the texture has been created
+    //stbi_image_free(imageBox.data);
+
+    //// Get the second texture
+    //imgData imageDog;
+    //imagePath = resources + "//images//dog.png";
+    //imageDog.data = stbi_load(imagePath.c_str(), &imageDog.width, &imageDog.height, &imageDog.channels, 0);
+    //if (!imageDog.data) 
+    //{
+    //    std::cout << "Error: Image failed to load" << std::endl;
+    //}
+    //uint32_t texture2;
+    //glGenTextures(1, &texture2);
+    //glBindTexture(GL_TEXTURE_2D, texture2);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageDog.width, imageDog.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageDog.data);
+    //glGenerateMipmap(GL_TEXTURE_2D);
+    //stbi_image_free(imageDog.data);
 
    
 
@@ -218,7 +193,7 @@ int main(int argc, char **argv) {
 
 
     // Query hardware information
-    printHardwareInfo();
+    windowManager.PrintHardwareInfo();
 
 
 
@@ -249,7 +224,7 @@ int main(int argc, char **argv) {
     ImVec4 rect_color = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
     
     // The main loop should live in main or the engine manager
-    while (!glfwWindowShouldClose(windowManager.m_window)) // Render till the close flag is true
+    while (!glfwWindowShouldClose(windowManager.m_window)) // Need to setup my own events for this to work better
     {
         //--- Update Delta Time
         float currentFrameTime = static_cast<float>(glfwGetTime());
@@ -285,10 +260,12 @@ int main(int argc, char **argv) {
         glUniformMatrix4fv(locProjection, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
 
 
-        glActiveTexture(GL_TEXTURE0); // activate the first texture so it can be bound (this one is bound by default)
-        glBindTexture(GL_TEXTURE_2D, texture1);
-        glActiveTexture(GL_TEXTURE1); // active the second texture so it can also be used
-        glBindTexture(GL_TEXTURE_2D, texture2);
+        // Bind Relevant Textures
+        for (int i = 0; i < cube.m_textures.size(); i++)
+        {
+            glActiveTexture(GL_TEXTURE0 + i);
+            glBindTexture(GL_TEXTURE_2D, cube.m_textures[i]);
+        }
 
         // Draw 10 cubes
         glBindVertexArray(VAO);

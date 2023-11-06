@@ -26,6 +26,8 @@ public:
 
 	void SetVsync(VsyncInterval interval);
 
+	void PrintHardwareInfo();
+
 	// Should make this private
 	GLFWwindow* m_window{};
 

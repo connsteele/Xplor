@@ -10,29 +10,15 @@ set(
     source/main.cpp
     source/shader.cpp
     source/engine_manager.cpp
-    source/entity_manager.cpp
-    source/component_array.cpp
-    source/component_manager.cpp
-    source/system_manager.cpp
-    source/component.cpp
-    source/transform_component.cpp
-    source/system.cpp
-    source/render_system.cpp
     source/matrix_stack.cpp
     source/window_manager.cpp
+    source/game_object.cpp
     include/xplor_types.hpp
     include/shader.hpp
     include/engine_manager.hpp
-    include/entity_manager.hpp
-    include/component_array.hpp
-    include/component_manager.hpp
-    include/system_manager.hpp
-    include/component.hpp
-    include/transform_component.hpp
-    include/system.hpp
-    include/render_system.hpp
     include/matrix_stack.hpp
     include/window_manager.hpp
+    include/game_object.hpp
     third-party/stb/stb_image.cpp
 )
 
