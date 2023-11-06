@@ -1,8 +1,6 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
 #include <stb_image.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -13,62 +11,12 @@
 #include "shader.hpp"
 #include "engine_manager.hpp"
 #include "render_system.hpp"
-
-// Implement the GLFW callback function prototype
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
-    // Set the drawing location to the bottom left of the window and set the rendering area
-    // This actually performs the transformation of 2D coordinates to screen locations
-    glViewport(0, 0, width, height);
+#include "window_manager.hpp"
 
 
-    float aspectRatio = static_cast<float>(width) / static_cast<float>(height);
-
-    // Update your projection matrix to match the new aspect ratio
-    // For example, if you're using a perspective projection:
-    // glm::mat4 projection = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 100.0f);
-    // glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(projection));
-}
 
 
-// Handle all incoming keyboard and mouse events
-void processInputs(GLFWwindow* window)
-{
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-    {
-        // Enable the close window flag
-        glfwSetWindowShouldClose(window, true);
-    }
-}
 
-bool setupImGui(GLFWwindow* window, ImGuiIO& ioOut)
-{
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    // Enable IO flags
-    ioOut = ImGui::GetIO(); (void)ioOut;
-    ioOut.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-    // Setup Dear ImGui style
-    ImGui::StyleColorsDark();
-    const char* glsl_version = "#version 330";
-    // Setup Platform/Renderer backends
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
-    ImGui_ImplOpenGL3_Init(glsl_version);
-
-    // If everything worked return true
-    return true;
-}
-
-/// <summary>
-/// Create a new ImGui frame using GLFW
-/// </summary>
-void new_ImGui_Frame()
-{
-    // Start the Dear ImGui frame
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
-}
 
 void printHardwareInfo()
 {
@@ -91,51 +39,11 @@ struct imgData
 };
 
 int main(int argc, char **argv) {
-    //---- Setup dependencies ----
-    //-----------------------------------------------------
-    if (!glfwInit())
-    {
-        std::cout << "Failed to initialize GLFW" << std::endl;
-        return -1;
-    }
+   
+    //---- Setup ----
+    WindowManager windowManager;
+    windowManager.Init();
 
-
-
-    //---- Set the attributes for the window ----
-    //-----------------------------------------------------
-    // Set the context to use OpenGL 3.3
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    // Set OpenGL to Core-profile mode
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    // Setup a smart pointer for our window and call destroyWindow when it goes out of scope
-    int windowWidth = 1280;
-    int windowHeight = 720;
-    GLFWwindow* window = glfwCreateWindow(windowWidth, windowHeight, "XplorEngine", NULL, NULL);
-
-    // Cleanup GLFW if the window creation fails
-    if (!window)
-    {
-        std::cout << "Failed to create a GLFW window" << std::endl;
-        glfwTerminate();
-        return -1;
-    }
-    glfwMakeContextCurrent(window);
-    
-    // Register the frame buffer size callback to upate the viewport when the window
-    // changes size
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
-
-    // Give GLAD the address of OpenGL function pointers GLFW
-    // will give us the right ones for the OS we are using
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-    {
-        // GLAD need to have a context to check the OpenGL version against
-        std::cout << "Failed to initialize GLAD" << std::endl;
-        return -1;
-    }
 
     const std::string resources = "..//resources";
 
@@ -206,14 +114,6 @@ int main(int argc, char **argv) {
     glGenerateMipmap(GL_TEXTURE_2D);
     stbi_image_free(imageDog.data);
 
-
-
-    // ImGui Setup
-    ImGuiIO io;
-    if (!setupImGui(window, io))
-    {
-        // Throw error
-    }
    
 
     //--- Shader Creation
@@ -342,13 +242,14 @@ int main(int argc, char **argv) {
 
     //---- Render Loop ----
     //-----------------------------------------------------
-    glfwSwapInterval(1); // Enables vsync
     float previousFrameTime = 0.0f;
     bool show_demo_window = true;
     bool show_another_window = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
     ImVec4 rect_color = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
-    while (!glfwWindowShouldClose(window)) // Render till the close flag is true
+    
+    // The main loop should live in main or the engine manager
+    while (!glfwWindowShouldClose(windowManager.m_window)) // Render till the close flag is true
     {
         //--- Update Delta Time
         float currentFrameTime = static_cast<float>(glfwGetTime());
@@ -357,64 +258,8 @@ int main(int argc, char **argv) {
 
         //--- Input
         //-----------------------------------------------------
-        processInputs(window);
-        glm::vec3 move(0.0f);
-        float moveSpeed = 5.f;
-        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        {
-            move.y += moveSpeed * deltaTime;
-        }
-        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        {
-            move.y -= moveSpeed * deltaTime;
-        }
-        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        {
-            move.x += moveSpeed * deltaTime;
-        }
-        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        {
-            move.x -= moveSpeed * deltaTime;
-        }
-        // Rotate the model
-        //modelMatrix = glm::translate(modelMatrix, move);
-        modelMatrix = glm::rotate(modelMatrix, glm::radians(50.0f) * deltaTime, glm::vec3(0.f, 0.f, 1.0f));
 
-        // Process pending events and update the window state
-        glfwPollEvents();
-
-        //--- ImGui
-        //-----------------------------------------------------
-        new_ImGui_Frame();
-        {
-            static float f = 0.0f;
-            static int counter = 0;
-
-            ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
-
-            ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-            ImGui::Checkbox("Another Window", &show_another_window);
-
-            ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-            ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
-            ImGui::ColorEdit3("rectangle color", (float*)&rect_color); // Edit 3 floats representing a color
-
-            if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-                counter++;
-            ImGui::SameLine();
-            ImGui::Text("counter = %d", counter);
-
-            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-            ImGui::End();
-        }
-        if (show_another_window)
-        {
-            ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-            ImGui::Text("Hello from another window!");
-            if (ImGui::Button("Close Me"))
-                show_another_window = false;
-            ImGui::End();
-        }
+        windowManager.ProcessEvents();
 
 
         // Rendering commands
@@ -470,19 +315,11 @@ int main(int argc, char **argv) {
         glBindVertexArray(0); // Unbind the VAO
         glBindTexture(GL_TEXTURE_2D, 0); // Unbind the texture
         shaderProgram.endProgram();
-        
-
-        //--- ImGui Window Rendering
-        ImGui::Render();
-        int display_w, display_h;
-        glfwGetFramebufferSize(window, &display_w, &display_h);
-        glViewport(0, 0, display_w, display_h);
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 
 
         // Swap the front and back buffers
-        glfwSwapBuffers(window);
+        windowManager.Update();
     }
 
     
@@ -492,10 +329,5 @@ int main(int argc, char **argv) {
     glDeleteBuffers(1, &VBO);
     glDeleteBuffers(1, &EBO);
 
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
-    glfwDestroyWindow(window);
-    glfwTerminate();
     return 0;
 }

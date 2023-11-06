@@ -18,6 +18,8 @@ set(
     source/transform_component.cpp
     source/system.cpp
     source/render_system.cpp
+    source/matrix_stack.cpp
+    source/window_manager.cpp
     include/xplor_types.hpp
     include/shader.hpp
     include/engine_manager.hpp
@@ -29,6 +31,8 @@ set(
     include/transform_component.hpp
     include/system.hpp
     include/render_system.hpp
+    include/matrix_stack.hpp
+    include/window_manager.hpp
     third-party/stb/stb_image.cpp
 )
 
