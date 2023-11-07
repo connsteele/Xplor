@@ -63,6 +63,7 @@ Xplor::Shader::Shader(const char* vertexShaderPath, const char* fragmentShaderPa
 
 Xplor::Shader::~Shader()
 {
+	std::cout << "Shader Program Destroyed" << std::endl;
 	glDeleteProgram(shaderID);
 }
 

@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include <array>
+#include <memory>
 
 struct ImageData
 {
@@ -63,20 +64,38 @@ namespace Xplor {
 			m_textures.push_back(texture1);
 		}
 
+		void AddShader(std::string vertexShaderPath, std::string fragmentShaderPath)
+		{
+			std::string fullVertexPath = resources + vertexShaderPath;
+			std::string fullFragmentPath = resources + fragmentShaderPath;
+
+			//m_shader = std::make_shared<Shader>(Xplor::Shader(fullVertexPath.c_str(), fullFragmentPath.c_str()) );
+			m_shader = new Xplor::Shader(fullVertexPath.c_str(), fullFragmentPath.c_str());
+		}
+
 		void Update();
 
 		void Render();
 
 		void Delete();
 
-		// Should be protected, but private for ease of use right now
-		std::vector<uint32_t> m_textures{};
+		std::vector<uint32_t> GetTextures()
+		{
+			return m_textures;
+		};
 
-	protected:
-		const std::string resources = "..//resources";
-		ImageData tempImg;
+		Shader* GetShader()
+		{
+			return m_shader;
+		}
 		
 
+	protected:
+		const std::string resources = "..//resources//";
+		ImageData tempImg;
+		std::vector<uint32_t> m_textures{};
+		Shader* m_shader; // having this not set as a pointer forces me to make a default constructor
+		//std::shared_ptr<Shader> m_shader;
 
 	private:
 

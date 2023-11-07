@@ -30,7 +30,6 @@ int main(int argc, char **argv) {
     Xplor::PropObject cube;
 
 
-    const std::string resources = "..//resources";
 
     //----- Create the engine manager
     //---------------------------------
@@ -39,71 +38,31 @@ int main(int argc, char **argv) {
 
     //--- Image Loading
     cube.AddTexture("//images//woodBox.jpg", Xplor::ImageFormat::jpg);
-    //cube.InitTexture();
     cube.AddTexture("//images//dog.png", Xplor::ImageFormat::png);
-    //cube.InitTexture();
 
-    //imgData imageBox;
-    //stbi_set_flip_vertically_on_load(true); // Align the coordinates
-    //std::string imagePath = resources + "//images//woodBox.jpg";
-    //// Fill Variables with image data
-    //imageBox.data = stbi_load(imagePath.c_str(), &imageBox.width, &imageBox.height, &imageBox.channels, 0);
-    //if (!imageBox.data)
-    //{
-    //    std::cout << "Error: Image failed to load" << std::endl;
-    //}
-    ////--- Texture generation
-    //uint32_t texture1;
-    //// Generate one texture and store it
-    //glGenTextures(1, &texture1);
-    //// Bind the texture
-    //glBindTexture(GL_TEXTURE_2D, texture1);
-    //// Set the texture filtering and wrapping
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    //// Generate the bound texture
-    //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imageBox.width, imageBox.height, 0, GL_RGB, GL_UNSIGNED_BYTE, imageBox.data);
-    //// Generate mipmaps for the bound texture
-    //glGenerateMipmap(GL_TEXTURE_2D);
-    //// Free the image data once the texture has been created
-    //stbi_image_free(imageBox.data);
-
-    //// Get the second texture
-    //imgData imageDog;
-    //imagePath = resources + "//images//dog.png";
-    //imageDog.data = stbi_load(imagePath.c_str(), &imageDog.width, &imageDog.height, &imageDog.channels, 0);
-    //if (!imageDog.data) 
-    //{
-    //    std::cout << "Error: Image failed to load" << std::endl;
-    //}
-    //uint32_t texture2;
-    //glGenTextures(1, &texture2);
-    //glBindTexture(GL_TEXTURE_2D, texture2);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageDog.width, imageDog.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageDog.data);
-    //glGenerateMipmap(GL_TEXTURE_2D);
-    //stbi_image_free(imageDog.data);
-
-   
 
     //--- Shader Creation
     //----------------------------------------
-    std::string vertexShaderPath = resources + "//shaders//simple.vs";
-    std::string fragmentShaderPath = resources + "//shaders//simple.fs";
+    const std::string resources = "..//resources//";
+    std::string vertexShaderPath = "shaders//simple.vs";
+    std::string fragmentShaderPath = "shaders//simple.fs";
 
-    Xplor::Shader shaderProgram = Xplor::Shader::Shader(vertexShaderPath.c_str(), fragmentShaderPath.c_str());
-    shaderProgram.useProgram();    
+    cube.AddShader(vertexShaderPath, fragmentShaderPath);
+    //std::string fullVertexPath = resources + vertexShaderPath;
+    //std::string fullFragmentPath = resources + fragmentShaderPath;
+
+    //std::shared_ptr<Xplor::Shader> cubeShader = std::make_shared<Xplor::Shader>(Xplor::Shader(fullVertexPath.c_str(), fullFragmentPath.c_str()));
+    //Xplor::Shader* cubeShader = new Xplor::Shader(fullVertexPath.c_str(), fullFragmentPath.c_str()); // This works
+
+
+    auto cubeShader = cube.GetShader();
+    cubeShader->useProgram();
     // Inform the shader where the texture samplers are located
-    shaderProgram.setUniform("customTexture1", 0);
-    shaderProgram.setUniform("customTexture2", 1);
+    cubeShader->setUniform("customTexture1", 0);
+    cubeShader->setUniform("customTexture2", 1);
     // Enable depth testing
     glEnable(GL_DEPTH_TEST);
-    shaderProgram.endProgram();
+    cubeShader->endProgram();
 
 
     // Vertex Buffer Setup
@@ -204,7 +163,7 @@ int main(int argc, char **argv) {
 
 
     // Transformations
-    uint32_t liveTransformLoc = glGetUniformLocation(shaderProgram.getID(), "liveTransform");
+    uint32_t liveTransformLoc = glGetUniformLocation(cubeShader->getID(), "liveTransform");
 
     // 3D Coordinates
     glm::mat4 modelMatrix = glm::mat4(1.0f);
@@ -245,26 +204,27 @@ int main(int argc, char **argv) {
         glClear(GL_COLOR_BUFFER_BIT);
             
         //--- OpenGL Rendering
-        shaderProgram.useProgram();
+        cubeShader->useProgram();
         glClear(GL_DEPTH_BUFFER_BIT);
         glBindVertexArray(VAO);
         // glUniform4f(customColorLocation, rect_color.x, rect_color.y, rect_color.z, rect_color.w);
             
             
         // Send coordinate matrices to the shader
-        int locModel = glGetUniformLocation(shaderProgram.getID(), "model");
+        int locModel = glGetUniformLocation(cubeShader->getID(), "model");
         glUniformMatrix4fv(locModel, 1, GL_FALSE, glm::value_ptr(modelMatrix));
-        int locView = glGetUniformLocation(shaderProgram.getID(), "view");
+        int locView = glGetUniformLocation(cubeShader->getID(), "view");
         glUniformMatrix4fv(locView, 1, GL_FALSE, glm::value_ptr(viewMatrix));
-        int locProjection = glGetUniformLocation(shaderProgram.getID(), "projection");
+        int locProjection = glGetUniformLocation(cubeShader->getID(), "projection");
         glUniformMatrix4fv(locProjection, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
 
 
         // Bind Relevant Textures
-        for (int i = 0; i < cube.m_textures.size(); i++)
+        auto cubeTextures = cube.GetTextures();
+        for (int i = 0; i < cubeTextures.size(); i++)
         {
             glActiveTexture(GL_TEXTURE0 + i);
-            glBindTexture(GL_TEXTURE_2D, cube.m_textures[i]);
+            glBindTexture(GL_TEXTURE_2D, cubeTextures[i]);
         }
 
         // Draw 10 cubes
@@ -277,9 +237,9 @@ int main(int argc, char **argv) {
             if (i % 3 == 0)  // every 3rd iteration (including the first) we set the angle using GLFW's time function.
                 angle = glfwGetTime() * 45.0f;
             model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-            //shaderProgram.setMat4("model", model);
-            //glUniformMatrix4fv(glGetUniformLocation(shaderProgram.getID(), "model"), 1, GL_FALSE, glm::value_ptr(model));
-            shaderProgram.setUniform("model", model);
+            //cubeShader->setMat4("model", model);
+            //glUniformMatrix4fv(glGetUniformLocation(cubeShader->getID(), "model"), 1, GL_FALSE, glm::value_ptr(model));
+            cubeShader->setUniform("model", model);
 
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
@@ -291,7 +251,7 @@ int main(int argc, char **argv) {
         // Unbinds
         glBindVertexArray(0); // Unbind the VAO
         glBindTexture(GL_TEXTURE_2D, 0); // Unbind the texture
-        shaderProgram.endProgram();
+        cubeShader->endProgram();
 
 
 
