@@ -64,20 +64,116 @@ namespace Xplor {
 			m_textures.push_back(texture1);
 		}
 
-		void AddShader(std::string vertexShaderPath, std::string fragmentShaderPath)
+		// Ideally this would be a smart pointer and support multiple shaders 
+		void AddShader(Shader* shader)
 		{
-			std::string fullVertexPath = resources + vertexShaderPath;
-			std::string fullFragmentPath = resources + fragmentShaderPath;
+			m_shader = shader;
+		}
 
-			//m_shader = std::make_shared<Shader>(Xplor::Shader(fullVertexPath.c_str(), fullFragmentPath.c_str()) );
-			m_shader = new Xplor::Shader(fullVertexPath.c_str(), fullFragmentPath.c_str());
+		void AddGeometry(float* geometryData, size_t dataSize, unsigned int stepSize)
+		{
+			glGenVertexArrays(1, &VAO); // Generate one VAO
+			glGenBuffers(1, &VBO); // Generate one buffer object in the OGL Context'
+			glGenBuffers(1, &EBO); // EBO allows us to use indicies for drawing order
+
+
+			glBindVertexArray(VAO); // bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
+			glBindBuffer(GL_ARRAY_BUFFER, VBO); // Bind the buffer object to a buffer type
+
+			// Copy data into the buffer object bound to target. The target here
+			// is  GL_ARRAYBUFFER which is bound to the VBO.
+			glBufferData(GL_ARRAY_BUFFER, dataSize * sizeof(float), geometryData, GL_STATIC_DRAW);
+
+
+			// Tell OpenGL how to interpret the vertex data per attribute
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stepSize * sizeof(float), reinterpret_cast<void*>(0));
+			glEnableVertexAttribArray(0);
+			// define and enable texture coordinates input
+			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, stepSize * sizeof(float), reinterpret_cast<void*>(3 * sizeof(float)));
+			glEnableVertexAttribArray(1);
+		}
+
+		void InitGeom()
+		{
+			// Transformations
+			uint32_t liveTransformLoc = glGetUniformLocation(m_shader->getID(), "liveTransform");
+
+			// 3D Coordinates
+			modelMatrix = glm::mat4(1.0f);
+			modelMatrix = glm::rotate(modelMatrix, glm::radians(-45.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+			viewMatrix = glm::mat4(1.0f);
+			viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0f, 0.0f, -3.0f)); // move the camera away from the scene
+			projectionMatrix = glm::perspective(glm::radians(70.0f), 1280.f / 720.f, 0.1f, 100.f); // aspect ratio should be recalced on viewport size change
+
 		}
 
 		void Update();
 
-		void Render();
+		void Render()
+		{
+			glm::vec3 cubePositions[] = {
+				glm::vec3(0.0f,  0.0f,  0.0f),
+				glm::vec3(2.0f,  5.0f, -15.0f),
+				glm::vec3(-1.5f, -2.2f, -2.5f),
+				glm::vec3(-3.8f, -2.0f, -12.3f),
+				glm::vec3(2.4f, -0.4f, -3.5f),
+				glm::vec3(-1.7f,  3.0f, -7.5f),
+				glm::vec3(1.3f, -2.0f, -2.5f),
+				glm::vec3(1.5f,  2.0f, -2.5f),
+				glm::vec3(1.5f,  0.2f, -1.5f),
+				glm::vec3(-1.3f,  1.0f, -1.5f)
+			};
 
-		void Delete();
+			m_shader->useProgram();
+			glClear(GL_DEPTH_BUFFER_BIT);
+			glBindVertexArray(VAO);
+
+			// Send coordinate matrices to the shader
+			int locModel = glGetUniformLocation(m_shader->getID(), "model");
+			glUniformMatrix4fv(locModel, 1, GL_FALSE, glm::value_ptr(modelMatrix));
+			int locView = glGetUniformLocation(m_shader->getID(), "view");
+			glUniformMatrix4fv(locView, 1, GL_FALSE, glm::value_ptr(viewMatrix));
+			int locProjection = glGetUniformLocation(m_shader->getID(), "projection");
+			glUniformMatrix4fv(locProjection, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
+
+
+			// Bind Relevant Textures
+			for (int i = 0; i < m_textures.size(); i++)
+			{
+				glActiveTexture(GL_TEXTURE0 + i);
+				glBindTexture(GL_TEXTURE_2D, m_textures[i]);
+			}
+
+			// Draw 10 cubes
+			glBindVertexArray(VAO);
+			for (unsigned int i = 0; i < 10; i++)
+			{
+				glm::mat4 model = glm::mat4(1.0f);
+				model = glm::translate(model, cubePositions[i]);
+				float angle = 20.0f * i;
+				if (i % 3 == 0)  // every 3rd iteration (including the first) we set the angle using GLFW's time function.
+					angle = glfwGetTime() * 45.0f;
+				model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+				//m_shader->setMat4("model", model);
+				//glUniformMatrix4fv(glGetUniformLocation(m_shader->getID(), "model"), 1, GL_FALSE, glm::value_ptr(model));
+				m_shader->setUniform("model", model);
+
+				glDrawArrays(GL_TRIANGLES, 0, 36);
+			}
+
+			// Unbinds
+			glBindVertexArray(0); // Unbind the VAO
+			glBindTexture(GL_TEXTURE_2D, 0); // Unbind the texture
+			m_shader->endProgram();
+		}
+
+		void Delete()
+		{
+			// Check if these are populated first
+			glDeleteVertexArrays(1, &VAO);
+			glDeleteBuffers(1, &VBO);
+			glDeleteBuffers(1, &EBO);
+		}
 
 		std::vector<uint32_t> GetTextures()
 		{
@@ -96,6 +192,10 @@ namespace Xplor {
 		std::vector<uint32_t> m_textures{};
 		Shader* m_shader; // having this not set as a pointer forces me to make a default constructor
 		//std::shared_ptr<Shader> m_shader;
+		uint32_t VBO, VAO, EBO;
+
+		// Want a matrix stack instead of all of these
+		glm::mat4 modelMatrix, viewMatrix, projectionMatrix;
 
 	private:
 
