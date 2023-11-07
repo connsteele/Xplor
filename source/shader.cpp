@@ -56,6 +56,8 @@ Xplor::Shader::Shader(const char* vertexShaderPath, const char* fragmentShaderPa
 		std::cout << "ERROR: SHADER_PROGRAM Link FAILED\n" << infoLog << std::endl;
 	}
 
+	glGetProgramInfoLog(shaderID, 512, NULL, infoLog);
+	std::cout << "Shader linking success" << infoLog << std::endl;
 
 	glDeleteShader(vertex);
 	glDeleteProgram(fragment);
@@ -117,6 +119,7 @@ uint16_t Xplor::Shader::compileShader(int shaderType, const char *shaderSource) 
 		id = glCreateShader(GL_FRAGMENT_SHADER);
 		break;
 	default:
+		return -1;
 		break;
 	}
 

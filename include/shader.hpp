@@ -15,12 +15,19 @@ namespace Xplor
 	class Shader
 	{
 	public:
+
+		Shader()
+		{
+
+		}
+
 		/// <summary>
 		/// Shader constructor
 		/// </summary>
 		/// <param name="vertexShaderPath">Absolute path to vertex shader file.</param>
 		/// <param name="fragmentShaderPath">Absolute path to fragment shader file.</param>
 		Shader(const char* vertexShaderPath, const char* fragmentShaderPath);
+
 
 		~Shader();
 
