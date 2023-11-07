@@ -22,8 +22,6 @@ namespace Xplor
 		/// <param name="fragmentShaderPath">Absolute path to fragment shader file.</param>
 		Shader(const char* vertexShaderPath, const char* fragmentShaderPath);
 
-		~Shader();
-
 		/// <summary>
 		/// 
 		/// </summary>
@@ -68,6 +66,8 @@ namespace Xplor
 		/// <param name="name"></param>
 		/// <param name="value"></param>
 		void setUniform(const std::string& name, float value) const;
+
+		void Delete();
 
 
 	protected:

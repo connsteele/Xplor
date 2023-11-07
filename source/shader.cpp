@@ -61,12 +61,6 @@ Xplor::Shader::Shader(const char* vertexShaderPath, const char* fragmentShaderPa
 	glDeleteProgram(fragment);
 }
 
-Xplor::Shader::~Shader()
-{
-	std::cout << "Shader Program Destroyed" << std::endl;
-	glDeleteProgram(shaderID);
-}
-
 uint32_t Xplor::Shader::getID()
 {
 	return shaderID;
@@ -101,6 +95,12 @@ void Xplor::Shader::setUniform(const std::string& name, bool value) const
 void Xplor::Shader::setUniform(const std::string& name, float value) const
 {
 	glUniform1i(glGetUniformLocation(shaderID, name.c_str()), value);
+}
+
+void Xplor::Shader::Delete()
+{
+	std::cout << "Shader Program Destroyed" << std::endl;
+	glDeleteProgram(shaderID);
 }
 
 uint16_t Xplor::Shader::compileShader(int shaderType, const char *shaderSource) const

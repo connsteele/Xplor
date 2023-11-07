@@ -65,7 +65,7 @@ namespace Xplor {
 		}
 
 		// Ideally this would be a smart pointer and support multiple shaders 
-		void AddShader(Shader* shader)
+		void AddShader(std::shared_ptr<Shader> shader)
 		{
 			m_shader = shader;
 		}
@@ -169,6 +169,9 @@ namespace Xplor {
 
 		void Delete()
 		{
+			if (m_shader)
+				m_shader->Delete();
+
 			// Check if these are populated first
 			glDeleteVertexArrays(1, &VAO);
 			glDeleteBuffers(1, &VBO);
@@ -180,7 +183,7 @@ namespace Xplor {
 			return m_textures;
 		};
 
-		Shader* GetShader()
+		std::shared_ptr<Shader> GetShader()
 		{
 			return m_shader;
 		}
@@ -190,8 +193,8 @@ namespace Xplor {
 		const std::string resources = "..//resources//";
 		ImageData tempImg;
 		std::vector<uint32_t> m_textures{};
-		Shader* m_shader; // having this not set as a pointer forces me to make a default constructor
-		//std::shared_ptr<Shader> m_shader;
+		//Shader* m_shader; // having this not set as a pointer forces me to make a default constructor
+		std::shared_ptr<Shader> m_shader;
 		uint32_t VBO, VAO, EBO;
 
 		// Want a matrix stack instead of all of these
