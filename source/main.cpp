@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
    
     //---- Setup ----
     WindowManager windowManager;
-    windowManager.Init();
+    windowManager.Init(3840, 2160, true);
     windowManager.CaptureCursor();
 
     Xplor::PropObject cube;
@@ -177,7 +177,7 @@ int main(int argc, char **argv) {
         //--- Input
         //-----------------------------------------------------
 
-        windowManager.PollEvents();
+        
         float cameraSpeed = cameraBaseSpeed * deltaTime;
         windowManager.ProcessInputs(cameraPosition, cameraFront, cameraUp, cameraSpeed);
 
@@ -194,9 +194,11 @@ int main(int argc, char **argv) {
         static float pitch = 0.0f;
         static float yaw = -90.0f;
         float offsetX, offsetY;
+        // The issue is this is grabbing the last set value of the offset. When the mouse doesn't move
+        // the offsets don't update
         windowManager.GetMouseOffsets(offsetX, offsetY);
-        yaw += offsetX;
-        pitch += offsetY;
+        yaw += offsetX * deltaTime;
+        pitch += offsetY * deltaTime;
         // Contrain the pitch to stop a lookAt flip
         if (pitch > 89.0f)
             pitch = 89.0f;
@@ -218,6 +220,7 @@ int main(int argc, char **argv) {
 
         // Swap the front and back buffers
         windowManager.Update();
+        windowManager.PollEvents();
     }
 
     

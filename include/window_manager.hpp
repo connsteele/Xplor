@@ -17,7 +17,7 @@ class WindowManager
 
 public:
 
-	void Init();
+	void Init(int windowWidth, int windowHeight, bool fullscreen);
 
 	void Update();
 
@@ -31,7 +31,7 @@ public:
 
 	static void MouseCallback(GLFWwindow* window, double xpos, double ypos);
 
-	void UpdateMousePosition(double xpos, double ypos);
+	void UpdateMousePosition(float xpos, float ypos);
 
 	void CaptureCursor();
 
@@ -58,6 +58,7 @@ private:
 	const std::string resources = "..//resources";
 	GLFWwindow* m_window{};
 	float m_cursorOffsetX{}, m_cursorOffsetY{};
+	bool m_activeMouse{};
 	
 
 }; // end class

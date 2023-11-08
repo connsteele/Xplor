@@ -24,7 +24,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 //--------- Window Manager Methods Impls 
 //------------------------------------------------------------------------------------------
 
-void WindowManager::Init()
+void WindowManager::Init(int windowWidth, int windowHeight, bool fullscreen)
 {
 	//--- Start glfw up
 	if (!glfwInit())
@@ -40,9 +40,10 @@ void WindowManager::Init()
 	// Set OpenGL to Core-profile mode
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	// Create the window itself
-	int windowWidth = 1280;
-	int windowHeight = 720;
-	m_window = glfwCreateWindow(windowWidth, windowHeight, "XplorEngine", NULL, NULL);
+	if (fullscreen)
+		m_window = glfwCreateWindow(windowWidth, windowHeight, "XplorEngine", glfwGetPrimaryMonitor(), NULL);
+	else
+		m_window = glfwCreateWindow(windowWidth, windowHeight, "XplorEngine", NULL, NULL);
 	// Setup a user pointer to get data later 
 	glfwSetWindowUserPointer(m_window, this);
 
@@ -80,26 +81,24 @@ void WindowManager::MouseCallback(GLFWwindow* window, double xpos, double ypos)
 {
 	WindowManager* windowManager = static_cast<WindowManager*>(glfwGetWindowUserPointer(window));
 	if (windowManager) {
-		windowManager->UpdateMousePosition(xpos, ypos);
+		windowManager->UpdateMousePosition(static_cast<float>(xpos), static_cast<float>(ypos));
 	}
 }
 
-void WindowManager::UpdateMousePosition(double xpos, double ypos)
+void WindowManager::UpdateMousePosition(float xpos, float ypos)
 {
+	m_activeMouse = true;
 
-	int windowWidth, windowHeight;
-	glfwGetWindowSize(m_window, &windowWidth, &windowHeight);
+	static float lastX = xpos;
+	static float lastY = ypos;
 
-	if (windowWidth <= 0 || windowHeight <= 0)
-		return;
 
-	float centerX = static_cast<int>(windowWidth) / 2.0f;
-	float centerY = static_cast<int>(windowHeight) / 2.0f;
+	m_cursorOffsetX = xpos - lastX;
+	m_cursorOffsetY = lastY - ypos; // Y coord starts at bottom
+	lastX = xpos;
+	lastY = ypos;
 
-	m_cursorOffsetX = xpos - centerX;
-	m_cursorOffsetY = centerY - ypos; // Y coord starts at bottom
-
-	const float sensitivity = 0.001f;
+	const float sensitivity = 5.0f;
 	m_cursorOffsetX *= sensitivity;
 	m_cursorOffsetY *= sensitivity;
 }
@@ -176,6 +175,15 @@ void WindowManager::PrintHardwareInfo()
 
 void WindowManager::GetMouseOffsets(float&offsetX, float& offsetY)
 {
+	if (!m_activeMouse)
+	{
+		m_cursorOffsetX = 0.0f;
+		m_cursorOffsetY = 0.0f;
+	}
+
 	offsetX = m_cursorOffsetX;
 	offsetY = m_cursorOffsetY;
+
+	// Turn the mouse off for no movement
+	m_activeMouse = false;
 }
