@@ -194,7 +194,7 @@ namespace Xplor {
 		uint32_t VBO, VAO, EBO;
 
 		// Want a matrix stack instead of all of these
-		glm::mat4 modelMatrix;
+		glm::mat4 modelMatrix{};
 
 	private:
 

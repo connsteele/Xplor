@@ -20,6 +20,101 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 	// glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(projection));
 }
 
+
+//--------- Window Manager Methods Impls 
+//------------------------------------------------------------------------------------------
+
+void WindowManager::Init()
+{
+	//--- Start glfw up
+	if (!glfwInit())
+	{
+		std::cout << "Failed to initialize GLFW" << std::endl;
+		return;
+	}
+
+	//--- Set Window Attributes
+	// Set the context to use OpenGL 3.3
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	// Set OpenGL to Core-profile mode
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	// Create the window itself
+	int windowWidth = 1280;
+	int windowHeight = 720;
+	m_window = glfwCreateWindow(windowWidth, windowHeight, "XplorEngine", NULL, NULL);
+	// Setup a user pointer to get data later 
+	glfwSetWindowUserPointer(m_window, this);
+
+	// Cleanup GLFW if the window creation fails
+	if (!m_window)
+	{
+		std::cout << "Failed to create a GLFW window" << std::endl;
+		glfwTerminate();
+		return;
+	}
+	glfwMakeContextCurrent(m_window);
+
+	// Register the frame buffer size callback to upate the viewport when the window
+	// changes size
+	glfwSetFramebufferSizeCallback(m_window, framebuffer_size_callback);
+	// Give GLAD the address of OpenGL function pointers GLFW
+	// will give us the right ones for the OS we are using
+	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+	{
+		// GLAD need to have a context to check the OpenGL version against
+		std::cout << "Failed to initialize GLAD" << std::endl;
+		return;
+	}
+
+	SetVsync(VsyncInterval::On);
+}
+
+// Swaps the front and back buffers
+void WindowManager::Update()
+{
+	glfwSwapBuffers(m_window);
+}
+
+void WindowManager::MouseCallback(GLFWwindow* window, double xpos, double ypos)
+{
+	WindowManager* windowManager = static_cast<WindowManager*>(glfwGetWindowUserPointer(window));
+	if (windowManager) {
+		windowManager->UpdateMousePosition(xpos, ypos);
+	}
+}
+
+void WindowManager::UpdateMousePosition(double xpos, double ypos)
+{
+
+	int windowWidth, windowHeight;
+	glfwGetWindowSize(m_window, &windowWidth, &windowHeight);
+
+	if (windowWidth <= 0 || windowHeight <= 0)
+		return;
+
+	float centerX = static_cast<int>(windowWidth) / 2.0f;
+	float centerY = static_cast<int>(windowHeight) / 2.0f;
+
+	m_cursorOffsetX = xpos - centerX;
+	m_cursorOffsetY = centerY - ypos; // Y coord starts at bottom
+
+	const float sensitivity = 0.1f;
+	m_cursorOffsetX *= sensitivity;
+	m_cursorOffsetY *= sensitivity;
+}
+
+void WindowManager::CaptureCursor()
+{
+	glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetCursorPosCallback(m_window, WindowManager::MouseCallback);
+}
+
+void WindowManager::PollEvents()
+{
+	glfwPollEvents();
+}
+
 // Handle all incoming keyboard and mouse events
 void WindowManager::ProcessInputs(glm::vec3& camerPos, glm::vec3 cameraFront, glm::vec3 cameraUp, float cameraSpeed)
 {
@@ -52,64 +147,6 @@ void WindowManager::ProcessInputs(glm::vec3& camerPos, glm::vec3 cameraFront, gl
 	}
 }
 
-//--------- Window Manager Methods Impls 
-//------------------------------------------------------------------------------------------
-
-void WindowManager::Init()
-{
-	//--- Start glfw up
-	if (!glfwInit())
-	{
-		std::cout << "Failed to initialize GLFW" << std::endl;
-		return;
-	}
-
-	//--- Set Window Attributes
-	// Set the context to use OpenGL 3.3
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	// Set OpenGL to Core-profile mode
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	// Create the window itself
-	int windowWidth = 1280;
-	int windowHeight = 720;
-	m_window = glfwCreateWindow(windowWidth, windowHeight, "XplorEngine", NULL, NULL);
-
-	// Cleanup GLFW if the window creation fails
-	if (!m_window)
-	{
-		std::cout << "Failed to create a GLFW window" << std::endl;
-		glfwTerminate();
-		return;
-	}
-	glfwMakeContextCurrent(m_window);
-
-	// Register the frame buffer size callback to upate the viewport when the window
-	// changes size
-	glfwSetFramebufferSizeCallback(m_window, framebuffer_size_callback);
-	// Give GLAD the address of OpenGL function pointers GLFW
-	// will give us the right ones for the OS we are using
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-	{
-		// GLAD need to have a context to check the OpenGL version against
-		std::cout << "Failed to initialize GLAD" << std::endl;
-		return;
-	}
-
-	SetVsync(VsyncInterval::On);
-}
-
-// Swaps the front and back buffers
-void WindowManager::Update()
-{
-	glfwSwapBuffers(m_window);
-}
-
-void WindowManager::PollEvents()
-{
-	glfwPollEvents();
-}
-
 void WindowManager::Shutdown()
 {
 	if (m_window)
@@ -135,4 +172,10 @@ void WindowManager::PrintHardwareInfo()
 	glGetIntegerv(GL_MAJOR_VERSION, &major);
 	glGetIntegerv(GL_MINOR_VERSION, &minor);
 	std::cout << "OpenGL Version: " << major << "." << minor << std::endl;
+}
+
+void WindowManager::GetMouseOffsets(float&offsetX, float& offsetY)
+{
+	offsetX = m_cursorOffsetX;
+	offsetY = m_cursorOffsetY;
 }

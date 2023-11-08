@@ -29,6 +29,12 @@ public:
 	/// <param name="cameraSpee"></param>
 	void ProcessInputs(glm::vec3& camerPos, glm::vec3 cameraFront, glm::vec3 cameraUp, float cameraSpee);
 
+	static void MouseCallback(GLFWwindow* window, double xpos, double ypos);
+
+	void UpdateMousePosition(double xpos, double ypos);
+
+	void CaptureCursor();
+
 	void PollEvents();
 
 	void Shutdown();
@@ -36,6 +42,8 @@ public:
 	void SetVsync(VsyncInterval interval);
 
 	void PrintHardwareInfo();
+
+	void GetMouseOffsets(float& offsetX, float& offsetY);
 
 	// Not the safest behavior here
 	GLFWwindow* GetWindow()
@@ -49,6 +57,7 @@ public:
 private:
 	const std::string resources = "..//resources";
 	GLFWwindow* m_window{};
+	float m_cursorOffsetX{}, m_cursorOffsetY{};
 	
 
 }; // end class

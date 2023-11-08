@@ -21,11 +21,14 @@ struct imgData
     unsigned char* data;
 };
 
+
+
 int main(int argc, char **argv) {
    
     //---- Setup ----
     WindowManager windowManager;
     windowManager.Init();
+    windowManager.CaptureCursor();
 
     Xplor::PropObject cube;
 
@@ -148,7 +151,7 @@ int main(int argc, char **argv) {
     glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
     glm::vec3 cameraTarget = cameraPosition + cameraFront;
     glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-    float baseCameraSpeed = 3.f;
+    float cameraBaseSpeed = 3.f;
     
 
     glm::mat4 viewMatrix;
@@ -175,9 +178,8 @@ int main(int argc, char **argv) {
         //-----------------------------------------------------
 
         windowManager.PollEvents();
-        float cameraSpeed = baseCameraSpeed * deltaTime;
+        float cameraSpeed = cameraBaseSpeed * deltaTime;
         windowManager.ProcessInputs(cameraPosition, cameraFront, cameraUp, cameraSpeed);
-        cameraTarget = cameraPosition + cameraFront; // Needs to be recomputed after position is updated
 
         // Rendering commands
         //-----------------------------------------------------
@@ -188,11 +190,26 @@ int main(int argc, char **argv) {
 
         
         //--- Camera
-        /*const float rotRadius = 10.f;
-        float camX = sin(glfwGetTime()) * rotRadius;
-        float camZ = cos(glfwGetTime()) * rotRadius;
-        viewMatrix = glm::lookAt(glm::vec3(camX, 0.0, camZ), cameraTarget, cameraUp);*/
 
+        static float pitch = 0.0f;
+        static float yaw = -90.0f;
+        float offsetX, offsetY;
+        windowManager.GetMouseOffsets(offsetX, offsetY);
+        yaw += offsetX;
+        pitch += offsetY;
+        // Contrain the pitch to stop a lookAt flip
+        if (pitch > 89.0f)
+            pitch = 89.0f;
+        if (pitch < -89.0f)
+            pitch = -89.0f;
+
+        glm::vec3 direction;
+        direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+        direction.y = sin(glm::radians(pitch));
+        direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+        cameraFront = glm::normalize(direction);        
+
+        cameraTarget = cameraPosition + cameraFront; // Needs to be recomputed after inputs are updated
         viewMatrix = glm::lookAt(cameraPosition, cameraTarget, cameraUp);
 
             
