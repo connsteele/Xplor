@@ -107,6 +107,7 @@ void WindowManager::CaptureCursor()
 {
 	glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	glfwSetCursorPosCallback(m_window, WindowManager::MouseCallback);
+	//glfwSetCursorPos(m_window, 0.0, 0.0);
 }
 
 void WindowManager::PollEvents()
@@ -177,10 +178,9 @@ void WindowManager::GetMouseOffsets(float&offsetX, float& offsetY)
 {
 	if (!m_activeMouse)
 	{
-		m_cursorOffsetX = 0.0f;
-		m_cursorOffsetY = 0.0f;
+		m_cursorOffsetX = 0.f;
+		m_cursorOffsetY = 0.f;
 	}
-
 	offsetX = m_cursorOffsetX;
 	offsetY = m_cursorOffsetY;
 
