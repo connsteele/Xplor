@@ -99,7 +99,7 @@ void WindowManager::UpdateMousePosition(double xpos, double ypos)
 	m_cursorOffsetX = xpos - centerX;
 	m_cursorOffsetY = centerY - ypos; // Y coord starts at bottom
 
-	const float sensitivity = 0.1f;
+	const float sensitivity = 0.001f;
 	m_cursorOffsetX *= sensitivity;
 	m_cursorOffsetY *= sensitivity;
 }
