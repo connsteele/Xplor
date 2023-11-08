@@ -142,11 +142,14 @@ int main(int argc, char **argv) {
 
     //---- Camera Setup
     glm::mat4 projectionMatrix = glm::perspective(glm::radians(70.0f), 1280.f / 720.f, 0.1f, 100.f); // aspect ratio should be recalced on viewport size change
-    
+
      //-- View space formation
     glm::vec3 cameraPosition = glm::vec3(0.0f, 0.0f, 3.0f);
-    glm::vec3 cameraTarget = glm::vec3(0.0f); // Camera is looking at the origin of the scene
+    glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+    glm::vec3 cameraTarget = cameraPosition + cameraFront;
     glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+    float baseCameraSpeed = 3.f;
+    
 
     glm::mat4 viewMatrix;
     viewMatrix = glm::lookAt(cameraPosition, cameraTarget, cameraUp);
@@ -161,7 +164,7 @@ int main(int argc, char **argv) {
     ImVec4 rect_color = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
     
     // The main loop should live in main or the engine manager
-    while (!glfwWindowShouldClose(windowManager.m_window)) // Need to setup my own events for this to work better
+    while (!glfwWindowShouldClose(windowManager.GetWindow())) // Need to setup my own events for this to work better
     {
         //--- Update Delta Time
         float currentFrameTime = static_cast<float>(glfwGetTime());
@@ -171,8 +174,10 @@ int main(int argc, char **argv) {
         //--- Input
         //-----------------------------------------------------
 
-        windowManager.ProcessEvents();
-
+        windowManager.PollEvents();
+        float cameraSpeed = baseCameraSpeed * deltaTime;
+        windowManager.ProcessInputs(cameraPosition, cameraFront, cameraUp, cameraSpeed);
+        cameraTarget = cameraPosition + cameraFront; // Needs to be recomputed after position is updated
 
         // Rendering commands
         //-----------------------------------------------------
@@ -183,10 +188,12 @@ int main(int argc, char **argv) {
 
         
         //--- Camera
-        const float rotRadius = 10.f;
+        /*const float rotRadius = 10.f;
         float camX = sin(glfwGetTime()) * rotRadius;
         float camZ = cos(glfwGetTime()) * rotRadius;
-        viewMatrix = glm::lookAt(glm::vec3(camX, 0.0, camZ), cameraTarget, cameraUp);
+        viewMatrix = glm::lookAt(glm::vec3(camX, 0.0, camZ), cameraTarget, cameraUp);*/
+
+        viewMatrix = glm::lookAt(cameraPosition, cameraTarget, cameraUp);
 
             
         //---- Game Object Rendering

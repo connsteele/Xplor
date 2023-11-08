@@ -21,12 +21,34 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 }
 
 // Handle all incoming keyboard and mouse events
-void processInputs(GLFWwindow* window)
+void WindowManager::ProcessInputs(glm::vec3& camerPos, glm::vec3 cameraFront, glm::vec3 cameraUp, float cameraSpeed)
 {
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+	if (!m_window)
+	{
+		std::cout << "Error: Window not created" << std::endl;
+		return;
+	}
+
+	if (glfwGetKey(m_window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 	{
 		// Enable the close window flag
-		glfwSetWindowShouldClose(window, true);
+		glfwSetWindowShouldClose(m_window, true);
+	}
+	if (glfwGetKey(m_window, GLFW_KEY_W) == GLFW_PRESS)
+	{
+		camerPos += cameraSpeed * cameraFront;
+	}
+	if (glfwGetKey(m_window, GLFW_KEY_S) == GLFW_PRESS)
+	{
+		camerPos -= cameraSpeed * cameraFront;
+	}
+	if (glfwGetKey(m_window, GLFW_KEY_A) == GLFW_PRESS)
+	{
+		camerPos -= cameraSpeed * glm::normalize(glm::cross(cameraFront, cameraUp));
+	}
+	if (glfwGetKey(m_window, GLFW_KEY_D) == GLFW_PRESS)
+	{
+		camerPos += cameraSpeed * glm::normalize(glm::cross(cameraFront, cameraUp));
 	}
 }
 
@@ -83,7 +105,7 @@ void WindowManager::Update()
 	glfwSwapBuffers(m_window);
 }
 
-void WindowManager::ProcessEvents()
+void WindowManager::PollEvents()
 {
 	glfwPollEvents();
 }

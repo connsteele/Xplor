@@ -2,6 +2,7 @@
 
 #include <glad/glad.h>
 #include "glfw/glfw3.h"
+#include "glm/glm.hpp"
 #include "string"
 
 enum class VsyncInterval {
@@ -20,7 +21,15 @@ public:
 
 	void Update();
 
-	void ProcessEvents();
+	/// <summary>
+	/// Need to move the camera data out of here. This is a temporary measure
+	/// </summary>
+	/// <param name="camerPos"></param>
+	/// <param name="cameraFront"></param>
+	/// <param name="cameraSpee"></param>
+	void ProcessInputs(glm::vec3& camerPos, glm::vec3 cameraFront, glm::vec3 cameraUp, float cameraSpee);
+
+	void PollEvents();
 
 	void Shutdown();
 
@@ -28,11 +37,18 @@ public:
 
 	void PrintHardwareInfo();
 
+	// Not the safest behavior here
+	GLFWwindow* GetWindow()
+	{
+		return m_window;
+	}
+
 	// Should make this private
-	GLFWwindow* m_window{};
+	
 
 private:
 	const std::string resources = "..//resources";
+	GLFWwindow* m_window{};
 	
 
 }; // end class
