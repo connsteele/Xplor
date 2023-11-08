@@ -140,6 +140,18 @@ int main(int argc, char **argv) {
     std::cout << "Maxmimum number of vertex attributes supported: " << maxAttributes << std::endl;
 
 
+    //---- Camera Setup
+    glm::mat4 projectionMatrix = glm::perspective(glm::radians(70.0f), 1280.f / 720.f, 0.1f, 100.f); // aspect ratio should be recalced on viewport size change
+    
+     //-- View space formation
+    glm::vec3 cameraPosition = glm::vec3(0.0f, 0.0f, 3.0f);
+    glm::vec3 cameraTarget = glm::vec3(0.0f); // Camera is looking at the origin of the scene
+    glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+
+    glm::mat4 viewMatrix;
+    viewMatrix = glm::lookAt(cameraPosition, cameraTarget, cameraUp);
+
+
     //---- Render Loop ----
     //-----------------------------------------------------
     float previousFrameTime = 0.0f;
@@ -165,12 +177,20 @@ int main(int argc, char **argv) {
         // Rendering commands
         //-----------------------------------------------------
 
-        //--- Background Color
+        //---- Background Color
         glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
         glClear(GL_COLOR_BUFFER_BIT);
+
+        
+        //--- Camera
+        const float rotRadius = 10.f;
+        float camX = sin(glfwGetTime()) * rotRadius;
+        float camZ = cos(glfwGetTime()) * rotRadius;
+        viewMatrix = glm::lookAt(glm::vec3(camX, 0.0, camZ), cameraTarget, cameraUp);
+
             
-        //--- Game Object Rendering
-        cube.Render();
+        //---- Game Object Rendering
+        cube.Render(viewMatrix, projectionMatrix);
 
         // Swap the front and back buffers
         windowManager.Update();

@@ -101,15 +101,11 @@ namespace Xplor {
 			// 3D Coordinates
 			modelMatrix = glm::mat4(1.0f);
 			modelMatrix = glm::rotate(modelMatrix, glm::radians(-45.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-			viewMatrix = glm::mat4(1.0f);
-			viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0f, 0.0f, -3.0f)); // move the camera away from the scene
-			projectionMatrix = glm::perspective(glm::radians(70.0f), 1280.f / 720.f, 0.1f, 100.f); // aspect ratio should be recalced on viewport size change
-
 		}
 
 		void Update();
 
-		void Render()
+		void Render(glm::mat4 viewMatrix, glm::mat4 projectionMatrix)
 		{
 			glm::vec3 cubePositions[] = {
 				glm::vec3(0.0f,  0.0f,  0.0f),
@@ -198,7 +194,7 @@ namespace Xplor {
 		uint32_t VBO, VAO, EBO;
 
 		// Want a matrix stack instead of all of these
-		glm::mat4 modelMatrix, viewMatrix, projectionMatrix;
+		glm::mat4 modelMatrix;
 
 	private:
 
