@@ -4,6 +4,7 @@
 #include "glfw/glfw3.h"
 #include "glm/glm.hpp"
 #include "string"
+#include <memory>
 
 enum class VsyncInterval {
 	Off = 0,
@@ -31,7 +32,11 @@ public:
 
 	static void MouseCallback(GLFWwindow* window, double xpos, double ypos);
 
+	static void ScrollCallback(GLFWwindow* window, double offsetX, double offsetY);
+
 	void UpdateMousePosition(float xpos, float ypos);
+
+	void WindowManager::UpdateMouseScroll(float offsetX, float offsetY);
 
 	void CaptureCursor();
 
@@ -43,7 +48,11 @@ public:
 
 	void PrintHardwareInfo();
 
+	static std::shared_ptr<WindowManager> GetInstance();
+
 	void GetMouseOffsets(float& offsetX, float& offsetY);
+
+	void GetFOV(float &out_FOV);
 
 	// Not the safest behavior here
 	GLFWwindow* GetWindow()
@@ -55,10 +64,12 @@ public:
 	
 
 private:
+	static std::shared_ptr<WindowManager> m_instance;
 	const std::string resources = "..//resources";
 	GLFWwindow* m_window{};
 	float m_cursorOffsetX{}, m_cursorOffsetY{};
 	bool m_activeMouse{};
+	float m_FOV = 90.0f;
 	
 
 }; // end class

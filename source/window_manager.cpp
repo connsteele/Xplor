@@ -20,6 +20,9 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 	// glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(projection));
 }
 
+//--------- Window Manager Member Variable in-class initializer
+std::shared_ptr<WindowManager> WindowManager::m_instance = nullptr;
+
 
 //--------- Window Manager Methods Impls 
 //------------------------------------------------------------------------------------------
@@ -85,6 +88,27 @@ void WindowManager::MouseCallback(GLFWwindow* window, double xpos, double ypos)
 	}
 }
 
+void WindowManager::ScrollCallback(GLFWwindow* window, double offsetX, double offsetY)
+{
+	WindowManager* windowManager = static_cast<WindowManager*>(glfwGetWindowUserPointer(window));
+	if (windowManager) {
+		windowManager->UpdateMouseScroll(static_cast<float>(offsetX), static_cast<float>(offsetY));
+	}
+}
+
+void WindowManager::UpdateMouseScroll(float offsetX, float offsetY)
+{
+	m_FOV -= offsetY;
+
+	// Limit the FOV range
+	if (m_FOV < 1.0f)
+		m_FOV = 1.0f;
+	if (m_FOV > 120.0f)
+		m_FOV = 120.0f;
+}
+
+
+
 void WindowManager::UpdateMousePosition(float xpos, float ypos)
 {
 	m_activeMouse = true;
@@ -98,7 +122,7 @@ void WindowManager::UpdateMousePosition(float xpos, float ypos)
 	lastX = xpos;
 	lastY = ypos;
 
-	const float sensitivity = 5.0f;
+	const float sensitivity = 2.0f;
 	m_cursorOffsetX *= sensitivity;
 	m_cursorOffsetY *= sensitivity;
 }
@@ -107,6 +131,7 @@ void WindowManager::CaptureCursor()
 {
 	glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	glfwSetCursorPosCallback(m_window, WindowManager::MouseCallback);
+	glfwSetScrollCallback(m_window, WindowManager::ScrollCallback);
 	//glfwSetCursorPos(m_window, 0.0, 0.0);
 }
 
@@ -174,6 +199,19 @@ void WindowManager::PrintHardwareInfo()
 	std::cout << "OpenGL Version: " << major << "." << minor << std::endl;
 }
 
+
+std::shared_ptr<WindowManager> WindowManager::GetInstance()
+{
+	if (!m_instance)
+	{
+		m_instance = std::make_shared<WindowManager>();
+	}
+
+	return m_instance;
+}
+
+
+
 void WindowManager::GetMouseOffsets(float&offsetX, float& offsetY)
 {
 	if (!m_activeMouse)
@@ -186,4 +224,9 @@ void WindowManager::GetMouseOffsets(float&offsetX, float& offsetY)
 
 	// Turn the mouse off for no movement
 	m_activeMouse = false;
+}
+
+void WindowManager::GetFOV(float& out_FOV)
+{
+	out_FOV = m_FOV;
 }
