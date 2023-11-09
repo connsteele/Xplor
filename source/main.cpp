@@ -21,11 +21,14 @@ struct imgData
     unsigned char* data;
 };
 
+
+
 int main(int argc, char **argv) {
    
     //---- Setup ----
-    WindowManager windowManager;
-    windowManager.Init();
+    std::shared_ptr<WindowManager> windowManager = WindowManager::GetInstance();
+    windowManager->Init(3840, 2160, true);
+    windowManager->CaptureCursor();
 
     Xplor::PropObject cube;
 
@@ -133,11 +136,26 @@ int main(int argc, char **argv) {
     cube.InitGeom();
 
     // Query hardware information
-    windowManager.PrintHardwareInfo();
+    windowManager->PrintHardwareInfo();
     // Query the max amount of vertex attribs we can use
     int maxAttributes;
     glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &maxAttributes);
     std::cout << "Maxmimum number of vertex attributes supported: " << maxAttributes << std::endl;
+
+
+    //---- Camera Setup
+    glm::mat4 projectionMatrix = glm::perspective(glm::radians(70.0f), 1280.f / 720.f, 0.1f, 100.f); // aspect ratio should be recalced on viewport size change
+
+     //-- View space formation
+    glm::vec3 cameraPosition = glm::vec3(0.0f, 0.0f, 3.0f);
+    glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+    glm::vec3 cameraTarget = cameraPosition + cameraFront;
+    glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+    float cameraBaseSpeed = 3.f;
+    
+
+    glm::mat4 viewMatrix;
+    viewMatrix = glm::lookAt(cameraPosition, cameraTarget, cameraUp);
 
 
     //---- Render Loop ----
@@ -149,7 +167,7 @@ int main(int argc, char **argv) {
     ImVec4 rect_color = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
     
     // The main loop should live in main or the engine manager
-    while (!glfwWindowShouldClose(windowManager.m_window)) // Need to setup my own events for this to work better
+    while (!glfwWindowShouldClose(windowManager->GetWindow())) // Need to setup my own events for this to work better
     {
         //--- Update Delta Time
         float currentFrameTime = static_cast<float>(glfwGetTime());
@@ -159,21 +177,55 @@ int main(int argc, char **argv) {
         //--- Input
         //-----------------------------------------------------
 
-        windowManager.ProcessEvents();
-
+        
+        float cameraSpeed = cameraBaseSpeed * deltaTime;
+        windowManager->ProcessInputs(cameraPosition, cameraFront, cameraUp, cameraSpeed);
 
         // Rendering commands
         //-----------------------------------------------------
 
-        //--- Background Color
+        //---- Background Color
         glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
         glClear(GL_COLOR_BUFFER_BIT);
-            
-        //--- Game Object Rendering
-        cube.Render();
+
+        
+        //--- Camera
+
+        static float pitch = 0.0f;
+        static float yaw = -90.0f;
+        float offsetX, offsetY;
+        // The issue is this is grabbing the last set value of the offset. When the mouse doesn't move
+        // the offsets don't update
+        windowManager->GetMouseOffsets(offsetX, offsetY);
+        yaw += offsetX * deltaTime;
+        pitch += offsetY * deltaTime;
+        // Contrain the pitch to stop a lookAt flip
+        if (pitch > 89.0f)
+            pitch = 89.0f;
+        if (pitch < -89.0f)
+            pitch = -89.0f;
+
+        glm::vec3 direction;
+        direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+        direction.y = sin(glm::radians(pitch));
+        direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+        cameraFront = glm::normalize(direction);        
+
+        cameraTarget = cameraPosition + cameraFront; // Needs to be recomputed after inputs are updated
+        viewMatrix = glm::lookAt(cameraPosition, cameraTarget, cameraUp);
+
+        // Recalculate the projection matrix to account for scrolling
+        float windowFOV;
+        windowManager->GetFOV(windowFOV);
+        // Need to change this calculation to get the current window aspect ratio
+        projectionMatrix = glm::perspective(glm::radians(windowFOV), 1280.f / 720.f, 0.1f, 100.f);
+        
+        //---- Game Object Rendering
+        cube.Render(viewMatrix, projectionMatrix);
 
         // Swap the front and back buffers
-        windowManager.Update();
+        windowManager->Update();
+        windowManager->PollEvents();
     }
 
     

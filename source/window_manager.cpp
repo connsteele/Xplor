@@ -20,20 +20,14 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 	// glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(projection));
 }
 
-// Handle all incoming keyboard and mouse events
-void processInputs(GLFWwindow* window)
-{
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-	{
-		// Enable the close window flag
-		glfwSetWindowShouldClose(window, true);
-	}
-}
+//--------- Window Manager Member Variable in-class initializer
+std::shared_ptr<WindowManager> WindowManager::m_instance = nullptr;
+
 
 //--------- Window Manager Methods Impls 
 //------------------------------------------------------------------------------------------
 
-void WindowManager::Init()
+void WindowManager::Init(int windowWidth, int windowHeight, bool fullscreen)
 {
 	//--- Start glfw up
 	if (!glfwInit())
@@ -49,9 +43,12 @@ void WindowManager::Init()
 	// Set OpenGL to Core-profile mode
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	// Create the window itself
-	int windowWidth = 1280;
-	int windowHeight = 720;
-	m_window = glfwCreateWindow(windowWidth, windowHeight, "XplorEngine", NULL, NULL);
+	if (fullscreen)
+		m_window = glfwCreateWindow(windowWidth, windowHeight, "XplorEngine", glfwGetPrimaryMonitor(), NULL);
+	else
+		m_window = glfwCreateWindow(windowWidth, windowHeight, "XplorEngine", NULL, NULL);
+	// Setup a user pointer to get data later 
+	glfwSetWindowUserPointer(m_window, this);
 
 	// Cleanup GLFW if the window creation fails
 	if (!m_window)
@@ -83,9 +80,96 @@ void WindowManager::Update()
 	glfwSwapBuffers(m_window);
 }
 
-void WindowManager::ProcessEvents()
+void WindowManager::MouseCallback(GLFWwindow* window, double xpos, double ypos)
+{
+	WindowManager* windowManager = static_cast<WindowManager*>(glfwGetWindowUserPointer(window));
+	if (windowManager) {
+		windowManager->UpdateMousePosition(static_cast<float>(xpos), static_cast<float>(ypos));
+	}
+}
+
+void WindowManager::ScrollCallback(GLFWwindow* window, double offsetX, double offsetY)
+{
+	WindowManager* windowManager = static_cast<WindowManager*>(glfwGetWindowUserPointer(window));
+	if (windowManager) {
+		windowManager->UpdateMouseScroll(static_cast<float>(offsetX), static_cast<float>(offsetY));
+	}
+}
+
+void WindowManager::UpdateMouseScroll(float offsetX, float offsetY)
+{
+	m_FOV -= offsetY;
+
+	// Limit the FOV range
+	if (m_FOV < 1.0f)
+		m_FOV = 1.0f;
+	if (m_FOV > 120.0f)
+		m_FOV = 120.0f;
+}
+
+
+
+void WindowManager::UpdateMousePosition(float xpos, float ypos)
+{
+	m_activeMouse = true;
+
+	static float lastX = xpos;
+	static float lastY = ypos;
+
+
+	m_cursorOffsetX = xpos - lastX;
+	m_cursorOffsetY = lastY - ypos; // Y coord starts at bottom
+	lastX = xpos;
+	lastY = ypos;
+
+	const float sensitivity = 2.0f;
+	m_cursorOffsetX *= sensitivity;
+	m_cursorOffsetY *= sensitivity;
+}
+
+void WindowManager::CaptureCursor()
+{
+	glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetCursorPosCallback(m_window, WindowManager::MouseCallback);
+	glfwSetScrollCallback(m_window, WindowManager::ScrollCallback);
+	//glfwSetCursorPos(m_window, 0.0, 0.0);
+}
+
+void WindowManager::PollEvents()
 {
 	glfwPollEvents();
+}
+
+// Handle all incoming keyboard and mouse events
+void WindowManager::ProcessInputs(glm::vec3& camerPos, glm::vec3 cameraFront, glm::vec3 cameraUp, float cameraSpeed)
+{
+	if (!m_window)
+	{
+		std::cout << "Error: Window not created" << std::endl;
+		return;
+	}
+
+	if (glfwGetKey(m_window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+	{
+		// Enable the close window flag
+		glfwSetWindowShouldClose(m_window, true);
+	}
+	if (glfwGetKey(m_window, GLFW_KEY_W) == GLFW_PRESS)
+	{
+		camerPos += cameraSpeed * cameraFront;
+	}
+	if (glfwGetKey(m_window, GLFW_KEY_S) == GLFW_PRESS)
+	{
+		camerPos -= cameraSpeed * cameraFront;
+	}
+	if (glfwGetKey(m_window, GLFW_KEY_A) == GLFW_PRESS)
+	{
+		camerPos -= cameraSpeed * glm::normalize(glm::cross(cameraFront, cameraUp));
+	}
+	if (glfwGetKey(m_window, GLFW_KEY_D) == GLFW_PRESS)
+	{
+		camerPos += cameraSpeed * glm::normalize(glm::cross(cameraFront, cameraUp));
+	}
 }
 
 void WindowManager::Shutdown()
@@ -113,4 +197,36 @@ void WindowManager::PrintHardwareInfo()
 	glGetIntegerv(GL_MAJOR_VERSION, &major);
 	glGetIntegerv(GL_MINOR_VERSION, &minor);
 	std::cout << "OpenGL Version: " << major << "." << minor << std::endl;
+}
+
+
+std::shared_ptr<WindowManager> WindowManager::GetInstance()
+{
+	if (!m_instance)
+	{
+		m_instance = std::make_shared<WindowManager>();
+	}
+
+	return m_instance;
+}
+
+
+
+void WindowManager::GetMouseOffsets(float&offsetX, float& offsetY)
+{
+	if (!m_activeMouse)
+	{
+		m_cursorOffsetX = 0.f;
+		m_cursorOffsetY = 0.f;
+	}
+	offsetX = m_cursorOffsetX;
+	offsetY = m_cursorOffsetY;
+
+	// Turn the mouse off for no movement
+	m_activeMouse = false;
+}
+
+void WindowManager::GetFOV(float& out_FOV)
+{
+	out_FOV = m_FOV;
 }
