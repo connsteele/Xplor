@@ -3,6 +3,7 @@
 #include <vector>
 #include <xplor_types.hpp>
 #include <memory>
+#include "window_manager.hpp"
 
 namespace Xplor
 {
@@ -15,17 +16,17 @@ namespace Xplor
         
 
     public:
-        //EngineManager();
-
-        //~EngineManager();
-
-        /// <summary>
-        /// Creates pointers for each manager it manages
-        /// </summary>
         void Init();
+
+        void CreateWindow(int width, int height, bool fullscreen);
+
+        bool Run();
+
+        static std::shared_ptr<EngineManager> GetInstance();
 
 
     private:
+        static std::shared_ptr<EngineManager> m_instance;
 
     }; // end class
 }; // end namespace

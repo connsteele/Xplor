@@ -12,6 +12,7 @@
 #include "engine_manager.hpp"
 #include "window_manager.hpp"
 #include "game_object.hpp"
+#include "camera.hpp"
 
 struct imgData
 {
@@ -26,16 +27,13 @@ struct imgData
 int main(int argc, char **argv) {
    
     //---- Setup ----
+    std::shared_ptr<Xplor::EngineManager> xplor = Xplor::EngineManager::GetInstance();
+
+    xplor->CreateWindow(1920, 1080, false);
+
     std::shared_ptr<WindowManager> windowManager = WindowManager::GetInstance();
-    windowManager->Init(3840, 2160, true);
-    windowManager->CaptureCursor();
 
     Xplor::PropObject cube;
-
-
-
-    //----- Create the engine manager
-    //---------------------------------
 
 
 
@@ -147,15 +145,24 @@ int main(int argc, char **argv) {
     glm::mat4 projectionMatrix = glm::perspective(glm::radians(70.0f), 1280.f / 720.f, 0.1f, 100.f); // aspect ratio should be recalced on viewport size change
 
      //-- View space formation
-    glm::vec3 cameraPosition = glm::vec3(0.0f, 0.0f, 3.0f);
+    Xplor::CameraVectors camVecs;
+    camVecs.cameraPosition = glm::vec3(0.0f, 0.0f, 3.0f);
+    camVecs.cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+    camVecs.cameraUp = glm::vec3(0.f , 1.f, 0.f);
+    float cameraSpeed = 3.f;
+    float fov = 90.f;
+
+    Xplor::Camera sceneCamera(camVecs, fov, cameraSpeed);
+
+
+    /*glm::vec3 cameraPosition = glm::vec3(0.0f, 0.0f, 3.0f);
     glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
     glm::vec3 cameraTarget = cameraPosition + cameraFront;
     glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-    float cameraBaseSpeed = 3.f;
     
 
     glm::mat4 viewMatrix;
-    viewMatrix = glm::lookAt(cameraPosition, cameraTarget, cameraUp);
+    viewMatrix = glm::lookAt(cameraPosition, cameraTarget, cameraUp);*/
 
 
     //---- Render Loop ----
@@ -178,8 +185,8 @@ int main(int argc, char **argv) {
         //-----------------------------------------------------
 
         
-        float cameraSpeed = cameraBaseSpeed * deltaTime;
-        windowManager->ProcessInputs(cameraPosition, cameraFront, cameraUp, cameraSpeed);
+        float cameraFinalSpeed = cameraSpeed * deltaTime;
+        //windowManager->ProcessInputs(cameraPosition, cameraFront, cameraUp, cameraFinalSpeed);
 
         // Rendering commands
         //-----------------------------------------------------
@@ -190,38 +197,40 @@ int main(int argc, char **argv) {
 
         
         //--- Camera
+        // Update the camera here
+        sceneCamera.Update(deltaTime);
 
-        static float pitch = 0.0f;
-        static float yaw = -90.0f;
-        float offsetX, offsetY;
-        // The issue is this is grabbing the last set value of the offset. When the mouse doesn't move
-        // the offsets don't update
-        windowManager->GetMouseOffsets(offsetX, offsetY);
-        yaw += offsetX * deltaTime;
-        pitch += offsetY * deltaTime;
-        // Contrain the pitch to stop a lookAt flip
-        if (pitch > 89.0f)
-            pitch = 89.0f;
-        if (pitch < -89.0f)
-            pitch = -89.0f;
+        //static float pitch = 0.0f;
+        //static float yaw = -90.0f;
+        //float offsetX, offsetY;
+        //// The issue is this is grabbing the last set value of the offset. When the mouse doesn't move
+        //// the offsets don't update
+        //windowManager->GetMouseOffsets(offsetX, offsetY);
+        //yaw += offsetX * deltaTime;
+        //pitch += offsetY * deltaTime;
+        //// Contrain the pitch to stop a lookAt flip
+        //if (pitch > 89.0f)
+        //    pitch = 89.0f;
+        //if (pitch < -89.0f)
+        //    pitch = -89.0f;
 
-        glm::vec3 direction;
-        direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-        direction.y = sin(glm::radians(pitch));
-        direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-        cameraFront = glm::normalize(direction);        
+        //glm::vec3 direction;
+        //direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+        //direction.y = sin(glm::radians(pitch));
+        //direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+        //cameraFront = glm::normalize(direction);        
 
-        cameraTarget = cameraPosition + cameraFront; // Needs to be recomputed after inputs are updated
-        viewMatrix = glm::lookAt(cameraPosition, cameraTarget, cameraUp);
+        //cameraTarget = cameraPosition + cameraFront; // Needs to be recomputed after inputs are updated
+        //viewMatrix = glm::lookAt(cameraPosition, cameraTarget, cameraUp);
 
         // Recalculate the projection matrix to account for scrolling
-        float windowFOV;
-        windowManager->GetFOV(windowFOV);
+        //float windowFOV;
+        //windowManager->GetFOV(windowFOV);
         // Need to change this calculation to get the current window aspect ratio
-        projectionMatrix = glm::perspective(glm::radians(windowFOV), 1280.f / 720.f, 0.1f, 100.f);
+        //projectionMatrix = glm::perspective(glm::radians(windowFOV), 1280.f / 720.f, 0.1f, 100.f);
         
         //---- Game Object Rendering
-        cube.Render(viewMatrix, projectionMatrix);
+        cube.Render(sceneCamera.m_viewMatrix, sceneCamera.m_projectionMatrix);
 
         // Swap the front and back buffers
         windowManager->Update();

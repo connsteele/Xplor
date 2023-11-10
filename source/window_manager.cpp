@@ -141,7 +141,7 @@ void WindowManager::PollEvents()
 }
 
 // Handle all incoming keyboard and mouse events
-void WindowManager::ProcessInputs(glm::vec3& camerPos, glm::vec3 cameraFront, glm::vec3 cameraUp, float cameraSpeed)
+void WindowManager::ProcessInputs(glm::vec3& out_cameraPos, glm::vec3 cameraFront, glm::vec3 cameraUp, float cameraSpeed)
 {
 	if (!m_window)
 	{
@@ -156,19 +156,19 @@ void WindowManager::ProcessInputs(glm::vec3& camerPos, glm::vec3 cameraFront, gl
 	}
 	if (glfwGetKey(m_window, GLFW_KEY_W) == GLFW_PRESS)
 	{
-		camerPos += cameraSpeed * cameraFront;
+		out_cameraPos += cameraSpeed * cameraFront;
 	}
 	if (glfwGetKey(m_window, GLFW_KEY_S) == GLFW_PRESS)
 	{
-		camerPos -= cameraSpeed * cameraFront;
+		out_cameraPos -= cameraSpeed * cameraFront;
 	}
 	if (glfwGetKey(m_window, GLFW_KEY_A) == GLFW_PRESS)
 	{
-		camerPos -= cameraSpeed * glm::normalize(glm::cross(cameraFront, cameraUp));
+		out_cameraPos -= cameraSpeed * glm::normalize(glm::cross(cameraFront, cameraUp));
 	}
 	if (glfwGetKey(m_window, GLFW_KEY_D) == GLFW_PRESS)
 	{
-		camerPos += cameraSpeed * glm::normalize(glm::cross(cameraFront, cameraUp));
+		out_cameraPos += cameraSpeed * glm::normalize(glm::cross(cameraFront, cameraUp));
 	}
 }
 

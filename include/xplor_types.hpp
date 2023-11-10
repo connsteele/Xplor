@@ -12,4 +12,10 @@ namespace Xplor {
 	};
 
 
+	struct CameraVectors {
+		glm::vec3 cameraPosition{};
+		glm::vec3 cameraFront{};
+		glm::vec3 cameraUp{};
+	};
+
 }; // end namespace

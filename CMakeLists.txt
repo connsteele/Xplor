@@ -13,12 +13,14 @@ set(
     source/matrix_stack.cpp
     source/window_manager.cpp
     source/game_object.cpp
+    source/camera.cpp
     include/xplor_types.hpp
     include/shader.hpp
     include/engine_manager.hpp
     include/matrix_stack.hpp
     include/window_manager.hpp
     include/game_object.hpp
+    include/camera.hpp
     third-party/stb/stb_image.cpp
 )
 
