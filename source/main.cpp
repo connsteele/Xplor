@@ -27,19 +27,19 @@ struct ImgData
 int main(int argc, char **argv) {
    
     //---- Setup ----
-    std::shared_ptr<Xplor::EngineManager> xplor = Xplor::EngineManager::GetInstance();
+    std::shared_ptr<Xplor::EngineManager> xplorM = Xplor::EngineManager::GetInstance();
 
-    xplor->CreateWindow(1920, 1080, false);
+    xplorM->CreateWindow(1920, 1080, false);
 
     std::shared_ptr<WindowManager> windowManager = WindowManager::GetInstance();
 
-    Xplor::PropObject cube;
-
+    std::shared_ptr<Xplor::PropObject> cube = std::make_shared<Xplor::PropObject>();
+    xplorM->AddGameObject(cube);
 
 
     //--- Image Loading
-    cube.AddTexture("//images//woodBox.jpg", Xplor::ImageFormat::jpg);
-    cube.AddTexture("//images//dog.png", Xplor::ImageFormat::png);
+    cube->AddTexture("//images//woodBox.jpg", Xplor::ImageFormat::jpg);
+    cube->AddTexture("//images//dog.png", Xplor::ImageFormat::png);
 
 
     //--- Shader Creation
@@ -48,18 +48,20 @@ int main(int argc, char **argv) {
     std::string vertexShaderPath = "//shaders//simple.vs";
     std::string fragmentShaderPath = "//shaders//simple.fs";
 
-    //cube.AddShader(vertexShaderPath, fragmentShaderPath);
+    //cube->AddShader(vertexShaderPath, fragmentShaderPath);
     std::string fullVertexPath = resources + vertexShaderPath;
     std::string fullFragmentPath = resources + fragmentShaderPath;
 
 
-    std::shared_ptr<Xplor::Shader> simpleShader = std::make_shared<Xplor::Shader>(Xplor::Shader(fullVertexPath.c_str(), fullFragmentPath.c_str()));
+    std::shared_ptr<Xplor::Shader> simpleShader = 
+        std::make_shared<Xplor::Shader>(Xplor::Shader(fullVertexPath.c_str(), 
+            fullFragmentPath.c_str()));
 
-    cube.AddShader(simpleShader);
-    auto cubeShader = cube.GetShader();
+    cube->AddShader(simpleShader);
+    auto cubeShader = cube->GetShader();
 
 
-    //auto cubeShader = cube.GetShader();
+    //auto cubeShader = cube->GetShader();
     cubeShader->useProgram();
     // Inform the shader where the texture samplers are located
     cubeShader->setUniform("customTexture1", 0);
@@ -130,15 +132,16 @@ int main(int argc, char **argv) {
     };
 
     // Send Geometry information to the game object
-    cube.AddGeometry(verticesCube, verticesCubeSize, 5);
-    cube.InitGeom();
+    cube->AddGeometry(verticesCube, verticesCubeSize, 5);
+    cube->InitGeom();
 
     // Query hardware information
     windowManager->PrintHardwareInfo();
     // Query the max amount of vertex attribs we can use
     int maxAttributes;
     glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &maxAttributes);
-    std::cout << "Maxmimum number of vertex attributes supported: " << maxAttributes << std::endl;
+    std::cout << "Maxmimum number of vertex attributes supported: " 
+        << maxAttributes << std::endl;
 
 
     //---- Camera Setup
@@ -150,57 +153,18 @@ int main(int argc, char **argv) {
     float cameraSpeed = 3.f;
     float fov = 90.f;
 
-    Xplor::Camera sceneCamera(camVecs, fov, cameraSpeed);
+    Xplor::Camera sceneCamera(camVecs, cameraSpeed, fov);
+    xplorM->CreateCamera(camVecs);
 
 
-    //---- Render Loop ----
+    //---- Engine Main Loop ----
     //-----------------------------------------------------
-    float previousFrameTime = 0.0f;
-    bool show_demo_window = true;
-    bool show_another_window = false;
-    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-    ImVec4 rect_color = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
-    
-    // The main loop should live in main or the engine manager
-    while (!glfwWindowShouldClose(windowManager->GetWindow())) // Need to setup my own events for this to work better
-    {
-        //--- Update Delta Time
-        float currentFrameTime = static_cast<float>(glfwGetTime());
-        float deltaTime = currentFrameTime - previousFrameTime;
-        previousFrameTime = currentFrameTime;
-
-        //--- Input
-        //-----------------------------------------------------
-
-        
-        float cameraFinalSpeed = cameraSpeed * deltaTime;
-        // I need to change how this logic happens. The window manager should process the inputs here
-        // but then after that it should let the camera know if it needs to move
-        //windowManager->ProcessInputs(cameraPosition, cameraFront, cameraUp, cameraFinalSpeed);
-
-        // Rendering commands
-        //-----------------------------------------------------
-
-        //---- Background Color
-        glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        
-        //--- Camera
-        sceneCamera.Update(deltaTime);
-        
-        //---- Game Object Rendering
-        cube.Render(sceneCamera.m_viewMatrix, sceneCamera.m_projectionMatrix);
-
-        // Swap the front and back buffers
-        windowManager->Update();
-        windowManager->PollEvents();
-    }
+    xplorM->Run();
 
     
     //---- Cleanup ----
     //-----------------------------------------------------
-    cube.Delete();
+    cube->Delete();
 
     return 0;
 }

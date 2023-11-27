@@ -2,7 +2,7 @@
 
 #include "GLFW/glfw3.h"
 
-Xplor::Camera::Camera(Xplor::CameraVectors cameraVecs, float fov,  float speed)
+Xplor::Camera::Camera(Xplor::CameraVectors cameraVecs, float speed, float fov)
 {
 	m_vectors = cameraVecs;
 	m_target = cameraVecs.cameraPosition + cameraVecs.cameraFront;
