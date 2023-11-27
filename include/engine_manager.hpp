@@ -4,6 +4,8 @@
 #include <xplor_types.hpp>
 #include <memory>
 #include "window_manager.hpp"
+#include "camera.hpp"
+#include "game_object.hpp"
 
 namespace Xplor
 {
@@ -27,6 +29,10 @@ namespace Xplor
 
     private:
         static std::shared_ptr<EngineManager> m_instance;
+        // Drop templating on this for now, this vector contains every game objects in the scene
+        //std::vector<GameObject> gameObjects;
+        std::vector<GameObject> gameObjects;
+        
 
     }; // end class
 }; // end namespace

@@ -13,6 +13,9 @@ void Xplor::EngineManager::CreateWindow(int width, int height, bool fullscreen)
 	std::shared_ptr<WindowManager> windowManager = WindowManager::GetInstance();
 	windowManager->Init(width, height, fullscreen);
 	windowManager->CaptureCursor();
+
+	// Register callbacks
+
 }
 
 std::shared_ptr<Xplor::EngineManager> Xplor::EngineManager::GetInstance()

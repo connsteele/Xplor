@@ -25,15 +25,19 @@ Xplor::Camera::Camera(Xplor::CameraVectors cameraVecs, float fov,  float speed)
 
 void Xplor::Camera::Update(float deltaTime)
 {
+    auto windowManager = WindowManager::GetInstance();
+
+    //---- Translation
+    float cameraFinalSpeed = m_speed * deltaTime;
+    windowManager->ProcessInputs(m_vectors.cameraPosition, m_vectors.cameraFront, m_vectors.cameraUp, cameraFinalSpeed);
+
+    //---- Rotation
     static float pitch = 0.0f;
     static float yaw = -90.0f;
     float offsetX, offsetY;
-    // The issue is this is grabbing the last set value of the offset. When the mouse doesn't move
-    // the offsets don't update
-    auto windowManager = WindowManager::GetInstance();
     windowManager->GetMouseOffsets(offsetX, offsetY);
-    yaw += offsetX * deltaTime;
-    pitch += offsetY * deltaTime;
+    yaw += offsetX;
+    pitch += offsetY;
     // Contrain the pitch to stop a lookAt flip
     if (pitch > 89.0f)
         pitch = 89.0f;
@@ -48,7 +52,7 @@ void Xplor::Camera::Update(float deltaTime)
 
     m_target = m_vectors.cameraPosition + m_vectors.cameraFront; // Needs to be recomputed after inputs are updated
     
-    // Compute Matrices
+    //---- Compute Matrices
     m_viewMatrix = glm::lookAt(m_vectors.cameraPosition, m_target, m_vectors.cameraUp);
 
     float windowFOV;

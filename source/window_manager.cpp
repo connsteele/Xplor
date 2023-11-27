@@ -117,14 +117,12 @@ void WindowManager::UpdateMousePosition(float xpos, float ypos)
 	static float lastY = ypos;
 
 
-	m_cursorOffsetX = xpos - lastX;
-	m_cursorOffsetY = lastY - ypos; // Y coord starts at bottom
+	const float sensitivity = 0.02f;
+	m_cursorOffsetX = (xpos - lastX) * sensitivity;
+	m_cursorOffsetY = (lastY - ypos) * sensitivity;
+
 	lastX = xpos;
 	lastY = ypos;
-
-	const float sensitivity = 2.0f;
-	m_cursorOffsetX *= sensitivity;
-	m_cursorOffsetY *= sensitivity;
 }
 
 void WindowManager::CaptureCursor()

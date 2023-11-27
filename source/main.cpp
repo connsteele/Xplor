@@ -14,7 +14,7 @@
 #include "game_object.hpp"
 #include "camera.hpp"
 
-struct imgData
+struct ImgData
 {
     int width;
     int height;
@@ -142,9 +142,7 @@ int main(int argc, char **argv) {
 
 
     //---- Camera Setup
-    glm::mat4 projectionMatrix = glm::perspective(glm::radians(70.0f), 1280.f / 720.f, 0.1f, 100.f); // aspect ratio should be recalced on viewport size change
-
-     //-- View space formation
+     // View space formation
     Xplor::CameraVectors camVecs;
     camVecs.cameraPosition = glm::vec3(0.0f, 0.0f, 3.0f);
     camVecs.cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
@@ -153,16 +151,6 @@ int main(int argc, char **argv) {
     float fov = 90.f;
 
     Xplor::Camera sceneCamera(camVecs, fov, cameraSpeed);
-
-
-    /*glm::vec3 cameraPosition = glm::vec3(0.0f, 0.0f, 3.0f);
-    glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-    glm::vec3 cameraTarget = cameraPosition + cameraFront;
-    glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-    
-
-    glm::mat4 viewMatrix;
-    viewMatrix = glm::lookAt(cameraPosition, cameraTarget, cameraUp);*/
 
 
     //---- Render Loop ----
@@ -186,6 +174,8 @@ int main(int argc, char **argv) {
 
         
         float cameraFinalSpeed = cameraSpeed * deltaTime;
+        // I need to change how this logic happens. The window manager should process the inputs here
+        // but then after that it should let the camera know if it needs to move
         //windowManager->ProcessInputs(cameraPosition, cameraFront, cameraUp, cameraFinalSpeed);
 
         // Rendering commands
@@ -197,37 +187,7 @@ int main(int argc, char **argv) {
 
         
         //--- Camera
-        // Update the camera here
         sceneCamera.Update(deltaTime);
-
-        //static float pitch = 0.0f;
-        //static float yaw = -90.0f;
-        //float offsetX, offsetY;
-        //// The issue is this is grabbing the last set value of the offset. When the mouse doesn't move
-        //// the offsets don't update
-        //windowManager->GetMouseOffsets(offsetX, offsetY);
-        //yaw += offsetX * deltaTime;
-        //pitch += offsetY * deltaTime;
-        //// Contrain the pitch to stop a lookAt flip
-        //if (pitch > 89.0f)
-        //    pitch = 89.0f;
-        //if (pitch < -89.0f)
-        //    pitch = -89.0f;
-
-        //glm::vec3 direction;
-        //direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-        //direction.y = sin(glm::radians(pitch));
-        //direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-        //cameraFront = glm::normalize(direction);        
-
-        //cameraTarget = cameraPosition + cameraFront; // Needs to be recomputed after inputs are updated
-        //viewMatrix = glm::lookAt(cameraPosition, cameraTarget, cameraUp);
-
-        // Recalculate the projection matrix to account for scrolling
-        //float windowFOV;
-        //windowManager->GetFOV(windowFOV);
-        // Need to change this calculation to get the current window aspect ratio
-        //projectionMatrix = glm::perspective(glm::radians(windowFOV), 1280.f / 720.f, 0.1f, 100.f);
         
         //---- Game Object Rendering
         cube.Render(sceneCamera.m_viewMatrix, sceneCamera.m_projectionMatrix);

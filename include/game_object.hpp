@@ -2,7 +2,9 @@
 
 #include "matrix_stack.hpp"
 #include "xplor_types.hpp"
+#include "shader.hpp"
 #include <stb_image.h>
+#include <iostream>
 #include <string>
 #include <vector>
 #include <array>
@@ -21,7 +23,6 @@ namespace Xplor {
 	// A Game Object should contain also relevant information about where to place an object in the game world
 	// and how to render it
 
-	template <typename T>
 	class GameObject
 	{
 	public:
@@ -29,7 +30,7 @@ namespace Xplor {
 		
 		void AddTexture(std::string imagePath, ImageFormat format)
 		{
-			imgData imageBox;
+			ImageData imageBox;
 			stbi_set_flip_vertically_on_load(true); // Align the coordinates
 			std::string fullPath = resources + imagePath;
 			// Fill Variables with image data
@@ -64,7 +65,7 @@ namespace Xplor {
 			m_textures.push_back(texture1);
 		}
 
-		// Ideally this would be a smart pointer and support multiple shaders 
+		// Ideally this should support multiple shaders 
 		void AddShader(std::shared_ptr<Shader> shader)
 		{
 			m_shader = shader;
@@ -201,7 +202,7 @@ namespace Xplor {
 	}; // end class
 
 
-	class PropObject : public GameObject<PropObject>
+	class PropObject : public GameObject
 	{
 
 	};
