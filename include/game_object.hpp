@@ -73,13 +73,13 @@ namespace Xplor {
 
 		void AddGeometry(float* geometryData, size_t dataSize, unsigned int stepSize)
 		{
-			glGenVertexArrays(1, &VAO); // Generate one VAO
-			glGenBuffers(1, &VBO); // Generate one buffer object in the OGL Context'
-			glGenBuffers(1, &EBO); // EBO allows us to use indicies for drawing order
+			glGenVertexArrays(1, &m_VAO); // Generate one VAO
+			glGenBuffers(1, &m_VBO); // Generate one buffer object in the OGL Context'
+			glGenBuffers(1, &m_EBO); // EBO allows us to use indicies for drawing order
 
 
-			glBindVertexArray(VAO); // bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
-			glBindBuffer(GL_ARRAY_BUFFER, VBO); // Bind the buffer object to a buffer type
+			glBindVertexArray(m_VAO); // bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
+			glBindBuffer(GL_ARRAY_BUFFER, m_VBO); // Bind the buffer object to a buffer type
 
 			// Copy data into the buffer object bound to target. The target here
 			// is  GL_ARRAYBUFFER which is bound to the VBO.
@@ -108,22 +108,9 @@ namespace Xplor {
 
 		void Render(glm::mat4 viewMatrix, glm::mat4 projectionMatrix)
 		{
-			glm::vec3 cubePositions[] = {
-				glm::vec3(0.0f,  0.0f,  0.0f),
-				glm::vec3(2.0f,  5.0f, -15.0f),
-				glm::vec3(-1.5f, -2.2f, -2.5f),
-				glm::vec3(-3.8f, -2.0f, -12.3f),
-				glm::vec3(2.4f, -0.4f, -3.5f),
-				glm::vec3(-1.7f,  3.0f, -7.5f),
-				glm::vec3(1.3f, -2.0f, -2.5f),
-				glm::vec3(1.5f,  2.0f, -2.5f),
-				glm::vec3(1.5f,  0.2f, -1.5f),
-				glm::vec3(-1.3f,  1.0f, -1.5f)
-			};
-
 			m_shader->useProgram();
 			glClear(GL_DEPTH_BUFFER_BIT);
-			glBindVertexArray(VAO);
+			glBindVertexArray(m_VAO);
 
 			// Send coordinate matrices to the shader
 			int locModel = glGetUniformLocation(m_shader->getID(), "model");
@@ -142,21 +129,32 @@ namespace Xplor {
 			}
 
 			// Draw 10 cubes
-			glBindVertexArray(VAO);
-			for (unsigned int i = 0; i < 10; i++)
-			{
-				glm::mat4 model = glm::mat4(1.0f);
-				model = glm::translate(model, cubePositions[i]);
-				float angle = 20.0f * i;
-				if (i % 3 == 0)  // every 3rd iteration (including the first) we set the angle using GLFW's time function.
-					angle = glfwGetTime() * 45.0f;
-				model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-				//m_shader->setMat4("model", model);
-				//glUniformMatrix4fv(glGetUniformLocation(m_shader->getID(), "model"), 1, GL_FALSE, glm::value_ptr(model));
-				m_shader->setUniform("model", model);
+			//glBindVertexArray(m_VAO);
+			//for (unsigned int i = 0; i < 10; i++)
+			//{
+			//	glm::mat4 model = glm::mat4(1.0f);
+			//	model = glm::translate(model, cubePositions[i]);
+			//	float angle = 20.0f * i;
+			//	if (i % 3 == 0)  // every 3rd iteration (including the first) we set the angle using GLFW's time function.
+			//		angle = glfwGetTime() * 45.0f;
+			//	model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+			//	//m_shader->setMat4("model", model);
+			//	//glUniformMatrix4fv(glGetUniformLocation(m_shader->getID(), "model"), 1, GL_FALSE, glm::value_ptr(model));
+			//	m_shader->setUniform("model", model);
 
-				glDrawArrays(GL_TRIANGLES, 0, 36);
-			}
+			//	glDrawArrays(GL_TRIANGLES, 0, 36);
+			//}
+
+			// Transform and draw the object
+			glBindVertexArray(m_VAO);
+			glm::mat4 model = glm::mat4(1.0f);
+			model = glm::translate(model, m_position);
+			// rotate
+			m_shader->setUniform("model", model);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+
+			
+
 
 			// Unbinds
 			glBindVertexArray(0); // Unbind the VAO
@@ -170,10 +168,15 @@ namespace Xplor {
 				m_shader->Delete();
 
 			// Check if these are populated first
-			glDeleteVertexArrays(1, &VAO);
-			glDeleteBuffers(1, &VBO);
-			glDeleteBuffers(1, &EBO);
+			glDeleteVertexArrays(1, &m_VAO);
+			glDeleteBuffers(1, &m_VBO);
+			glDeleteBuffers(1, &m_EBO);
 		}
+
+		void SetPosition(glm::vec3 pos)
+		{
+			m_position = pos;
+		};
 
 		std::vector<uint32_t> GetTextures()
 		{
@@ -184,15 +187,26 @@ namespace Xplor {
 		{
 			return m_shader;
 		}
+
+		void SetID(uint32_t id)
+		{
+			m_id = id;
+		}
+
+		uint32_t GetID()
+		{
+			return m_id;
+		}
 		
 
 	protected:
+		// Unique identifier for object
+		uint32_t m_id;
 		const std::string resources = "..//resources//";
-		ImageData tempImg;
 		std::vector<uint32_t> m_textures{};
-		//Shader* m_shader; // having this not set as a pointer forces me to make a default constructor
 		std::shared_ptr<Shader> m_shader;
-		uint32_t VBO, VAO, EBO;
+		uint32_t m_VBO, m_VAO, m_EBO;
+		glm::vec3 m_position;
 
 		// Want a matrix stack instead of all of these
 		glm::mat4 modelMatrix{};

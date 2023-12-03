@@ -23,6 +23,13 @@ struct ImgData
 };
 
 
+void PrintMaxVertexAttrib()
+{
+    int maxAttributes;
+    glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &maxAttributes);
+    std::cout << "Maxmimum number of vertex attributes supported: " << maxAttributes << std::endl;
+
+}
 
 int main(int argc, char **argv) {
    
@@ -33,13 +40,19 @@ int main(int argc, char **argv) {
 
     std::shared_ptr<WindowManager> windowManager = WindowManager::GetInstance();
 
-    std::shared_ptr<Xplor::PropObject> cube = std::make_shared<Xplor::PropObject>();
-    xplorM->AddGameObject(cube);
+    std::shared_ptr<Xplor::PropObject> cubeA = std::make_shared<Xplor::PropObject>();
+    xplorM->AddGameObject(cubeA);
+
+    std::shared_ptr<Xplor::PropObject> cubeB = std::make_shared<Xplor::PropObject>();
+    xplorM->AddGameObject(cubeB);
 
 
     //--- Image Loading
-    cube->AddTexture("//images//woodBox.jpg", Xplor::ImageFormat::jpg);
-    cube->AddTexture("//images//dog.png", Xplor::ImageFormat::png);
+    cubeA->AddTexture("images//woodBox.jpg", Xplor::ImageFormat::jpg);
+    cubeA->AddTexture("images//dog.png", Xplor::ImageFormat::png);
+
+    cubeB->AddTexture("images//Firefly_Metal_Box.jpg", Xplor::ImageFormat::jpg);
+    cubeB->AddTexture("images//dog.png", Xplor::ImageFormat::png);
 
 
     //--- Shader Creation
@@ -48,112 +61,100 @@ int main(int argc, char **argv) {
     std::string vertexShaderPath = "//shaders//simple.vs";
     std::string fragmentShaderPath = "//shaders//simple.fs";
 
-    //cube->AddShader(vertexShaderPath, fragmentShaderPath);
     std::string fullVertexPath = resources + vertexShaderPath;
     std::string fullFragmentPath = resources + fragmentShaderPath;
 
 
-    std::shared_ptr<Xplor::Shader> simpleShader = 
-        std::make_shared<Xplor::Shader>(Xplor::Shader(fullVertexPath.c_str(), 
-            fullFragmentPath.c_str()));
+    std::shared_ptr<Xplor::Shader> simpleShader = std::make_shared<Xplor::Shader>
+        (Xplor::Shader(fullVertexPath.c_str(), fullFragmentPath.c_str()));
 
-    cube->AddShader(simpleShader);
-    auto cubeShader = cube->GetShader();
+    cubeA->AddShader(simpleShader);
+    auto cubeAShader = cubeA->GetShader();
+    cubeB->AddShader(simpleShader);
+    auto cubeBShader = cubeB->GetShader();
 
-
-    //auto cubeShader = cube->GetShader();
-    cubeShader->useProgram();
+    cubeAShader->useProgram();
     // Inform the shader where the texture samplers are located
-    cubeShader->setUniform("customTexture1", 0);
-    cubeShader->setUniform("customTexture2", 1);
+    cubeAShader->setUniform("customTexture1", 0);
+    cubeAShader->setUniform("customTexture2", 1);
+    cubeAShader->endProgram();
+
+    cubeBShader->useProgram();
+    cubeBShader->setUniform("customTexture1", 0);
+    cubeBShader->setUniform("customTexture2", 1);
+    cubeBShader->endProgram();
+
+
     // Enable depth testing
     glEnable(GL_DEPTH_TEST);
-    cubeShader->endProgram();
-
 
     // Vertex Buffer Setup
-    // Rectangle
     size_t verticesCubeSize = 180;
     float verticesCube[] = {
-    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-     0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+         0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
 
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
 
-    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-    -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
 
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
 
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
 
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
-    };
-    // Cubes
-    glm::vec3 cubePositions[] = {
-    glm::vec3(0.0f,  0.0f,  0.0f),
-    glm::vec3(2.0f,  5.0f, -15.0f),
-    glm::vec3(-1.5f, -2.2f, -2.5f),
-    glm::vec3(-3.8f, -2.0f, -12.3f),
-    glm::vec3(2.4f, -0.4f, -3.5f),
-    glm::vec3(-1.7f,  3.0f, -7.5f),
-    glm::vec3(1.3f, -2.0f, -2.5f),
-    glm::vec3(1.5f,  2.0f, -2.5f),
-    glm::vec3(1.5f,  0.2f, -1.5f),
-    glm::vec3(-1.3f,  1.0f, -1.5f)
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
     };
 
     // Send Geometry information to the game object
-    cube->AddGeometry(verticesCube, verticesCubeSize, 5);
-    cube->InitGeom();
+    cubeA->SetPosition(glm::vec3(0.0f, 0.0f, 0.0f));
+    cubeA->AddGeometry(verticesCube, verticesCubeSize, 5);
+    cubeA->InitGeom();
 
-    // Query hardware information
+    cubeB->SetPosition(glm::vec3(2.0f, 0.0f, -3.0f));
+    cubeB->AddGeometry(verticesCube, verticesCubeSize, 5);
+    cubeB->InitGeom();
+
+
     windowManager->PrintHardwareInfo();
-    // Query the max amount of vertex attribs we can use
-    int maxAttributes;
-    glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &maxAttributes);
-    std::cout << "Maxmimum number of vertex attributes supported: " 
-        << maxAttributes << std::endl;
+    PrintMaxVertexAttrib();
 
 
     //---- Camera Setup
-     // View space formation
     Xplor::CameraVectors camVecs;
     camVecs.cameraPosition = glm::vec3(0.0f, 0.0f, 3.0f);
     camVecs.cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
     camVecs.cameraUp = glm::vec3(0.f , 1.f, 0.f);
     float cameraSpeed = 3.f;
-    float fov = 90.f;
 
-    Xplor::Camera sceneCamera(camVecs, cameraSpeed, fov);
     xplorM->CreateCamera(camVecs);
 
 
@@ -164,7 +165,7 @@ int main(int argc, char **argv) {
     
     //---- Cleanup ----
     //-----------------------------------------------------
-    cube->Delete();
+    cubeA->Delete();
 
     return 0;
 }

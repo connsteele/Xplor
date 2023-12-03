@@ -41,14 +41,19 @@ namespace Xplor
 
         void AddGameObject(std::shared_ptr<GameObject> object);
 
+        size_t GetObjectCount()
+        {
+            return m_objectCount;
+        }
 
     private:
         static std::shared_ptr<EngineManager> m_instance;
         // Drop templating on this for now, this vector contains every game objects in the scene
         //std::vector<GameObject> gameObjects;
-        std::vector<std::shared_ptr<GameObject>> gameObjects;
-        std::unique_ptr<Camera> activeCamera;
-        float lastFrameTime{};
+        std::vector<std::shared_ptr<GameObject>> m_gameObjects;
+        std::unique_ptr<Camera> m_activeCamera;
+        float m_lastFrameTime{};
+        size_t m_objectCount{};
         
 
     }; // end class

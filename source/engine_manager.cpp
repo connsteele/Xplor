@@ -26,7 +26,7 @@ void Xplor::EngineManager::CreateCamera(CameraVectors vectors, float speed, floa
 	float cameraSpeed = speed;
 	float cameraFOV = fov;
 
-	activeCamera = std::make_unique<Camera>(vectors, cameraSpeed, cameraFOV);
+	m_activeCamera = std::make_unique<Camera>(vectors, cameraSpeed, cameraFOV);
 }
 
 bool Xplor::EngineManager::Run()
@@ -37,13 +37,13 @@ bool Xplor::EngineManager::Run()
     {
         //--- Update Delta Time
         float currentFrameTime = static_cast<float>(glfwGetTime());
-        float deltaTime = currentFrameTime - lastFrameTime;
-        lastFrameTime = currentFrameTime;
+        float deltaTime = currentFrameTime - m_lastFrameTime;
+        m_lastFrameTime = currentFrameTime;
 
         //--- Input
         //-----------------------------------------------------
 
-        float cameraFinalSpeed = activeCamera->m_speed * deltaTime;
+        float cameraFinalSpeed = m_activeCamera->m_speed * deltaTime;
         // I need to change how this logic happens. The window manager should process the inputs here
         // but then after that it should let the camera know if it needs to move
         //windowManager->ProcessInputs(cameraPosition, cameraFront, cameraUp, cameraFinalSpeed);
@@ -60,7 +60,7 @@ bool Xplor::EngineManager::Run()
         Update(deltaTime);
 
         //---- Game Object Rendering
-        Render(activeCamera->m_viewMatrix, activeCamera->m_projectionMatrix);
+        Render(m_activeCamera->m_viewMatrix, m_activeCamera->m_projectionMatrix);
 
         // Swap the front and back buffers
         windowManager->Update();
@@ -73,12 +73,12 @@ bool Xplor::EngineManager::Run()
 
 void Xplor::EngineManager::Update(float deltaTime)
 {
-    activeCamera->Update(deltaTime);
+    m_activeCamera->Update(deltaTime);
 }
 
 void Xplor::EngineManager::Render(glm::mat4 viewMatrix, glm::mat4 projectionMatrix)
 {
-	for (auto object : gameObjects)
+	for (auto object : m_gameObjects)
 	{
 		object->Render(viewMatrix, projectionMatrix);
 	}
@@ -96,5 +96,6 @@ std::shared_ptr<Xplor::EngineManager> Xplor::EngineManager::GetInstance()
 
 void Xplor::EngineManager::AddGameObject(std::shared_ptr<GameObject> object)
 {
-	gameObjects.push_back(object);
+    object->SetID(++m_objectCount);
+	m_gameObjects.push_back(object);
 }
