@@ -75,6 +75,13 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(imgui)
 
+# Specify where to get JSON for Modern C++
+FetchContent_Declare(
+    json
+    URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz
+)
+FetchContent_MakeAvailable(json)
+
 # Dear ImGui library configuration
 set(IMGUI_BACKENDS "${imgui_SOURCE_DIR}/backends")
 add_library(
@@ -112,6 +119,7 @@ target_link_libraries(
     glad
     glm
     imgui
+    nlohmann_json::nlohmann_json
 )
 
 # Link ImGui to OpenGL libs

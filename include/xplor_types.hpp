@@ -2,6 +2,9 @@
 
 #include <bitset>
 #include <glm/glm.hpp>
+#include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
 
 namespace Xplor {
 
@@ -16,6 +19,12 @@ namespace Xplor {
 		glm::vec3 cameraPosition{};
 		glm::vec3 cameraFront{};
 		glm::vec3 cameraUp{};
+	};
+
+	enum class GameObjectType
+	{
+		GameObject = 0,
+		PropObject = 1
 	};
 
 }; // end namespace

@@ -235,11 +235,31 @@ namespace Xplor {
 		{
 			return m_id;
 		}
+
+		virtual json Serialize() const
+		{
+			return {
+				{ "type", Xplor::GameObjectType::GameObject},
+				{ "id", m_id },
+				{ "name", m_name },
+				{ "position", {m_position.x, m_position.y, m_position.z}}
+			};
+		}
+
+		virtual void Deserialze(const json& j)
+		{
+			m_id = j.at("id").get<uint32_t>();
+			m_name = j.at("name").get<std::string>();
+			auto jPosition = j.at("position").get<std::vector<float>>();
+			m_position = glm::vec3(jPosition[0], jPosition[1], jPosition[2]);
+		}
 		
 
 	protected:
 		// Unique identifier for object
 		uint32_t m_id;
+		// Optional identifier (makes searching for this object easier)
+		std::string m_name;
 		const std::string resources = "..//resources//";
 		std::vector<uint32_t> m_textures{};
 		std::shared_ptr<Shader> m_shader;
@@ -262,7 +282,15 @@ namespace Xplor {
 
 	class PropObject : public GameObject
 	{
-
+		json Serialize() const override
+		{
+			return {
+				{ "type", Xplor::GameObjectType::PropObject},
+				{ "id", m_id },
+				{ "name", m_name },
+				{ "position", {m_position.x, m_position.y, m_position.z}}
+			};
+		}
 	};
 
 }; // end namespace
