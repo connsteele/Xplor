@@ -159,7 +159,11 @@ namespace Xplor {
 			// Transform and draw the object
 			glm::mat4 model = glm::mat4(1.0f);
 			model = glm::translate(model, m_position);
-			// rotate
+			if (m_rotationAmount != 0)
+			{
+				model = glm::rotate(model, glm::radians(m_rotationAmount), m_rotationAxis);
+
+			}
 			m_shader->setUniform("model", model);
 
 			glBindVertexArray(m_VAO);
@@ -192,10 +196,25 @@ namespace Xplor {
 			glDeleteBuffers(1, &m_EBO);
 		}
 
+		void AddImpulse(glm::vec3 impulse)
+		{
+			m_velocity += impulse;
+		}
+
 		void SetPosition(glm::vec3 pos)
 		{
 			m_position = pos;
-		};
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="rot">Holds Pitch, Yaw and Roll in degrees to rotate</param>
+		void SetRotation(glm::vec3 rotAxis, float rotAmount)
+		{
+			m_rotationAxis = rotAxis;
+			m_rotationAmount = rotAmount;
+		}
 
 		std::vector<uint32_t> GetTextures()
 		{
@@ -229,6 +248,8 @@ namespace Xplor {
 		size_t m_indexCount{};
 		size_t m_elementCount{};
 		glm::vec3 m_position;
+		glm::vec3 m_rotationAxis;
+		float m_rotationAmount{};
 		glm::vec3 m_velocity;
 
 		// Want a matrix stack instead of all of these
