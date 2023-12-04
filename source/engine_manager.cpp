@@ -56,10 +56,10 @@ bool Xplor::EngineManager::Run()
         glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
 
-        //--- Camera
+        //--- Logic Update
         Update(deltaTime);
 
-        //---- Game Object Rendering
+        //---- Rendering
         Render(m_activeCamera->m_viewMatrix, m_activeCamera->m_projectionMatrix);
 
         // Swap the front and back buffers
@@ -74,6 +74,12 @@ bool Xplor::EngineManager::Run()
 void Xplor::EngineManager::Update(float deltaTime)
 {
     m_activeCamera->Update(deltaTime);
+
+    for (auto object : m_gameObjects)
+    {
+        object->Update(deltaTime);
+    }
+
 }
 
 void Xplor::EngineManager::Render(glm::mat4 viewMatrix, glm::mat4 projectionMatrix)

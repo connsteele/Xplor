@@ -40,6 +40,9 @@ int main(int argc, char **argv) {
 
     std::shared_ptr<WindowManager> windowManager = WindowManager::GetInstance();
 
+    std::shared_ptr<Xplor::PropObject> planeA = std::make_shared<Xplor::PropObject>();
+    xplorM->AddGameObject(planeA);
+
     std::shared_ptr<Xplor::PropObject> cubeA = std::make_shared<Xplor::PropObject>();
     xplorM->AddGameObject(cubeA);
 
@@ -48,6 +51,8 @@ int main(int argc, char **argv) {
 
 
     //--- Image Loading
+    planeA->AddTexture("images//Firefly_Metal_Box.jpg", Xplor::ImageFormat::jpg);
+
     cubeA->AddTexture("images//woodBox.jpg", Xplor::ImageFormat::jpg);
     cubeA->AddTexture("images//dog.png", Xplor::ImageFormat::png);
 
@@ -61,24 +66,37 @@ int main(int argc, char **argv) {
     std::string vertexShaderPath = "//shaders//simple.vs";
     std::string fragmentShaderPath = "//shaders//simple.fs";
     std::string fragmentOneTexShaderPath = "//shaders//simpleOneTex.fs";
+    std::string fragFlatColorPath = "//shaders//flatColor.fs";
 
     std::string fullVertexPath = resources + vertexShaderPath;
     std::string fullFragmentPath = resources + fragmentShaderPath;
     std::string fullFragOneTexPath = resources + fragmentOneTexShaderPath;
+    std::string fullFragFlatColorPath = resources + fragFlatColorPath;
 
 
     std::shared_ptr<Xplor::Shader> simpleShader = std::make_shared<Xplor::Shader>
         (Xplor::Shader(fullVertexPath.c_str(), fullFragmentPath.c_str()));
     std::shared_ptr<Xplor::Shader> simpleShaderOneTex = std::make_shared<Xplor::Shader>
         (Xplor::Shader(fullVertexPath.c_str(), fullFragOneTexPath.c_str()));
+    std::shared_ptr<Xplor::Shader> shaderFlatColor = std::make_shared<Xplor::Shader>
+        (Xplor::Shader(fullVertexPath.c_str(), fullFragFlatColorPath.c_str()));
+
+
+    planeA->AddShader(simpleShaderOneTex);
+    auto planeAShader = planeA->GetShader();
 
     cubeA->AddShader(simpleShader);
     auto cubeAShader = cubeA->GetShader();
+
     cubeB->AddShader(simpleShaderOneTex);
     auto cubeBShader = cubeB->GetShader();
 
     // Enable depth testing
     glEnable(GL_DEPTH_TEST);
+
+    planeAShader->useProgram();
+    planeAShader->setUniform("customTexture1", 0);
+    planeAShader->endProgram();
 
     cubeAShader->useProgram();
     // Inform the shader where the texture samplers are located
@@ -139,15 +157,30 @@ int main(int argc, char **argv) {
         -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
         -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
     };
+    size_t verticesPlaneSize = 20;
+    // First 3 are vert pos, next 2 are texture coords
+    float verticesPlane[] = {
+        0.5f, 0.5f, 0.0f, 0.0f, 1.0f, // top right
+        0.5f, -0.5f, 0.0f, 1.f, 1.f, // bot right
+        -0.5f, -0.5f, 0.0f, 1.f, 0.f, // bot left
+        -0.5f, 0.5f, -0.0f, 0.f, 0.f // top left
+        
+    };
+    size_t eboSize = 6;
+    unsigned int eboPlane[] = {
+        0, 1, 3,
+        1, 2, 3
+    };
 
     // Send Geometry information to the game object
+    planeA->SetPosition(glm::vec3(-1.f, 0.0f, 1.f));
+    planeA->AddGeometry(verticesPlane, verticesPlaneSize, eboPlane, eboSize, 5);
+
     cubeA->SetPosition(glm::vec3(0.0f, 0.0f, 0.0f));
-    cubeA->AddGeometry(verticesCube, verticesCubeSize, 5);
-    cubeA->InitGeom();
+    cubeA->AddGeometry(verticesCube, verticesCubeSize, 5, 36);
 
     cubeB->SetPosition(glm::vec3(2.0f, 0.0f, -3.0f));
-    cubeB->AddGeometry(verticesCube, verticesCubeSize, 5);
-    cubeB->InitGeom();
+    cubeB->AddGeometry(verticesCube, verticesCubeSize, 5, 36);
 
 
     windowManager->PrintHardwareInfo();
