@@ -60,18 +60,25 @@ int main(int argc, char **argv) {
     const std::string resources = "..//resources";
     std::string vertexShaderPath = "//shaders//simple.vs";
     std::string fragmentShaderPath = "//shaders//simple.fs";
+    std::string fragmentOneTexShaderPath = "//shaders//simpleOneTex.fs";
 
     std::string fullVertexPath = resources + vertexShaderPath;
     std::string fullFragmentPath = resources + fragmentShaderPath;
+    std::string fullFragOneTexPath = resources + fragmentOneTexShaderPath;
 
 
     std::shared_ptr<Xplor::Shader> simpleShader = std::make_shared<Xplor::Shader>
         (Xplor::Shader(fullVertexPath.c_str(), fullFragmentPath.c_str()));
+    std::shared_ptr<Xplor::Shader> simpleShaderOneTex = std::make_shared<Xplor::Shader>
+        (Xplor::Shader(fullVertexPath.c_str(), fullFragOneTexPath.c_str()));
 
     cubeA->AddShader(simpleShader);
     auto cubeAShader = cubeA->GetShader();
-    cubeB->AddShader(simpleShader);
+    cubeB->AddShader(simpleShaderOneTex);
     auto cubeBShader = cubeB->GetShader();
+
+    // Enable depth testing
+    glEnable(GL_DEPTH_TEST);
 
     cubeAShader->useProgram();
     // Inform the shader where the texture samplers are located
@@ -81,15 +88,14 @@ int main(int argc, char **argv) {
 
     cubeBShader->useProgram();
     cubeBShader->setUniform("customTexture1", 0);
-    cubeBShader->setUniform("customTexture2", 1);
     cubeBShader->endProgram();
 
 
-    // Enable depth testing
-    glEnable(GL_DEPTH_TEST);
+    
 
     // Vertex Buffer Setup
     size_t verticesCubeSize = 180;
+    // First 3 floats are positins, second two are for textures
     float verticesCube[] = {
         -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
          0.5f, -0.5f, -0.5f,  1.0f, 0.0f,

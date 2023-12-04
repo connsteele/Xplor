@@ -109,7 +109,6 @@ namespace Xplor {
 		void Render(glm::mat4 viewMatrix, glm::mat4 projectionMatrix)
 		{
 			m_shader->useProgram();
-			glClear(GL_DEPTH_BUFFER_BIT);
 			glBindVertexArray(m_VAO);
 
 			// Send coordinate matrices to the shader
