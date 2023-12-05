@@ -14,6 +14,7 @@ set(
     source/window_manager.cpp
     source/game_object.cpp
     source/camera.cpp
+    source/generator_cube.cpp
     include/xplor_types.hpp
     include/shader.hpp
     include/engine_manager.hpp
@@ -21,6 +22,7 @@ set(
     include/window_manager.hpp
     include/game_object.hpp
     include/camera.hpp
+    include/generator_cube.hpp
     third-party/stb/stb_image.cpp
 )
 

@@ -231,27 +231,55 @@ namespace Xplor {
 			m_id = id;
 		}
 
-		uint32_t GetID()
+		const uint32_t GetID()
 		{
 			return m_id;
 		}
 
-		virtual json Serialize() const
+		void SetName(std::string name)
+		{
+			m_name = name;
+		}
+
+		json Serialize() const
 		{
 			return {
-				{ "type", Xplor::GameObjectType::GameObject},
+				{ "type", GetObjectType()},
 				{ "id", m_id },
 				{ "name", m_name },
-				{ "position", {m_position.x, m_position.y, m_position.z}}
+				{ "position", {m_position.x, m_position.y, m_position.z}},
+				{ "shader", m_shader->Serialize()},
+				{ "VAO", m_VAO},
+				{ "VBO", m_VBO},
+				{ "EBO", m_EBO}
 			};
 		}
 
 		virtual void Deserialze(const json& j)
 		{
+			m_objectType = j.at("type").get<Xplor::GameObjectType>();
 			m_id = j.at("id").get<uint32_t>();
 			m_name = j.at("name").get<std::string>();
 			auto jPosition = j.at("position").get<std::vector<float>>();
 			m_position = glm::vec3(jPosition[0], jPosition[1], jPosition[2]);
+
+			m_shader = std::make_shared<Xplor::Shader>();
+			m_shader->Deserialize(j.at("shader"));
+			m_shader->Init();
+
+			m_VAO = j.at("VAO").get<uint32_t>();
+			m_VBO = j.at("VBO").get<uint32_t>();
+			m_EBO = j.at("EBO").get<uint32_t>();
+		}
+
+		/// <summary>
+		/// Get the current game objects enum type. This setup allows for working with 
+		/// derived classes
+		/// </summary>
+		/// <returns>An enum representing the game object type</returns>
+		virtual Xplor::GameObjectType GetObjectType() const
+		{
+			return m_objectType;
 		}
 		
 
@@ -271,6 +299,7 @@ namespace Xplor {
 		glm::vec3 m_rotationAxis;
 		float m_rotationAmount{};
 		glm::vec3 m_velocity;
+		Xplor::GameObjectType m_objectType = Xplor::GameObjectType::GameObject;
 
 		// Want a matrix stack instead of all of these
 		glm::mat4 modelMatrix{};
@@ -282,15 +311,13 @@ namespace Xplor {
 
 	class PropObject : public GameObject
 	{
-		json Serialize() const override
+		Xplor::GameObjectType objectType = Xplor::GameObjectType::PropObject;
+
+		Xplor::GameObjectType GetObjectType() const override
 		{
-			return {
-				{ "type", Xplor::GameObjectType::PropObject},
-				{ "id", m_id },
-				{ "name", m_name },
-				{ "position", {m_position.x, m_position.y, m_position.z}}
-			};
+			return objectType;
 		}
+
 	};
 
 }; // end namespace
