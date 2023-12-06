@@ -160,7 +160,7 @@ namespace Xplor
 		// Program ID
 		uint32_t m_shaderID{};
 
-		uint16_t compileShader(int shaderType, const char * shaderSource) const;
+		GLuint compileShader(int shaderType, const char * shaderSource) const;
 
 	private:
 		std::string m_vertexPath{};

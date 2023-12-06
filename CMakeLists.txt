@@ -14,7 +14,8 @@ set(
     source/window_manager.cpp
     source/game_object.cpp
     source/camera.cpp
-    source/generator_cube.cpp
+    source/generator_geometry.cpp
+    source/geometry.cpp
     include/xplor_types.hpp
     include/shader.hpp
     include/engine_manager.hpp
@@ -22,7 +23,8 @@ set(
     include/window_manager.hpp
     include/game_object.hpp
     include/camera.hpp
-    include/generator_cube.hpp
+    include/generator_geometry.hpp
+    include/geometry.hpp
     third-party/stb/stb_image.cpp
 )
 
@@ -37,6 +39,12 @@ add_executable(Xplor-Engine ${SOURCES_ENGINE})
 add_executable(Xplor-Editor ${SOURCES_EDITOR})
 # Set start up project
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT Xplor-Engine)
+
+if (MSVC)
+    target_compile_options(Xplor-Engine PRIVATE /W4)
+else ()
+    target_compile_options(Xplor-Engine PRIVATE -Wall -Wextra -pedantic)
+endif ()
 
 #--------------  Dependencies --------------
 

@@ -43,7 +43,8 @@ bool Xplor::EngineManager::Run()
         //--- Input
         //-----------------------------------------------------
 
-        float cameraFinalSpeed = m_activeCamera->m_speed * deltaTime;
+        //float cameraFinalSpeed = m_activeCamera->m_speed * deltaTime;
+
         // I need to change how this logic happens. The window manager should process the inputs here
         // but then after that it should let the camera know if it needs to move
         //windowManager->ProcessInputs(cameraPosition, cameraFront, cameraUp, cameraFinalSpeed);

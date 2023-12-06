@@ -3,6 +3,7 @@
 #include "matrix_stack.hpp"
 #include "xplor_types.hpp"
 #include "shader.hpp"
+#include "geometry.hpp"
 #include <stb_image.h>
 #include <iostream>
 #include <string>
@@ -73,24 +74,9 @@ namespace Xplor {
 
 		void AddGeometry(float* geometryData, size_t dataSize, unsigned int stepSize, uint32_t indexCount)
 		{
-			glGenVertexArrays(1, &m_VAO); // Generate one VAO
-			glGenBuffers(1, &m_VBO); // Generate one buffer object in the OGL Context
-
-			glBindVertexArray(m_VAO); // bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
-			glBindBuffer(GL_ARRAY_BUFFER, m_VBO); // Bind the buffer object to a buffer type
-
-			// Copy data into the buffer object bound to target. The target here
-			// is  GL_ARRAYBUFFER which is bound to the VBO.
-			m_indexCount = indexCount;
-			glBufferData(GL_ARRAY_BUFFER, dataSize * sizeof(float), geometryData, GL_STATIC_DRAW);
-
-
-			// Tell OpenGL how to interpret the vertex data per attribute
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stepSize * sizeof(float), reinterpret_cast<void*>(0));
-			glEnableVertexAttribArray(0);
-			// define and enable texture coordinates input
-			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, stepSize * sizeof(float), reinterpret_cast<void*>(3 * sizeof(float)));
-			glEnableVertexAttribArray(1);
+			m_geometry.SetData(geometryData, dataSize);
+			m_geometry.SetStepSize(stepSize);
+			m_geometry.SetIndexCount(indexCount);
 		}
 
 		/// <summary>
@@ -103,29 +89,49 @@ namespace Xplor {
 		/// <param name="stepSize"></param>
 		void AddGeometry(float* geometryData, size_t dataSize, unsigned int* ebo, size_t eboSize, unsigned int stepSize)
 		{
+			m_geometry.SetData(geometryData, dataSize);
+			m_geometry.SetEBO(ebo, eboSize);
+			m_geometry.SetStepSize(stepSize);
+		}
+
+		void InitGeometry()
+		{
+			if (!m_geometry.GetData())
+			{
+				assert(false && "No geometry data to initialize");
+				return;
+			}
+
+
 			glGenVertexArrays(1, &m_VAO); // Generate one VAO
-			glGenBuffers(1, &m_VBO); // Generate one buffer object in the OGL Context'
-			glGenBuffers(1, &m_EBO); // EBO allows us to use indicies for drawing order
+			glGenBuffers(1, &m_VBO); // Generate one buffer object in the OGL Context
 
 			glBindVertexArray(m_VAO); // bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
 			glBindBuffer(GL_ARRAY_BUFFER, m_VBO); // Bind the buffer object to a buffer type
 
 			// Copy data into the buffer object bound to target. The target here
 			// is  GL_ARRAYBUFFER which is bound to the VBO.
-			glBufferData(GL_ARRAY_BUFFER, dataSize * sizeof(float), geometryData, GL_STATIC_DRAW);
+			glBufferData(GL_ARRAY_BUFFER, m_geometry.GetSize() * sizeof(float), m_geometry.GetData(), GL_STATIC_DRAW);
 
-			// Setup EBO
-			m_elementCount = eboSize;
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
-			glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_elementCount * sizeof(unsigned int), ebo, GL_STATIC_DRAW);
+			// Check to see if the EBO is populated
+			if (m_geometry.GetEBO())
+			{
+				glGenBuffers(1, &m_EBO); // EBO allows us to use indicies for drawing order
 
+				// Setup EBO
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
+				glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_geometry.GetEBOSize() * sizeof(unsigned int), m_geometry.GetEBO(), GL_STATIC_DRAW);
+
+			}
 
 			// Tell OpenGL how to interpret the vertex data per attribute
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stepSize * sizeof(float), reinterpret_cast<void*>(0));
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, m_geometry.GetStep() * sizeof(float), reinterpret_cast<void*>(0));
 			glEnableVertexAttribArray(0);
 			// define and enable texture coordinates input
-			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, stepSize * sizeof(float), reinterpret_cast<void*>(3 * sizeof(float)));
+			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, m_geometry.GetStep() * sizeof(float), reinterpret_cast<void*>(3 * sizeof(float)));
 			glEnableVertexAttribArray(1);
+
+			
 		}
 
 
@@ -170,12 +176,12 @@ namespace Xplor {
 			// Check for an EBO
 			if (m_EBO != 0)
 			{
-				glDrawElements(GL_TRIANGLES, m_elementCount, GL_UNSIGNED_INT, 0);
+				glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(m_geometry.GetEBOSize()), GL_UNSIGNED_INT, 0);
 			}
 			else
 			{
 				// change this to draw to a variable size
-				glDrawArrays(GL_TRIANGLES, 0, m_indexCount);
+				glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(m_geometry.GetIndexCount()));
 
 			}
 
@@ -285,21 +291,21 @@ namespace Xplor {
 
 	protected:
 		// Unique identifier for object
-		uint32_t m_id;
+		uint32_t m_id{};
 		// Optional identifier (makes searching for this object easier)
-		std::string m_name;
+		std::string m_name{};
 		const std::string resources = "..//resources//";
 		std::vector<uint32_t> m_textures{};
-		std::shared_ptr<Shader> m_shader;
-		uint32_t m_VBO, m_VAO, m_EBO{};
+		std::shared_ptr<Shader> m_shader{};
+		uint32_t m_VBO{}, m_VAO{}, m_EBO{};
 		// Number of indices needed to be rendered
 		size_t m_indexCount{};
-		size_t m_elementCount{};
-		glm::vec3 m_position;
-		glm::vec3 m_rotationAxis;
+		glm::vec3 m_position{};
+		glm::vec3 m_rotationAxis{};
 		float m_rotationAmount{};
-		glm::vec3 m_velocity;
-		Xplor::GameObjectType m_objectType = Xplor::GameObjectType::GameObject;
+		glm::vec3 m_velocity{};
+		Xplor::GameObjectType m_objectType{ Xplor::GameObjectType::GameObject };
+		Geometry m_geometry;
 
 		// Want a matrix stack instead of all of these
 		glm::mat4 modelMatrix{};
@@ -311,7 +317,7 @@ namespace Xplor {
 
 	class PropObject : public GameObject
 	{
-		Xplor::GameObjectType objectType = Xplor::GameObjectType::PropObject;
+		Xplor::GameObjectType objectType{ Xplor::GameObjectType::PropObject };
 
 		Xplor::GameObjectType GetObjectType() const override
 		{

@@ -13,7 +13,7 @@
 #include "window_manager.hpp"
 #include "game_object.hpp"
 #include "camera.hpp"
-#include "generator_cube.hpp"
+#include "generator_geometry.hpp"
 
 struct ImgData
 {
@@ -30,56 +30,6 @@ void PrintMaxVertexAttrib()
     glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &maxAttributes);
     std::cout << "Maxmimum number of vertex attributes supported: " << maxAttributes << std::endl;
 
-}
-
-const void GeometryCube(float* outVertices, size_t& outSize)
-{
-    // Vertex Buffer Setup
-    size_t verticesCubeSize = 180;
-    // First 3 floats are positins, second two are for textures
-    float verticesCube[] = {
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-         0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
-    };
 }
 
 void CreateSceneA()
@@ -157,14 +107,16 @@ void CreateSceneA()
     // Send Geometry information to the game object
     planeA->SetPosition(glm::vec3(-1.f, 0.0f, 1.f));
     planeA->AddGeometry(geometryPlane.data(), geometryPlane.size(), planeEBO.data(), planeEBO.size(), 5);
+    planeA->InitGeometry();
 
     auto geometryCube = GeometryGenerator::GenerateCubeData();
     cubeA->SetPosition(glm::vec3(0.0f, 0.0f, 0.0f));
     cubeA->AddGeometry(geometryCube.data(), geometryCube.size(), 5, 36);
+    cubeA->InitGeometry();
 
     cubeB->SetPosition(glm::vec3(2.0f, 0.0f, -3.0f));
     cubeB->AddGeometry(geometryCube.data(), geometryCube.size(), 5, 36);
-
+    cubeB->InitGeometry();
 
     std::shared_ptr<Xplor::EngineManager> xplorM = Xplor::EngineManager::GetInstance();
     xplorM->AddGameObject(planeA);
@@ -172,7 +124,7 @@ void CreateSceneA()
     xplorM->AddGameObject(cubeB);
 }
 
-int main(int argc, char **argv) {
+int main(/*int argc, char **argv*/) {
    
     //---- Setup ----
     std::shared_ptr<Xplor::EngineManager> xplorM = Xplor::EngineManager::GetInstance();
@@ -197,7 +149,7 @@ int main(int argc, char **argv) {
     camVecs.cameraPosition = glm::vec3(0.0f, 0.0f, 3.0f);
     camVecs.cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
     camVecs.cameraUp = glm::vec3(0.f , 1.f, 0.f);
-    float cameraSpeed = 3.f;
+    // float cameraSpeed = 3.f;
 
     xplorM->CreateCamera(camVecs);
 

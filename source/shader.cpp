@@ -43,7 +43,7 @@ void Xplor::Shader::setUniform(const std::string& name, bool value) const
 
 void Xplor::Shader::setUniform(const std::string& name, float value) const
 {
-	glUniform1i(glGetUniformLocation(m_shaderID, name.c_str()), value);
+	glUniform1i(glGetUniformLocation(m_shaderID, name.c_str()), static_cast<GLint>(value));
 }
 
 void Xplor::Shader::Delete()
@@ -52,9 +52,9 @@ void Xplor::Shader::Delete()
 	glDeleteProgram(m_shaderID);
 }
 
-uint16_t Xplor::Shader::compileShader(int shaderType, const char *shaderSource) const
+GLuint Xplor::Shader::compileShader(int shaderType, const char *shaderSource) const
 {
-	unsigned int id;
+	GLuint id;
 	int success;
 	char infoLog[512];
 
@@ -67,6 +67,7 @@ uint16_t Xplor::Shader::compileShader(int shaderType, const char *shaderSource) 
 		id = glCreateShader(GL_FRAGMENT_SHADER);
 		break;
 	default:
+		assert(false && "Error unexpected shader type");
 		break;
 	}
 
