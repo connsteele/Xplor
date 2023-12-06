@@ -254,6 +254,7 @@ namespace Xplor {
 				{ "id", m_id },
 				{ "name", m_name },
 				{ "position", {m_position.x, m_position.y, m_position.z}},
+				{ "geometry", m_geometry.Serialize()},
 				{ "shader", m_shader->Serialize()},
 				{ "VAO", m_VAO},
 				{ "VBO", m_VBO},
@@ -269,9 +270,13 @@ namespace Xplor {
 			auto jPosition = j.at("position").get<std::vector<float>>();
 			m_position = glm::vec3(jPosition[0], jPosition[1], jPosition[2]);
 
+			m_geometry.Deserialize(j.at("geometry"));
+			InitGeometry();
+
 			m_shader = std::make_shared<Xplor::Shader>();
 			m_shader->Deserialize(j.at("shader"));
 			m_shader->Init();
+
 
 			m_VAO = j.at("VAO").get<uint32_t>();
 			m_VBO = j.at("VBO").get<uint32_t>();

@@ -58,7 +58,7 @@ bool Xplor::EngineManager::Run()
 
         //---- Logic Commands
         static bool move = true;
-        if (move && m_gameObjects[1])
+        /*if (move && m_gameObjects[1])
         {
             move = false;
             m_gameObjects[1]->AddImpulse(glm::vec3(-1.0, 0.0, 0.0));
@@ -68,7 +68,7 @@ bool Xplor::EngineManager::Run()
         {
             rotate = false;
             m_gameObjects[2]->SetRotation(glm::vec3(1.0f, 0.0f, 0.0f), 45.f);
-        }
+        }*/
         
 
         //--- Logic Update

@@ -120,8 +120,8 @@ void CreateSceneA()
 
     std::shared_ptr<Xplor::EngineManager> xplorM = Xplor::EngineManager::GetInstance();
     xplorM->AddGameObject(planeA);
-    xplorM->AddGameObject(cubeA);
-    xplorM->AddGameObject(cubeB);
+    //xplorM->AddGameObject(cubeA);
+    //xplorM->AddGameObject(cubeB);
 }
 
 int main(/*int argc, char **argv*/) {
@@ -138,7 +138,7 @@ int main(/*int argc, char **argv*/) {
 
 
     //---- Scene Setup
-    bool exportScene = true;
+    const bool exportScene = true;
     if (exportScene)
         CreateSceneA();
     else
