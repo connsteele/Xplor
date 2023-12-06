@@ -45,12 +45,17 @@ void CreateSceneA()
 
     //------ Image Loading
     planeA->AddTexture("images//Firefly_Metal_Box.jpg", Xplor::ImageFormat::jpg);
+    planeA->InitTextures();
 
     cubeA->AddTexture("images//woodBox.jpg", Xplor::ImageFormat::jpg);
     cubeA->AddTexture("images//dog.png", Xplor::ImageFormat::png);
+    cubeA->InitTextures();
+
 
     cubeB->AddTexture("images//Firefly_Metal_Box.jpg", Xplor::ImageFormat::jpg);
     cubeB->AddTexture("images//dog.png", Xplor::ImageFormat::png);
+    cubeB->InitTextures();
+
 
     //------ Shader Creation
     const std::string resources = "..//resources";
@@ -120,8 +125,8 @@ void CreateSceneA()
 
     std::shared_ptr<Xplor::EngineManager> xplorM = Xplor::EngineManager::GetInstance();
     xplorM->AddGameObject(planeA);
-    //xplorM->AddGameObject(cubeA);
-    //xplorM->AddGameObject(cubeB);
+    xplorM->AddGameObject(cubeA);
+    xplorM->AddGameObject(cubeB);
 }
 
 int main(/*int argc, char **argv*/) {
@@ -138,7 +143,7 @@ int main(/*int argc, char **argv*/) {
 
 
     //---- Scene Setup
-    const bool exportScene = true;
+    const bool exportScene = false;
     if (exportScene)
         CreateSceneA();
     else

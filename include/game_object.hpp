@@ -31,39 +31,50 @@ namespace Xplor {
 		
 		void AddTexture(std::string imagePath, ImageFormat format)
 		{
-			ImageData imageBox;
-			stbi_set_flip_vertically_on_load(true); // Align the coordinates
-			std::string fullPath = resources + imagePath;
-			// Fill Variables with image data
-			imageBox.data = stbi_load(fullPath.c_str(), &imageBox.width, &imageBox.height, &imageBox.channels, 0);
-			if (!imageBox.data)
+			m_texturePaths.push_back(std::make_tuple(imagePath, format));
+		}
+
+		void InitTextures()
+		{
+			for (auto pair : m_texturePaths)
 			{
-				std::cout << "Error: Image failed to load" << std::endl;
+				auto imagePath = std::get<0>(pair);
+				auto format = std::get<1>(pair);
+
+				ImageData imageBox;
+				stbi_set_flip_vertically_on_load(true); // Align the coordinates
+				std::string fullPath = resources + imagePath;
+				// Fill Variables with image data
+				imageBox.data = stbi_load(fullPath.c_str(), &imageBox.width, &imageBox.height, &imageBox.channels, 0);
+				if (!imageBox.data)
+				{
+					std::cout << "Error: Image failed to load" << std::endl;
+				}
+				//--- Texture generation
+				uint32_t texture1;
+				// Generate one texture and store it
+				glGenTextures(1, &texture1);
+				// Bind the texture
+				glBindTexture(GL_TEXTURE_2D, texture1);
+				// Set the texture filtering and wrapping
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+				// Generate the bound texture
+				if (format == ImageFormat::jpg)
+					glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imageBox.width, imageBox.height, 0, GL_RGB, GL_UNSIGNED_BYTE, imageBox.data);
+				else if (format == ImageFormat::png)
+					glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageBox.width, imageBox.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageBox.data);
+
+
+				// Generate mipmaps for the bound texture
+				glGenerateMipmap(GL_TEXTURE_2D);
+				// Free the image data once the texture has been created
+				stbi_image_free(imageBox.data);
+
+				m_textures.push_back(texture1);
 			}
-			//--- Texture generation
-			uint32_t texture1;
-			// Generate one texture and store it
-			glGenTextures(1, &texture1);
-			// Bind the texture
-			glBindTexture(GL_TEXTURE_2D, texture1);
-			// Set the texture filtering and wrapping
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-			// Generate the bound texture
-			if (format == ImageFormat::jpg)
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imageBox.width, imageBox.height, 0, GL_RGB, GL_UNSIGNED_BYTE, imageBox.data);
-			else if (format == ImageFormat::png)
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageBox.width, imageBox.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageBox.data);
-
-			
-			// Generate mipmaps for the bound texture
-			glGenerateMipmap(GL_TEXTURE_2D);
-			// Free the image data once the texture has been created
-			stbi_image_free(imageBox.data);
-
-			m_textures.push_back(texture1);
 		}
 
 		// Ideally this should support multiple shaders 
@@ -258,7 +269,8 @@ namespace Xplor {
 				{ "shader", m_shader->Serialize()},
 				{ "VAO", m_VAO},
 				{ "VBO", m_VBO},
-				{ "EBO", m_EBO}
+				{ "EBO", m_EBO},
+				{ "texture paths", m_texturePaths}
 			};
 		}
 
@@ -273,14 +285,17 @@ namespace Xplor {
 			m_geometry.Deserialize(j.at("geometry"));
 			InitGeometry();
 
+			m_texturePaths = j.at("texture paths");
+			InitTextures();
+
 			m_shader = std::make_shared<Xplor::Shader>();
 			m_shader->Deserialize(j.at("shader"));
 			m_shader->Init();
 
-
 			m_VAO = j.at("VAO").get<uint32_t>();
 			m_VBO = j.at("VBO").get<uint32_t>();
 			m_EBO = j.at("EBO").get<uint32_t>();
+
 		}
 
 		/// <summary>
@@ -303,6 +318,7 @@ namespace Xplor {
 		std::vector<uint32_t> m_textures{};
 		std::shared_ptr<Shader> m_shader{};
 		uint32_t m_VBO{}, m_VAO{}, m_EBO{};
+		std::vector<std::tuple<std::string, ImageFormat>> m_texturePaths;
 		// Number of indices needed to be rendered
 		size_t m_indexCount{};
 		glm::vec3 m_position{};

@@ -115,7 +115,7 @@ namespace Xplor
 		/// </summary>
 		/// <param name="name"></param>
 		/// <param name="value"></param>
-		void setUniform(const std::string& name, int value) const;
+		void setUniform(const std::string& name, int value);
 
 		/// <summary>
 		/// Defines a 4x4 glm matrix for the shader
@@ -123,6 +123,18 @@ namespace Xplor
 		/// <param name="name"></param>
 		/// <param name="value"></param>
 		void setUniform(const std::string& name, glm::mat4 value) const;
+
+		
+		void PassUniformInts()
+		{
+			//useProgram();
+			for (auto pair : m_uniformInts)
+			{
+				glUniform1i(glGetUniformLocation(m_shaderID, std::get<0>(pair).c_str()), std::get<1>(pair));
+
+			}
+			//endProgram();
+		}
 
 		/// <summary>
 		/// Defines a boolean uniform for the shader
@@ -145,7 +157,8 @@ namespace Xplor
 		{
 			return {
 				{"vertexPath", m_vertexPath},
-				{"fragmentPath", m_fragmentPath}
+				{"fragmentPath", m_fragmentPath},
+				{"uniform ints", m_uniformInts}
 			};
 		}
 
@@ -153,6 +166,9 @@ namespace Xplor
 		{
 			m_vertexPath = j.at("vertexPath").get<std::string>();
 			m_fragmentPath = j.at("fragmentPath").get<std::string>();
+			m_uniformInts = j.at("uniform ints");
+			PassUniformInts(); // push all the ints to the shader
+			
 		}
 
 
@@ -165,6 +181,8 @@ namespace Xplor
 	private:
 		std::string m_vertexPath{};
 		std::string m_fragmentPath{};
+
+		std::vector<std::tuple<std::string, int>> m_uniformInts{};
 
 
 
