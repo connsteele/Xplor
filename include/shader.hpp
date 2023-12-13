@@ -168,7 +168,6 @@ namespace Xplor
 			m_fragmentPath = j.at("fragmentPath").get<std::string>();
 			m_uniformInts = j.at("uniform ints");
 			PassUniformInts(); // push all the ints to the shader
-			
 		}
 
 

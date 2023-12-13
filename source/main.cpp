@@ -143,8 +143,8 @@ int main(/*int argc, char **argv*/) {
 
 
     //---- Scene Setup
-    const bool exportScene = false;
-    if (exportScene)
+    const bool EXPORTSCENE = true;
+    if (EXPORTSCENE)
         CreateSceneA();
     else
         xplorM->ImportScene("test.json");
@@ -163,7 +163,7 @@ int main(/*int argc, char **argv*/) {
     //-----------------------------------------------------
     xplorM->Run();
 
-    if (exportScene)
+    if (EXPORTSCENE)
         xplorM->ExportScene("test.json");
 
     
