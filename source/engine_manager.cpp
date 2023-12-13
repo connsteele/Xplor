@@ -1,3 +1,6 @@
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
 #include "engine_manager.hpp"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -40,14 +43,47 @@ bool Xplor::EngineManager::Run()
         float deltaTime = currentFrameTime - m_lastFrameTime;
         m_lastFrameTime = currentFrameTime;
 
+
+
         //--- Input
         //-----------------------------------------------------
-
+        windowManager->PollEvents();
         //float cameraFinalSpeed = m_activeCamera->m_speed * deltaTime;
 
         // I need to change how this logic happens. The window manager should process the inputs here
         // but then after that it should let the camera know if it needs to move
         //windowManager->ProcessInputs(cameraPosition, cameraFront, cameraUp, cameraFinalSpeed);
+
+        //--- ImGui
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        static float f = 0.0f;
+        static int counter = 0;
+        bool show_demo_window = true;
+        if (show_demo_window)
+        {
+            ImGui::ShowDemoWindow(&show_demo_window);
+
+        }
+
+        ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+
+        ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
+        ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
+        //ImGui::Checkbox("Another Window", &show_another_window);
+
+        ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
+        //ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+
+        if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
+            counter++;
+        ImGui::SameLine();
+        ImGui::Text("counter = %d", counter);
+        ImGuiIO& io = ImGui::GetIO(); (void)io;
+        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+        ImGui::End();
 
         // Rendering commands
         //-----------------------------------------------------
@@ -69,17 +105,24 @@ bool Xplor::EngineManager::Run()
             rotate = false;
             m_gameObjects[2]->SetRotation(glm::vec3(1.0f, 0.0f, 0.0f), 45.f);
         }*/
-        
 
         //--- Logic Update
         Update(deltaTime);
 
-        //---- Rendering
+        //---- Scene Rendering
         Render(m_activeCamera->m_viewMatrix, m_activeCamera->m_projectionMatrix);
+
+        //---- ImGui Rendering
+        ImGui::Render();
+        int display_w, display_h;
+        glfwGetFramebufferSize(windowManager->GetWindow(), &display_w, &display_h);
+        glViewport(0, 0, display_w, display_h);
+        //glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
+        //glClear(GL_COLOR_BUFFER_BIT);
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         // Swap the front and back buffers
         windowManager->Update();
-        windowManager->PollEvents();
     }
 
 	return false;

@@ -71,7 +71,21 @@ void WindowManager::Init(int windowWidth, int windowHeight, bool fullscreen)
 		return;
 	}
 
-	SetVsync(VsyncInterval::On);
+	SetVsync(Vsync::On);
+
+	//--------- ImGui
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+	ImGui::StyleColorsDark();
+	ImGui_ImplGlfw_InitForOpenGL(m_window, true);
+	// GL 3.3 + GLSL 330
+	const char* glsl_version = "#version 330";
+	ImGui_ImplOpenGL3_Init(glsl_version);
+
+
 }
 
 // Swaps the front and back buffers
@@ -127,7 +141,7 @@ void WindowManager::UpdateMousePosition(float xpos, float ypos)
 
 void WindowManager::CaptureCursor()
 {
-	glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 	glfwSetCursorPosCallback(m_window, WindowManager::MouseCallback);
 	glfwSetScrollCallback(m_window, WindowManager::ScrollCallback);
 	//glfwSetCursorPos(m_window, 0.0, 0.0);
@@ -180,7 +194,7 @@ void WindowManager::Shutdown()
 	glfwTerminate();
 }
 
-void WindowManager::SetVsync(VsyncInterval interval)
+void WindowManager::SetVsync(Vsync interval)
 {
 	glfwSwapInterval(static_cast<int>(interval));
 }

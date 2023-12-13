@@ -1,12 +1,15 @@
 #pragma once
 
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
 #include <glad/glad.h>
 #include "glfw/glfw3.h"
 #include "glm/glm.hpp"
 #include "string"
 #include <memory>
 
-enum class VsyncInterval {
+enum class Vsync {
 	Off = 0,
 	On = 1,
 	DoubleBuffered = 2,
@@ -44,7 +47,7 @@ public:
 
 	void Shutdown();
 
-	void SetVsync(VsyncInterval interval);
+	void SetVsync(Vsync interval);
 
 	void PrintHardwareInfo();
 

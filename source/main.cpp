@@ -1,13 +1,10 @@
-#include "imgui.h"
-#include "imgui_impl_glfw.h"
-#include "imgui_impl_opengl3.h"
+
 #include <stb_image.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 #include <memory>
-// #include "transform_component.hpp"
 #include "shader.hpp"
 #include "engine_manager.hpp"
 #include "window_manager.hpp"
