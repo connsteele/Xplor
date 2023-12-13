@@ -18,7 +18,7 @@ void Xplor::EngineManager::CreateWindow(int width, int height, bool fullscreen)
 {
 	std::shared_ptr<WindowManager> windowManager = WindowManager::GetInstance();
 	windowManager->Init(width, height, fullscreen);
-	windowManager->CaptureCursor();
+	// windowManager->CaptureCursor();
 
 	// Register callbacks
 
@@ -34,8 +34,21 @@ void Xplor::EngineManager::CreateCamera(CameraVectors vectors, float speed, floa
 
 bool Xplor::EngineManager::Run()
 {
-    auto windowManager = WindowManager::GetInstance();
+    auto RebuildFontAtlas = [](float fontSize) {
+        ImGuiIO& io = ImGui::GetIO();
+        io.Fonts->Clear();
 
+        ImFontConfig imConfig;
+        imConfig.SizePixels = fontSize;
+        io.Fonts->AddFontDefault(&imConfig);
+        ImGui_ImplOpenGL3_DestroyFontsTexture();
+        ImGui_ImplOpenGL3_CreateFontsTexture();
+        };
+
+    float fontSize = 18.0f;
+    RebuildFontAtlas(fontSize);
+
+    auto windowManager = WindowManager::GetInstance();
     while (!glfwWindowShouldClose(windowManager->GetWindow())) // Need to setup my own events for this to work better
     {
         //--- Update Delta Time
@@ -61,7 +74,8 @@ bool Xplor::EngineManager::Run()
 
         static float f = 0.0f;
         static int counter = 0;
-        bool show_demo_window = true;
+        static bool show_demo_window = true;
+        static bool show_another_window = false;
         if (show_demo_window)
         {
             ImGui::ShowDemoWindow(&show_demo_window);
@@ -72,24 +86,36 @@ bool Xplor::EngineManager::Run()
 
         ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
         ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
-        //ImGui::Checkbox("Another Window", &show_another_window);
+        ImGui::Checkbox("Another Window", &show_another_window);
 
         ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-        //ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+        static glm::vec4 clear_color(0.1f, 0.3f, 0.5f, 1.0f);
+        ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
 
         if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
             counter++;
         ImGui::SameLine();
         ImGui::Text("counter = %d", counter);
-        ImGuiIO& io = ImGui::GetIO(); (void)io;
+        auto io = ImGui::GetIO();
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
         ImGui::End();
+
+        if (show_another_window)
+        {
+            ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+            ImGui::Text("Hello from another window!");
+            if (ImGui::Button("Close Me"))
+                show_another_window = false;
+            ImGui::End();
+        }
 
         // Rendering commands
         //-----------------------------------------------------
 
         //---- Background Color
         glClearColor(0.1f, 0.3f, 0.5f, 1.0f);
+        glClearColor(clear_color.x * clear_color.w,
+            clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
         glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
         //---- Logic Commands
@@ -117,12 +143,15 @@ bool Xplor::EngineManager::Run()
         int display_w, display_h;
         glfwGetFramebufferSize(windowManager->GetWindow(), &display_w, &display_h);
         glViewport(0, 0, display_w, display_h);
-        //glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
-        //glClear(GL_COLOR_BUFFER_BIT);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
 
         // Swap the front and back buffers
         windowManager->Update();
+
+        // Check for window font resizing
+        /*fontSize = 20;
+        RebuildFontAtlas(fontSize);*/
     }
 
 	return false;

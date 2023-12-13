@@ -80,6 +80,9 @@ void WindowManager::Init(int windowWidth, int windowHeight, bool fullscreen)
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 	ImGui::StyleColorsDark();
+	ImFontConfig imConfig;
+	imConfig.SizePixels = 18.0f;
+	io.Fonts->AddFontDefault(&imConfig);
 	ImGui_ImplGlfw_InitForOpenGL(m_window, true);
 	// GL 3.3 + GLSL 330
 	const char* glsl_version = "#version 330";
@@ -141,7 +144,7 @@ void WindowManager::UpdateMousePosition(float xpos, float ypos)
 
 void WindowManager::CaptureCursor()
 {
-	glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+	glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	glfwSetCursorPosCallback(m_window, WindowManager::MouseCallback);
 	glfwSetScrollCallback(m_window, WindowManager::ScrollCallback);
 	//glfwSetCursorPos(m_window, 0.0, 0.0);
