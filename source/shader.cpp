@@ -6,69 +6,18 @@
 
 Xplor::Shader::Shader(const char* vertexShaderPath, const char* fragmentShaderPath)
 {
-	std::string vertexCode, fragmentCode;
-	std::ifstream vertexShaderFile, fragmentShaderFile;
-
-	// enable exceptions on files streams
-	vertexShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-	fragmentShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-
-	// Read Files
-	try
-	{
-		vertexShaderFile.open(vertexShaderPath);
-		fragmentShaderFile.open(fragmentShaderPath);
-		std::stringstream vertexShaderStream, fragmentShaderStream;
-		// read file contents into streams
-		vertexShaderStream << vertexShaderFile.rdbuf();
-		fragmentShaderStream << fragmentShaderFile.rdbuf();
-		vertexShaderFile.close();
-		fragmentShaderFile.close();
-		// convert the stream into a string
-		vertexCode = vertexShaderStream.str();
-		fragmentCode = fragmentShaderStream.str();
-	}
-	catch (std::ifstream::failure exception)
-	{
-		std::cout << "ERROR: Shader file could not be read" << std::endl;
-	}
-
-	//-- Compile Input Shaders
-	// Vertex Shader
-	auto vertex = compileShader(GL_VERTEX_SHADER, vertexCode.c_str());
-	// Fragment Shader
-	auto fragment = compileShader(GL_FRAGMENT_SHADER, fragmentCode.c_str());
-
-	//-- Link the Shader Program
-	shaderID = glCreateProgram();
-	glAttachShader(shaderID, vertex);
-	glAttachShader(shaderID, fragment);
-	glLinkProgram(shaderID);
-	
-	// Check for linking issues
-	int linkSuccess;
-	char infoLog[512];
-	glLinkProgram(shaderID);
-	glGetProgramiv(shaderID, GL_LINK_STATUS, &linkSuccess);
-	if (!linkSuccess)
-	{
-		glGetProgramInfoLog(shaderID, 512, NULL, infoLog);
-		std::cout << "ERROR: SHADER_PROGRAM Link FAILED\n" << infoLog << std::endl;
-	}
-
-
-	glDeleteShader(vertex);
-	glDeleteProgram(fragment);
+	m_vertexPath = vertexShaderPath;
+	m_fragmentPath = fragmentShaderPath;
 }
 
 uint32_t Xplor::Shader::getID()
 {
-	return shaderID;
+	return m_shaderID;
 }
 
 void Xplor::Shader::useProgram()
 {
-	glUseProgram(shaderID);
+	glUseProgram(m_shaderID);
 }
 
 void Xplor::Shader::endProgram()
@@ -77,35 +26,36 @@ void Xplor::Shader::endProgram()
 }
 
 
-void Xplor::Shader::setUniform(const std::string& name, int value) const
+void Xplor::Shader::setUniform(const std::string& name, int value)
 {
-	glUniform1i(glGetUniformLocation(shaderID, name.c_str()), value);
+	glUniform1i(glGetUniformLocation(m_shaderID, name.c_str()), value);
+	m_uniformInts.push_back(std::make_tuple(name, value));
 }
 
 void Xplor::Shader::setUniform(const std::string& name, glm::mat4 value) const
 {
-	glUniformMatrix4fv(glGetUniformLocation(shaderID, name.c_str()), 1, GL_FALSE, glm::value_ptr(value));
+	glUniformMatrix4fv(glGetUniformLocation(m_shaderID, name.c_str()), 1, GL_FALSE, glm::value_ptr(value));
 }
 
 void Xplor::Shader::setUniform(const std::string& name, bool value) const
 {
-	glUniform1i(glGetUniformLocation(shaderID, name.c_str()), static_cast<int>(value));
+	glUniform1i(glGetUniformLocation(m_shaderID, name.c_str()), static_cast<int>(value));
 }
 
 void Xplor::Shader::setUniform(const std::string& name, float value) const
 {
-	glUniform1i(glGetUniformLocation(shaderID, name.c_str()), value);
+	glUniform1i(glGetUniformLocation(m_shaderID, name.c_str()), static_cast<GLint>(value));
 }
 
 void Xplor::Shader::Delete()
 {
 	std::cout << "Shader Program Destroyed" << std::endl;
-	glDeleteProgram(shaderID);
+	glDeleteProgram(m_shaderID);
 }
 
-uint16_t Xplor::Shader::compileShader(int shaderType, const char *shaderSource) const
+GLuint Xplor::Shader::compileShader(int shaderType, const char *shaderSource) const
 {
-	unsigned int id;
+	GLuint id;
 	int success;
 	char infoLog[512];
 
@@ -118,6 +68,7 @@ uint16_t Xplor::Shader::compileShader(int shaderType, const char *shaderSource) 
 		id = glCreateShader(GL_FRAGMENT_SHADER);
 		break;
 	default:
+		assert(false && "Error unexpected shader type");
 		break;
 	}
 

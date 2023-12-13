@@ -117,14 +117,12 @@ void WindowManager::UpdateMousePosition(float xpos, float ypos)
 	static float lastY = ypos;
 
 
-	m_cursorOffsetX = xpos - lastX;
-	m_cursorOffsetY = lastY - ypos; // Y coord starts at bottom
+	const float sensitivity = 0.02f;
+	m_cursorOffsetX = (xpos - lastX) * sensitivity;
+	m_cursorOffsetY = (lastY - ypos) * sensitivity;
+
 	lastX = xpos;
 	lastY = ypos;
-
-	const float sensitivity = 2.0f;
-	m_cursorOffsetX *= sensitivity;
-	m_cursorOffsetY *= sensitivity;
 }
 
 void WindowManager::CaptureCursor()
@@ -141,7 +139,7 @@ void WindowManager::PollEvents()
 }
 
 // Handle all incoming keyboard and mouse events
-void WindowManager::ProcessInputs(glm::vec3& camerPos, glm::vec3 cameraFront, glm::vec3 cameraUp, float cameraSpeed)
+void WindowManager::ProcessInputs(glm::vec3& out_cameraPos, glm::vec3 cameraFront, glm::vec3 cameraUp, float cameraSpeed)
 {
 	if (!m_window)
 	{
@@ -156,19 +154,19 @@ void WindowManager::ProcessInputs(glm::vec3& camerPos, glm::vec3 cameraFront, gl
 	}
 	if (glfwGetKey(m_window, GLFW_KEY_W) == GLFW_PRESS)
 	{
-		camerPos += cameraSpeed * cameraFront;
+		out_cameraPos += cameraSpeed * cameraFront;
 	}
 	if (glfwGetKey(m_window, GLFW_KEY_S) == GLFW_PRESS)
 	{
-		camerPos -= cameraSpeed * cameraFront;
+		out_cameraPos -= cameraSpeed * cameraFront;
 	}
 	if (glfwGetKey(m_window, GLFW_KEY_A) == GLFW_PRESS)
 	{
-		camerPos -= cameraSpeed * glm::normalize(glm::cross(cameraFront, cameraUp));
+		out_cameraPos -= cameraSpeed * glm::normalize(glm::cross(cameraFront, cameraUp));
 	}
 	if (glfwGetKey(m_window, GLFW_KEY_D) == GLFW_PRESS)
 	{
-		camerPos += cameraSpeed * glm::normalize(glm::cross(cameraFront, cameraUp));
+		out_cameraPos += cameraSpeed * glm::normalize(glm::cross(cameraFront, cameraUp));
 	}
 }
 
