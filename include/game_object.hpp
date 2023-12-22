@@ -218,9 +218,22 @@ namespace Xplor {
 			m_velocity += impulse;
 		}
 
+		/// <summary>
+		/// Set the position of the object. Also initializes the object's bounding box.
+		/// </summary>
+		/// <param name="pos">Position to place the object in the world.</param>
 		void SetPosition(glm::vec3 pos)
 		{
 			m_position = pos;
+			// Currently this is assuming the object is a cube
+			int size = 1.0f;
+			m_bbox.min = pos - glm::vec3(size / 2.0f);
+			m_bbox.min = pos + glm::vec3(size / 2.0f);
+		}
+
+		const BoundingBox GetBoundingBox() const
+		{
+			return m_bbox;
 		}
 
 		/// <summary>
@@ -327,6 +340,8 @@ namespace Xplor {
 		glm::vec3 m_velocity{};
 		Xplor::GameObjectType m_objectType{ Xplor::GameObjectType::GameObject };
 		Geometry m_geometry;
+		// Axis Alinged Bounding Box for Collisions
+		BoundingBox m_bbox;
 
 		// Want a matrix stack instead of all of these
 		glm::mat4 modelMatrix{};

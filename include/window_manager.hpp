@@ -20,6 +20,8 @@ class WindowManager
 {
 
 public:
+	glm::vec4 m_clear_color{0.1f, 0.3f, 0.5f, 1.0f};
+
 
 	void Init(int windowWidth, int windowHeight, bool fullscreen);
 
@@ -33,7 +35,11 @@ public:
 	/// <param name="cameraSpee"></param>
 	void ProcessInputs(glm::vec3& camerPos, glm::vec3 cameraFront, glm::vec3 cameraUp, float cameraSpee);
 
-	static void MouseCallback(GLFWwindow* window, double xpos, double ypos);
+	void SetMouseCallbacks();
+
+	static void MouseMoveCallback(GLFWwindow* window, double xpos, double ypos);
+
+	static void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 
 	static void ScrollCallback(GLFWwindow* window, double offsetX, double offsetY);
 
@@ -41,7 +47,11 @@ public:
 
 	void WindowManager::UpdateMouseScroll(float offsetX, float offsetY);
 
-	void CaptureCursor();
+	void NewImguiFrame();
+
+	void CreateEditorUI();
+
+	void CaptureCursor(int mode);
 
 	void PollEvents();
 

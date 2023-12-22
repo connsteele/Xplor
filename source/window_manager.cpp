@@ -1,4 +1,6 @@
 #include "window_manager.hpp"
+#include <glm/gtc/matrix_transform.hpp>
+#include "engine_manager.hpp"
 #include <iostream>
 
 //--------- GLFW Function Prototypes Impls 
@@ -83,6 +85,7 @@ void WindowManager::Init(int windowWidth, int windowHeight, bool fullscreen)
 	ImFontConfig imConfig;
 	imConfig.SizePixels = 18.0f;
 	io.Fonts->AddFontDefault(&imConfig);
+	// io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 	ImGui_ImplGlfw_InitForOpenGL(m_window, true);
 	// GL 3.3 + GLSL 330
 	const char* glsl_version = "#version 330";
@@ -97,12 +100,51 @@ void WindowManager::Update()
 	glfwSwapBuffers(m_window);
 }
 
-void WindowManager::MouseCallback(GLFWwindow* window, double xpos, double ypos)
+void WindowManager::MouseMoveCallback(GLFWwindow* window, double xpos, double ypos)
 {
 	WindowManager* windowManager = static_cast<WindowManager*>(glfwGetWindowUserPointer(window));
 	if (windowManager) {
 		windowManager->UpdateMousePosition(static_cast<float>(xpos), static_cast<float>(ypos));
 	}
+}
+
+void WindowManager::MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
+{
+	bool RAYCAST = true;
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+	{
+		if (RAYCAST)
+		{
+			//--- Convert screen coordinates to world coordinates via Ray Casting
+			double xpos, ypos;
+			glfwGetCursorPos(window, &xpos, &ypos);
+
+			auto engineManager = Xplor::EngineManager::GetInstance();
+			auto camera = engineManager->GetCamera();
+			auto view = camera->m_viewMatrix;
+			auto projection = camera->m_projectionMatrix;
+
+			int windowWidth, windowHeight;
+			glfwGetWindowSize(window, &windowWidth, &windowHeight);
+			glm::vec3 rayStart = glm::unProject(glm::vec3(xpos, ypos, 0.0f), view, projection, glm::vec4(0, 0, windowWidth, windowHeight));
+			glm::vec3 rayEnd = glm::unProject(glm::vec3(xpos, ypos, 1.0f), view, projection, glm::vec4(0, 0, windowWidth, windowHeight));
+
+			std::cout << "World coordinates: (" << rayStart.x << ", " << rayStart.y << ", " << rayStart.z << ")" << std::endl;
+
+			//--- Perform Ray Intersections
+			// iterate through game objects and perform ray tests against the bbox for each
+			// perhaps I should hand off the data here to the engine manager
+			engineManager->RayIntersectionTests(rayStart, rayEnd);
+		}
+	}
+}
+
+void WindowManager::SetMouseCallbacks()
+{
+	// The following callback creates issues with using ImGui
+	//glfwSetCursorPosCallback(m_window, WindowManager::MouseMoveCallback);
+	glfwSetScrollCallback(m_window, WindowManager::ScrollCallback);
+	glfwSetMouseButtonCallback(m_window, WindowManager::MouseButtonCallback);
 }
 
 void WindowManager::ScrollCallback(GLFWwindow* window, double offsetX, double offsetY)
@@ -124,6 +166,34 @@ void WindowManager::UpdateMouseScroll(float offsetX, float offsetY)
 		m_FOV = 120.0f;
 }
 
+void WindowManager::NewImguiFrame()
+{
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplGlfw_NewFrame();
+	ImGui::NewFrame();
+}
+
+void WindowManager::CreateEditorUI()
+{
+	static float f = 0.0f;
+	static int counter = 0;
+
+
+	ImGui::Begin("Editor"); // Create a window and append into it.
+
+	ImGui::Text("UI Text.");
+	ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
+	ImGui::ColorEdit3("clear color", (float*)&m_clear_color);
+
+	if (ImGui::Button("Button"))   // Buttons return true when clicked (most widgets return true when edited/activated)
+		counter++;
+	ImGui::SameLine();
+	ImGui::Text("counter = %d", counter);
+	auto io = ImGui::GetIO();
+	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+	ImGui::End();
+}
+
 
 
 void WindowManager::UpdateMousePosition(float xpos, float ypos)
@@ -142,11 +212,9 @@ void WindowManager::UpdateMousePosition(float xpos, float ypos)
 	lastY = ypos;
 }
 
-void WindowManager::CaptureCursor()
+void WindowManager::CaptureCursor(int mode)
 {
-	glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	glfwSetCursorPosCallback(m_window, WindowManager::MouseCallback);
-	glfwSetScrollCallback(m_window, WindowManager::ScrollCallback);
+	glfwSetInputMode(m_window, GLFW_CURSOR, mode);
 	//glfwSetCursorPos(m_window, 0.0, 0.0);
 }
 

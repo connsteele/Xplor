@@ -18,7 +18,8 @@ void Xplor::EngineManager::CreateWindow(int width, int height, bool fullscreen)
 {
 	std::shared_ptr<WindowManager> windowManager = WindowManager::GetInstance();
 	windowManager->Init(width, height, fullscreen);
-	// windowManager->CaptureCursor();
+    windowManager->SetMouseCallbacks();
+	windowManager->CaptureCursor(GLFW_CURSOR_NORMAL);
 
 	// Register callbacks
 
@@ -29,7 +30,7 @@ void Xplor::EngineManager::CreateCamera(CameraVectors vectors, float speed, floa
 	float cameraSpeed = speed;
 	float cameraFOV = fov;
 
-	m_activeCamera = std::make_unique<Camera>(vectors, cameraSpeed, cameraFOV);
+	m_activeCamera = std::make_shared<Camera>(vectors, cameraSpeed, cameraFOV);
 }
 
 bool Xplor::EngineManager::Run()
@@ -68,54 +69,19 @@ bool Xplor::EngineManager::Run()
         //windowManager->ProcessInputs(cameraPosition, cameraFront, cameraUp, cameraFinalSpeed);
 
         //--- ImGui
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
+        windowManager->NewImguiFrame();
 
-        static float f = 0.0f;
-        static int counter = 0;
-        static bool show_demo_window = true;
-        static bool show_another_window = false;
-        if (show_demo_window)
-        {
-            ImGui::ShowDemoWindow(&show_demo_window);
-
-        }
-
-        ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
-
-        ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-        ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
-        ImGui::Checkbox("Another Window", &show_another_window);
-
-        ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-        static glm::vec4 clear_color(0.1f, 0.3f, 0.5f, 1.0f);
-        ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
-
-        if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-            counter++;
-        ImGui::SameLine();
-        ImGui::Text("counter = %d", counter);
-        auto io = ImGui::GetIO();
-        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-        ImGui::End();
-
-        if (show_another_window)
-        {
-            ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-            ImGui::Text("Hello from another window!");
-            if (ImGui::Button("Close Me"))
-                show_another_window = false;
-            ImGui::End();
-        }
+        windowManager->CreateEditorUI();
 
         // Rendering commands
         //-----------------------------------------------------
 
         //---- Background Color
         glClearColor(0.1f, 0.3f, 0.5f, 1.0f);
-        glClearColor(clear_color.x * clear_color.w,
-            clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
+        glClearColor(windowManager->m_clear_color.x * windowManager->m_clear_color.w,
+            windowManager->m_clear_color.y * windowManager->m_clear_color.w,
+            windowManager->m_clear_color.z * windowManager->m_clear_color.w,
+            windowManager->m_clear_color.w);
         glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
         //---- Logic Commands
@@ -191,4 +157,21 @@ void Xplor::EngineManager::AddGameObject(std::shared_ptr<GameObject> object)
 {
     object->SetID(++m_objectCount);
 	m_gameObjects.push_back(object);
+}
+
+void Xplor::EngineManager::RayIntersectionTests(const glm::vec3 rayStart, const glm::vec3 rayEnd)
+{
+    glm::vec3 rayDirection = glm::normalize(rayEnd - rayStart);
+
+    for (std::shared_ptr<GameObject> object : m_gameObjects)
+    {
+        // if ray intersects cube...
+        // Keep in mind the game objects are not in any particular order so it may hit
+        // an object that is behind as it comes first in the object list
+    }
+}
+
+bool Xplor::EngineManager::RayHitsBoundingBox(const glm::vec3& rayOrigin, const glm::vec3& rayDirection, const BoundingBox& bbox)
+{
+    return false;
 }

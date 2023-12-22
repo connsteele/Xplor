@@ -82,6 +82,7 @@ FetchContent_MakeAvailable(GLM)
 FetchContent_Declare(
     imgui
     GIT_REPOSITORY https://github.com/ocornut/imgui.git
+    GIT_BRANCH docking
 )
 FetchContent_MakeAvailable(imgui)
 

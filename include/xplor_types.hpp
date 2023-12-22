@@ -43,4 +43,10 @@ namespace Xplor {
 		return arr;
 	}
 
+	// Simple Axis Aligned Bounding Box
+	struct BoundingBox {
+		glm::vec3 min;
+		glm::vec3 max;
+	};
+
 }; // end namespace
