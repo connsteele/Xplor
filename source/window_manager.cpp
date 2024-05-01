@@ -224,7 +224,7 @@ void WindowManager::PollEvents()
 }
 
 // Handle all incoming keyboard and mouse events
-void WindowManager::ProcessInputs(glm::vec3& out_cameraPos, glm::vec3 cameraFront, glm::vec3 cameraUp, float cameraSpeed)
+void WindowManager::ProcessInputs(glm::vec3 & out_camera_pos, const glm::vec3 camera_front, const glm::vec3 camera_up, const float camera_speed)
 {
 	if (!m_window)
 	{
@@ -239,19 +239,19 @@ void WindowManager::ProcessInputs(glm::vec3& out_cameraPos, glm::vec3 cameraFron
 	}
 	if (glfwGetKey(m_window, GLFW_KEY_W) == GLFW_PRESS)
 	{
-		out_cameraPos += cameraSpeed * cameraFront;
+		out_camera_pos += camera_speed * camera_front;
 	}
 	if (glfwGetKey(m_window, GLFW_KEY_S) == GLFW_PRESS)
 	{
-		out_cameraPos -= cameraSpeed * cameraFront;
+		out_camera_pos -= camera_speed * camera_front;
 	}
 	if (glfwGetKey(m_window, GLFW_KEY_A) == GLFW_PRESS)
 	{
-		out_cameraPos -= cameraSpeed * glm::normalize(glm::cross(cameraFront, cameraUp));
+		out_camera_pos -= camera_speed * glm::normalize(glm::cross(camera_front, camera_up));
 	}
 	if (glfwGetKey(m_window, GLFW_KEY_D) == GLFW_PRESS)
 	{
-		out_cameraPos += cameraSpeed * glm::normalize(glm::cross(cameraFront, cameraUp));
+		out_camera_pos += camera_speed * glm::normalize(glm::cross(camera_front, camera_up));
 	}
 }
 

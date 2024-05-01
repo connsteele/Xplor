@@ -18,7 +18,7 @@ namespace Xplor {
 		glm::mat4 m_projectionMatrix{};
 
 		Camera(CameraVectors cameraVectors, float speed, float fov);
-		void Update(float deltaTime);
+		void Update(const float delta_time);
 
 	private:
 		

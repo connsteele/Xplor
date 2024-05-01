@@ -33,7 +33,7 @@ public:
 	/// <param name="camerPos"></param>
 	/// <param name="cameraFront"></param>
 	/// <param name="cameraSpee"></param>
-	void ProcessInputs(glm::vec3& camerPos, glm::vec3 cameraFront, glm::vec3 cameraUp, float cameraSpee);
+	void ProcessInputs(glm::vec3 & out_camera_pos, const glm::vec3 camera_front, const glm::vec3 camera_up, const float camera_speed);
 
 	void SetMouseCallbacks();
 
@@ -51,6 +51,10 @@ public:
 
 	void CreateEditorUI();
 
+	/// <summary>
+	/// Set GLFW's capture behavior regarding the cursor
+	/// </summary>
+	/// <param name="mode">GLFW_CURSOR_NORMAL, GLFW_CURSOR_DISABLED, GLFW_CURSOR_HIDDEN</param>
 	void CaptureCursor(int mode);
 
 	void PollEvents();
