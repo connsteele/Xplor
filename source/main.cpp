@@ -149,8 +149,8 @@ int main(/*int argc, char **argv*/) {
     //---- Camera Setup
     Xplor::CameraVectors camVecs;
     camVecs.camera_position = glm::vec3(0.0f, 0.0f, 3.0f);
-    camVecs.cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-    camVecs.cameraUp = glm::vec3(0.f , 1.f, 0.f);
+    camVecs.camera_front = glm::vec3(0.0f, 0.0f, -1.0f);
+    camVecs.camera_up = glm::vec3(0.f , 1.f, 0.f);
     // float cameraSpeed = 3.f;
 
     xplorM->CreateCamera(camVecs);

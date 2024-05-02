@@ -14,7 +14,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 	glViewport(0, 0, width, height);
 
 
-	float aspectRatio = static_cast<float>(width) / static_cast<float>(height);
+	float aspect_ratio = static_cast<float>(width) / static_cast<float>(height);
 
 	// Update your projection matrix to match the new aspect ratio
 	// For example, if you're using a perspective projection:
@@ -23,13 +23,13 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 }
 
 //--------- Window Manager Member Variable in-class initializer
-std::shared_ptr<WindowManager> WindowManager::m_instance = nullptr;
+std::shared_ptr<WindowManager> WindowManager::m_instance{ nullptr };
 
 
 //--------- Window Manager Methods Impls 
 //------------------------------------------------------------------------------------------
 
-void WindowManager::Init(int windowWidth, int windowHeight, bool fullscreen)
+void WindowManager::Init(int window_width, int window_height, bool fullscreen)
 {
 	//--- Start glfw up
 	if (!glfwInit())
@@ -46,9 +46,9 @@ void WindowManager::Init(int windowWidth, int windowHeight, bool fullscreen)
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	// Create the window itself
 	if (fullscreen)
-		m_window = glfwCreateWindow(windowWidth, windowHeight, "XplorEngine", glfwGetPrimaryMonitor(), NULL);
+		m_window = glfwCreateWindow(window_width, window_height, "XplorEngine", glfwGetPrimaryMonitor(), NULL);
 	else
-		m_window = glfwCreateWindow(windowWidth, windowHeight, "XplorEngine", NULL, NULL);
+		m_window = glfwCreateWindow(window_width, window_height, "XplorEngine", NULL, NULL);
 	// Setup a user pointer to get data later 
 	glfwSetWindowUserPointer(m_window, this);
 
@@ -64,11 +64,12 @@ void WindowManager::Init(int windowWidth, int windowHeight, bool fullscreen)
 	// Register the frame buffer size callback to upate the viewport when the window
 	// changes size
 	glfwSetFramebufferSizeCallback(m_window, framebuffer_size_callback);
+
 	// Give GLAD the address of OpenGL function pointers GLFW
 	// will give us the right ones for the OS we are using
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
-		// GLAD need to have a context to check the OpenGL version against
+		// GLAD needs to have a context to check the OpenGL version against
 		std::cout << "Failed to initialize GLAD" << std::endl;
 		return;
 	}
@@ -100,49 +101,50 @@ void WindowManager::Update()
 	glfwSwapBuffers(m_window);
 }
 
-void WindowManager::MouseMoveCallback(GLFWwindow* window, double xpos, double ypos)
+void WindowManager::MouseMoveCallback(GLFWwindow* window, double x_pos, double y_pos)
 {
 	WindowManager* windowManager = static_cast<WindowManager*>(glfwGetWindowUserPointer(window));
-	if (windowManager) {
-		windowManager->UpdateMousePosition(static_cast<float>(xpos), static_cast<float>(ypos));
+	if (windowManager)
+	{
+		windowManager->UpdateMousePosition(static_cast<float>(x_pos), static_cast<float>(y_pos));
 	}
 }
 
 void WindowManager::MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
-	bool RAYCAST = true;
+	bool RAYCAST = true; // This should probably be a member variable
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
 	{
 		if (RAYCAST)
 		{
 			//--- Convert screen coordinates to world coordinates via Ray Casting
-			double xpos, ypos;
-			glfwGetCursorPos(window, &xpos, &ypos);
+			double x_pos, y_pos;
+			glfwGetCursorPos(window, &x_pos, &y_pos);
 
-			auto engineManager = Xplor::EngineManager::GetInstance();
-			auto camera = engineManager->GetCamera();
+			auto engine_manager = Xplor::EngineManager::GetInstance();
+			auto camera = engine_manager->GetCamera();
 			auto view = camera->m_viewMatrix;
 			auto projection = camera->m_projectionMatrix;
 
-			int windowWidth, windowHeight;
-			glfwGetWindowSize(window, &windowWidth, &windowHeight);
-			glm::vec3 rayStart = glm::unProject(glm::vec3(xpos, ypos, 0.0f), view, projection, glm::vec4(0, 0, windowWidth, windowHeight));
-			glm::vec3 rayEnd = glm::unProject(glm::vec3(xpos, ypos, 1.0f), view, projection, glm::vec4(0, 0, windowWidth, windowHeight));
+			int window_width, window_height;
+			glfwGetWindowSize(window, &window_width, &window_height);
+			glm::vec3 ray_start = glm::unProject(glm::vec3(x_pos, y_pos, 0.0f), view, projection, glm::vec4(0, 0, window_width, window_height));
+			glm::vec3 ray_end = glm::unProject(glm::vec3(x_pos, y_pos, 1.0f), view, projection, glm::vec4(0, 0, window_width, window_height));
 
-			std::cout << "World coordinates: (" << rayStart.x << ", " << rayStart.y << ", " << rayStart.z << ")" << std::endl;
+			std::cout << "World coordinates: (" << ray_start.x << ", " << ray_start.y << ", " << ray_start.z << ")" << std::endl;
 
 			//--- Perform Ray Intersections
 			// iterate through game objects and perform ray tests against the bbox for each
 			// perhaps I should hand off the data here to the engine manager
-			engineManager->RayIntersectionTests(rayStart, rayEnd);
+			engine_manager->RayIntersectionTests(ray_start, ray_end);
 		}
 	}
 }
 
 void WindowManager::SetMouseCallbacks()
 {
-	// The following callback creates issues with using ImGui
-	//glfwSetCursorPosCallback(m_window, WindowManager::MouseMoveCallback);
+	
+	glfwSetCursorPosCallback(m_window, WindowManager::MouseMoveCallback); // Creates issues with imgui, also determines if the camera will move with the mouse or not
 	glfwSetScrollCallback(m_window, WindowManager::ScrollCallback);
 	glfwSetMouseButtonCallback(m_window, WindowManager::MouseButtonCallback);
 }

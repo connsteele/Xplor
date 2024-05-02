@@ -17,11 +17,12 @@ void Xplor::EngineManager::Init()
 void Xplor::EngineManager::CreateWindow(int width, int height, bool fullscreen)
 {
 	std::shared_ptr<WindowManager> windowManager = WindowManager::GetInstance();
-	windowManager->Init(width, height, fullscreen);
+    windowManager->Init(width, height, fullscreen);
+
+    // ------- Set mouse related callbacks and window functionality
+	
     windowManager->SetMouseCallbacks();
 	windowManager->CaptureCursor(GLFW_CURSOR_NORMAL);
-
-	// Register callbacks
 
 }
 

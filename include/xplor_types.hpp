@@ -17,8 +17,8 @@ namespace Xplor {
 
 	struct CameraVectors {
 		glm::vec3 camera_position{};
-		glm::vec3 cameraFront{};
-		glm::vec3 cameraUp{};
+		glm::vec3 camera_front{};
+		glm::vec3 camera_up{};
 	};
 
 	enum class GameObjectType
