@@ -25,7 +25,7 @@ public:
 
 	void Init(int windowWidth, int windowHeight, bool fullscreen);
 
-	void Update();
+	void UpdateBuffers();
 
 	/// <summary>
 	/// Need to move the camera data out of here. This is a temporary measure

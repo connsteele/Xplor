@@ -31,7 +31,7 @@ namespace Xplor {
 		
 		void AddTexture(std::string imagePath, ImageFormat format)
 		{
-			m_texturePaths.push_back(std::make_tuple(imagePath, format));
+			m_texturePaths.push_back({ imagePath, format });
 		}
 
 		void InitTextures()
@@ -146,11 +146,11 @@ namespace Xplor {
 		}
 
 
-		void Update(float deltaTime)
+		void Update(const float delta_time)
 		{
 			// Transformations
-			glm::vec3 updateVelocity = deltaTime * m_velocity;
-			m_position += updateVelocity;
+			glm::vec3 update_velocity = delta_time * m_velocity;
+			m_position += update_velocity;
 		}
 
 		void Render(glm::mat4 viewMatrix, glm::mat4 projectionMatrix)
@@ -246,12 +246,12 @@ namespace Xplor {
 			m_rotationAmount = rotAmount;
 		}
 
-		std::vector<uint32_t> GetTextures()
+		const std::vector<uint32_t> GetTextures() const
 		{
 			return m_textures;
 		};
 
-		std::shared_ptr<Shader> GetShader()
+		const std::shared_ptr<Shader> GetShader() const
 		{
 			return m_shader;
 		}
@@ -266,9 +266,19 @@ namespace Xplor {
 			return m_id;
 		}
 
+		const std::string& GetName()
+		{
+			return m_name;
+		}
+
 		void SetName(std::string name)
 		{
 			m_name = name;
+		}
+
+		void SetVelocity(const glm::vec3& velocity)
+		{
+			m_velocity = velocity;
 		}
 
 		json Serialize() const

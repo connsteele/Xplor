@@ -140,11 +140,13 @@ int main(/*int argc, char **argv*/) {
 
 
     //---- Scene Setup
-    const bool EXPORTSCENE = true;
-    if (EXPORTSCENE)
-        CreateSceneA();
-    else
+    constexpr bool EXPORT_SCENE = true;
+    constexpr bool IMPORT_SCENE = false;
+    if (IMPORT_SCENE)
         xplorM->ImportScene("test.json");
+    else
+        CreateSceneA();
+        
 
     //---- Camera Setup
     Xplor::CameraVectors camVecs;
@@ -160,7 +162,7 @@ int main(/*int argc, char **argv*/) {
     //-----------------------------------------------------
     xplorM->Run();
 
-    if (EXPORTSCENE)
+    if (EXPORT_SCENE)
         xplorM->ExportScene("test.json");
 
     

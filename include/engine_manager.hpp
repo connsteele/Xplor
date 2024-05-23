@@ -28,7 +28,7 @@ namespace Xplor
         bool Run();
 
 
-        // Update all game objects
+        // Update all game logic
         void Update(float deltaTime);
 
         // Render all game objects
@@ -48,18 +48,22 @@ namespace Xplor
 
         void ExportScene(std::string filepath)
         {
-            json sceneJson = SerializeScene();
+            json scene_json = SerializeScene();
             std::ofstream file(filepath);
-            file << std::setw(4) << sceneJson;
+            file << std::setw(4) << scene_json;
         }
 
         void ImportScene(std::string filepath)
         {
             std::ifstream inputFile(filepath);
-            json sceneJson;
-            inputFile >> sceneJson;
-            DeserializeScene(sceneJson);
+            json scene_json;
+            inputFile >> scene_json;
+            DeserializeScene(scene_json);
         }
+
+        void AddDebugObject(const glm::vec3& position);
+        void AddDebugObject(const glm::vec3& position, const glm::vec3& velocity);
+
 
         size_t GetObjectCount()
         {
@@ -68,16 +72,23 @@ namespace Xplor
 
         std::shared_ptr<Camera> GetCamera()
         {
-            return m_activeCamera;
+            return m_active_camera;
+        }
+
+        const float GetDeltaTime() const
+        {
+            return m_delta_time;
         }
 
     private:
+        float m_delta_time; // Time between current and last frame
+
         static std::shared_ptr<EngineManager> m_instance;
         // Drop templating on this for now, this vector contains every game objects in the scene
         //std::vector<GameObject> gameObjects;
         std::vector<std::shared_ptr<GameObject>> m_gameObjects;
-        std::shared_ptr<Camera> m_activeCamera;
-        float m_lastFrameTime{};
+        std::shared_ptr<Camera> m_active_camera;
+        float m_last_frame_time{};
         size_t m_objectCount{};
 
 

@@ -14,8 +14,8 @@ namespace Xplor {
 		glm::vec3 m_target;
 		// camera target can be computed from camera front and camera position
 		float m_speed{};
-		glm::mat4 m_viewMatrix{};
-		glm::mat4 m_projectionMatrix{};
+		glm::mat4 m_view_matrix{};
+		glm::mat4 m_projection_matrix{};
 
 		Camera(CameraVectors cameraVectors, float speed, float fov);
 		void Update(const float delta_time);

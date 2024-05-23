@@ -16,11 +16,11 @@ Xplor::Camera::Camera(Xplor::CameraVectors cameraVecs, float speed, float fov)
 	float aspectRatio = static_cast<float>(windowWidth) / static_cast<float>(windowHeight);
 
 	// Compute matrices
-	m_viewMatrix = glm::lookAt(m_vectors.camera_position, m_target, m_vectors.camera_up);
+	m_view_matrix = glm::lookAt(m_vectors.camera_position, m_target, m_vectors.camera_up);
 
 	float nearPlane = 0.1f;
 	float farPlane = 100.f;
-	m_projectionMatrix = glm::perspective(fov, aspectRatio, nearPlane, farPlane);
+	m_projection_matrix = glm::perspective(fov, aspectRatio, nearPlane, farPlane);
 }
 
 void Xplor::Camera::Update(const float delta_time)
@@ -53,9 +53,9 @@ void Xplor::Camera::Update(const float delta_time)
     m_target = m_vectors.camera_position + m_vectors.camera_front; // Needs to be recomputed after inputs are updated
     
     //---- Compute Matrices
-    m_viewMatrix = glm::lookAt(m_vectors.camera_position, m_target, m_vectors.camera_up);
+    m_view_matrix = glm::lookAt(m_vectors.camera_position, m_target, m_vectors.camera_up);
 
     float windowFOV;
     windowManager->GetFOV(windowFOV);
-    m_projectionMatrix = glm::perspective(glm::radians(windowFOV), 1280.f / 720.f, 0.1f, 100.f);
+    m_projection_matrix = glm::perspective(glm::radians(windowFOV), 1280.f / 720.f, 0.1f, 100.f);
 }

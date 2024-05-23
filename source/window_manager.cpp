@@ -74,6 +74,11 @@ void WindowManager::Init(int window_width, int window_height, bool fullscreen)
 		return;
 	}
 
+	// Initial viewport setup
+	/*int window_width, window_height;
+	glfwGetWindowSize(m_window, &window_width, &window_height);*/
+	glViewport(0, 0, window_width, window_height);
+
 	SetVsync(Vsync::On);
 
 	//--------- ImGui
@@ -96,10 +101,62 @@ void WindowManager::Init(int window_width, int window_height, bool fullscreen)
 }
 
 // Swaps the front and back buffers
-void WindowManager::Update()
+void WindowManager::UpdateBuffers()
 {
 	glfwSwapBuffers(m_window);
 }
+
+void WindowManager::Shutdown()
+{
+	if (m_window)
+	{
+		glfwDestroyWindow(m_window);
+
+	}
+	glfwTerminate();
+}
+
+void WindowManager::SetVsync(Vsync interval)
+{
+	glfwSwapInterval(static_cast<int>(interval));
+}
+
+
+void WindowManager::PrintHardwareInfo()
+{
+	auto vendor = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
+	auto openglVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+	auto renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
+	std::cout << "Vendor: " << vendor << "\nRenderer: " << renderer << std::endl;
+	int major, minor;
+	glGetIntegerv(GL_MAJOR_VERSION, &major);
+	glGetIntegerv(GL_MINOR_VERSION, &minor);
+	std::cout << "OpenGL Version: " << major << "." << minor << std::endl;
+}
+
+
+std::shared_ptr<WindowManager> WindowManager::GetInstance()
+{
+	if (!m_instance)
+	{
+		m_instance = std::make_shared<WindowManager>();
+	}
+
+	return m_instance;
+}
+
+
+void WindowManager::GetFOV(float& out_FOV)
+{
+	out_FOV = m_FOV;
+}
+
+
+
+
+
+//---------- Mouse
+//------------------------------------------------------------------------------------------
 
 void WindowManager::MouseMoveCallback(GLFWwindow* window, double x_pos, double y_pos)
 {
@@ -112,10 +169,11 @@ void WindowManager::MouseMoveCallback(GLFWwindow* window, double x_pos, double y
 
 void WindowManager::MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
-	bool RAYCAST = true; // This should probably be a member variable
+	constexpr bool CURSOR_RAYCAST = true; // This should probably be a member variable
+	constexpr bool DEBUG = true; // Spawn debugging objects where clicked
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
 	{
-		if (RAYCAST)
+		if (CURSOR_RAYCAST)
 		{
 			//--- Convert screen coordinates to world coordinates via Ray Casting
 			double x_pos, y_pos;
@@ -123,13 +181,21 @@ void WindowManager::MouseButtonCallback(GLFWwindow* window, int button, int acti
 
 			auto engine_manager = Xplor::EngineManager::GetInstance();
 			auto camera = engine_manager->GetCamera();
-			auto view = camera->m_viewMatrix;
-			auto projection = camera->m_projectionMatrix;
+			auto view = camera->m_view_matrix;
+			auto projection = camera->m_projection_matrix;
+
 
 			int window_width, window_height;
 			glfwGetWindowSize(window, &window_width, &window_height);
-			glm::vec3 ray_start = glm::unProject(glm::vec3(x_pos, y_pos, 0.0f), view, projection, glm::vec4(0, 0, window_width, window_height));
-			glm::vec3 ray_end = glm::unProject(glm::vec3(x_pos, y_pos, 1.0f), view, projection, glm::vec4(0, 0, window_width, window_height));
+			glm::vec4 viewport = glm::vec4(0, 0, window_width, window_height);
+
+			// Invert the Y coordinate
+			y_pos = window_height - y_pos;
+
+			// Convert Normalized Device Coordinates (NDC) -> Homogenous Clip Space -> Eye Coordinates -> World Coordinates
+			glm::vec3 ray_start = glm::unProject(glm::vec3(x_pos, y_pos, 0.0f), view, projection, viewport);
+			glm::vec3 ray_end = glm::unProject(glm::vec3(x_pos, y_pos, 1.0f), view, projection, viewport);
+			glm::vec3 ray_direction = glm::normalize(ray_end - ray_start);
 
 			std::cout << "World coordinates: (" << ray_start.x << ", " << ray_start.y << ", " << ray_start.z << ")" << std::endl;
 
@@ -137,6 +203,13 @@ void WindowManager::MouseButtonCallback(GLFWwindow* window, int button, int acti
 			// iterate through game objects and perform ray tests against the bbox for each
 			// perhaps I should hand off the data here to the engine manager
 			engine_manager->RayIntersectionTests(ray_start, ray_end);
+
+
+			if (DEBUG)
+			{
+				// Animate this along the path
+				engine_manager->AddDebugObject(ray_start, ray_direction);
+			}
 		}
 	}
 }
@@ -168,36 +241,6 @@ void WindowManager::UpdateMouseScroll(float offsetX, float offsetY)
 		m_FOV = 120.0f;
 }
 
-void WindowManager::NewImguiFrame()
-{
-	ImGui_ImplOpenGL3_NewFrame();
-	ImGui_ImplGlfw_NewFrame();
-	ImGui::NewFrame();
-}
-
-void WindowManager::CreateEditorUI()
-{
-	static float f = 0.0f;
-	static int counter = 0;
-
-
-	ImGui::Begin("Editor"); // Create a window and append into it.
-
-	ImGui::Text("UI Text.");
-	ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
-	ImGui::ColorEdit3("clear color", (float*)&m_clear_color);
-
-	if (ImGui::Button("Button"))   // Buttons return true when clicked (most widgets return true when edited/activated)
-		counter++;
-	ImGui::SameLine();
-	ImGui::Text("counter = %d", counter);
-	auto io = ImGui::GetIO();
-	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-	ImGui::End();
-}
-
-
-
 void WindowManager::UpdateMousePosition(float xpos, float ypos)
 {
 	m_activeMouse = true;
@@ -220,13 +263,30 @@ void WindowManager::CaptureCursor(int mode)
 	//glfwSetCursorPos(m_window, 0.0, 0.0);
 }
 
+void WindowManager::GetMouseOffsets(float& offsetX, float& offsetY)
+{
+	if (!m_activeMouse)
+	{
+		m_cursorOffsetX = 0.f;
+		m_cursorOffsetY = 0.f;
+	}
+	offsetX = m_cursorOffsetX;
+	offsetY = m_cursorOffsetY;
+
+	// Turn the mouse off for no movement
+	m_activeMouse = false;
+}
+
+
+//----------- Inputs (general)
+//------------------------------------------------------------------------------------------
 void WindowManager::PollEvents()
 {
 	glfwPollEvents();
 }
 
 // Handle all incoming keyboard and mouse events
-void WindowManager::ProcessInputs(glm::vec3 & out_camera_pos, const glm::vec3 camera_front, const glm::vec3 camera_up, const float camera_speed)
+void WindowManager::ProcessInputs(glm::vec3& out_camera_pos, const glm::vec3 camera_front, const glm::vec3 camera_up, const float camera_speed)
 {
 	if (!m_window)
 	{
@@ -257,61 +317,34 @@ void WindowManager::ProcessInputs(glm::vec3 & out_camera_pos, const glm::vec3 ca
 	}
 }
 
-void WindowManager::Shutdown()
-{
-	if (m_window)
-	{
-		glfwDestroyWindow(m_window);
 
-	}
-	glfwTerminate();
+//----------- IMGUI
+//------------------------------------------------------------------------------------------
+
+void WindowManager::NewImguiFrame()
+{
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplGlfw_NewFrame();
+	ImGui::NewFrame();
 }
 
-void WindowManager::SetVsync(Vsync interval)
+void WindowManager::CreateEditorUI()
 {
-	glfwSwapInterval(static_cast<int>(interval));
-}
-
-void WindowManager::PrintHardwareInfo()
-{
-	auto vendor = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
-	auto openglVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
-	auto renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
-	std::cout << "Vendor: " << vendor << "\nRenderer: " << renderer << std::endl;
-	int major, minor;
-	glGetIntegerv(GL_MAJOR_VERSION, &major);
-	glGetIntegerv(GL_MINOR_VERSION, &minor);
-	std::cout << "OpenGL Version: " << major << "." << minor << std::endl;
-}
+	static float f = 0.0f;
+	static int counter = 0;
 
 
-std::shared_ptr<WindowManager> WindowManager::GetInstance()
-{
-	if (!m_instance)
-	{
-		m_instance = std::make_shared<WindowManager>();
-	}
+	ImGui::Begin("Editor"); // Create a window and append into it.
 
-	return m_instance;
-}
+	ImGui::Text("UI Text.");
+	ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
+	ImGui::ColorEdit3("clear color", (float*)&m_clear_color);
 
-
-
-void WindowManager::GetMouseOffsets(float&offsetX, float& offsetY)
-{
-	if (!m_activeMouse)
-	{
-		m_cursorOffsetX = 0.f;
-		m_cursorOffsetY = 0.f;
-	}
-	offsetX = m_cursorOffsetX;
-	offsetY = m_cursorOffsetY;
-
-	// Turn the mouse off for no movement
-	m_activeMouse = false;
-}
-
-void WindowManager::GetFOV(float& out_FOV)
-{
-	out_FOV = m_FOV;
+	if (ImGui::Button("Button"))   // Buttons return true when clicked (most widgets return true when edited/activated)
+		counter++;
+	ImGui::SameLine();
+	ImGui::Text("counter = %d", counter);
+	auto io = ImGui::GetIO();
+	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+	ImGui::End();
 }

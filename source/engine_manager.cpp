@@ -2,6 +2,7 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #include "engine_manager.hpp"
+#include "generator_geometry.hpp"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -31,7 +32,7 @@ void Xplor::EngineManager::CreateCamera(CameraVectors vectors, float speed, floa
 	float cameraSpeed = speed;
 	float cameraFOV = fov;
 
-	m_activeCamera = std::make_shared<Camera>(vectors, cameraSpeed, cameraFOV);
+	m_active_camera = std::make_shared<Camera>(vectors, cameraSpeed, cameraFOV);
 }
 
 bool Xplor::EngineManager::Run()
@@ -45,24 +46,24 @@ bool Xplor::EngineManager::Run()
         io.Fonts->AddFontDefault(&imConfig);
         ImGui_ImplOpenGL3_DestroyFontsTexture();
         ImGui_ImplOpenGL3_CreateFontsTexture();
-        };
+    };
 
     float fontSize = 18.0f;
     RebuildFontAtlas(fontSize);
 
-    auto windowManager = WindowManager::GetInstance();
-    while (!glfwWindowShouldClose(windowManager->GetWindow())) // Need to setup my own events for this to work better
+    auto window_manager = WindowManager::GetInstance();
+    while (!glfwWindowShouldClose(window_manager->GetWindow())) // Need to setup my own events for this to work better
     {
         //--- Update Delta Time
-        float currentFrameTime = static_cast<float>(glfwGetTime());
-        float deltaTime = currentFrameTime - m_lastFrameTime;
-        m_lastFrameTime = currentFrameTime;
-
+        float current_frame_time = static_cast<float>(glfwGetTime());
+        float delta_time = current_frame_time - m_last_frame_time;
+        m_delta_time = delta_time;
+        m_last_frame_time = current_frame_time;
 
 
         //--- Input
         //-----------------------------------------------------
-        windowManager->PollEvents();
+        window_manager->PollEvents();
         //float cameraFinalSpeed = m_activeCamera->m_speed * deltaTime;
 
         // I need to change how this logic happens. The window manager should process the inputs here
@@ -70,19 +71,19 @@ bool Xplor::EngineManager::Run()
         //windowManager->ProcessInputs(cameraPosition, cameraFront, cameraUp, cameraFinalSpeed);
 
         //--- ImGui
-        windowManager->NewImguiFrame();
+        window_manager->NewImguiFrame();
 
-        windowManager->CreateEditorUI();
+        window_manager->CreateEditorUI();
 
         // Rendering commands
         //-----------------------------------------------------
 
         //---- Background Color
         glClearColor(0.1f, 0.3f, 0.5f, 1.0f);
-        glClearColor(windowManager->m_clear_color.x * windowManager->m_clear_color.w,
-            windowManager->m_clear_color.y * windowManager->m_clear_color.w,
-            windowManager->m_clear_color.z * windowManager->m_clear_color.w,
-            windowManager->m_clear_color.w);
+        glClearColor(window_manager->m_clear_color.x * window_manager->m_clear_color.w,
+            window_manager->m_clear_color.y * window_manager->m_clear_color.w,
+            window_manager->m_clear_color.z * window_manager->m_clear_color.w,
+            window_manager->m_clear_color.w);
         glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
         //---- Logic Commands
@@ -100,21 +101,21 @@ bool Xplor::EngineManager::Run()
         }*/
 
         //--- Logic Update
-        Update(deltaTime);
+        Update(delta_time);
 
         //---- Scene Rendering
-        Render(m_activeCamera->m_viewMatrix, m_activeCamera->m_projectionMatrix);
+        Render(m_active_camera->m_view_matrix, m_active_camera->m_projection_matrix);
 
         //---- ImGui Rendering
         ImGui::Render();
         int display_w, display_h;
-        glfwGetFramebufferSize(windowManager->GetWindow(), &display_w, &display_h);
+        glfwGetFramebufferSize(window_manager->GetWindow(), &display_w, &display_h);
         glViewport(0, 0, display_w, display_h);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 
         // Swap the front and back buffers
-        windowManager->Update();
+        window_manager->UpdateBuffers();
 
         // Check for window font resizing
         /*fontSize = 20;
@@ -127,10 +128,10 @@ bool Xplor::EngineManager::Run()
 
 void Xplor::EngineManager::Update(float deltaTime)
 {
-    m_activeCamera->Update(deltaTime);
+    m_active_camera->Update(deltaTime);
 
     for (auto object : m_gameObjects)
-    {
+    {               
         object->Update(deltaTime);
     }
 
@@ -175,4 +176,74 @@ void Xplor::EngineManager::RayIntersectionTests(const glm::vec3 rayStart, const 
 bool Xplor::EngineManager::RayHitsBoundingBox(const glm::vec3& rayOrigin, const glm::vec3& rayDirection, const BoundingBox& bbox)
 {
     return false;
+}
+
+/// <summary>
+/// Create a cube prop with a debug texture at the give position
+/// </summary>
+/// <param name="position"></param>
+void Xplor::EngineManager::AddDebugObject(const glm::vec3& position)
+{
+    std::shared_ptr<Xplor::PropObject> debug_object = std::make_shared<Xplor::PropObject>();
+    debug_object->SetName("Debug Object");
+    debug_object->SetPosition(position);
+
+    debug_object->AddTexture("images//debug.jpg", ImageFormat::jpg);
+    debug_object->InitTextures();
+
+    // Add a simple shader
+    auto shader = std::make_shared<Shader>("..//resources//shaders//simple.vs", "..//resources//shaders//simple.fs");
+    shader->Init();
+    debug_object->AddShader(shader);
+    auto shader_id = debug_object->GetShader();
+
+    shader_id->useProgram();
+    shader_id->setUniform("customTexture1", 0);
+    shader_id->endProgram();
+
+    auto cube_data = GeometryGenerator::GenerateCubeData();
+    const int step_size = 5;
+    const int index_count = 36;
+    debug_object->AddGeometry(cube_data.data(), cube_data.size(), step_size, index_count);
+    debug_object->InitGeometry();
+
+
+    AddGameObject(debug_object);
+
+}
+
+/// <summary>
+/// Create a cube prop with a debug texture at a given position with a velocity
+/// </summary>
+/// <param name="position"></param>
+/// <param name="velocity"></param>
+void Xplor::EngineManager::AddDebugObject(const glm::vec3& position, const glm::vec3& velocity)
+{
+    std::shared_ptr<Xplor::PropObject> debug_object = std::make_shared<Xplor::PropObject>();
+    debug_object->SetName("Debug Object");
+    debug_object->SetPosition(position);
+
+    debug_object->AddTexture("images//debug.jpg", ImageFormat::jpg);
+    debug_object->InitTextures();
+
+    // Add a simple shader
+    auto shader = std::make_shared<Shader>("..//resources//shaders//simple.vs", "..//resources//shaders//simple.fs");
+    shader->Init();
+    debug_object->AddShader(shader);
+    auto shader_id = debug_object->GetShader();
+
+    shader_id->useProgram();
+    shader_id->setUniform("customTexture1", 0);
+    shader_id->endProgram();
+
+    auto cube_data = GeometryGenerator::GenerateCubeData();
+    const int step_size = 5;
+    const int index_count = 36;
+    debug_object->AddGeometry(cube_data.data(), cube_data.size(), step_size, index_count);
+    debug_object->InitGeometry();
+
+
+    debug_object->SetVelocity(velocity);
+    AddGameObject(debug_object);
+
 }
