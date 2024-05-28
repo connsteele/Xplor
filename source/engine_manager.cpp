@@ -139,9 +139,12 @@ void Xplor::EngineManager::Update(float deltaTime)
 
 void Xplor::EngineManager::Render(glm::mat4 viewMatrix, glm::mat4 projectionMatrix)
 {
+    constexpr bool DEBUG = false;
 	for (auto object : m_gameObjects)
 	{
 		object->Render(viewMatrix, projectionMatrix);
+        if (DEBUG)
+            object->DrawBoundingBox(viewMatrix, projectionMatrix);
 	}
 }
 
@@ -161,21 +164,86 @@ void Xplor::EngineManager::AddGameObject(std::shared_ptr<GameObject> object)
 	m_gameObjects.push_back(object);
 }
 
-void Xplor::EngineManager::RayIntersectionTests(const glm::vec3 rayStart, const glm::vec3 rayEnd)
+void Xplor::EngineManager::RayIntersectionTest(const glm::vec3 ray_start, const glm::vec3 ray_direction)
 {
-    glm::vec3 rayDirection = glm::normalize(rayEnd - rayStart);
+    float t; // depth
+    float closest_t = std::numeric_limits<float>::max();
+    std::shared_ptr<GameObject> closest_object = nullptr;
 
-    for (std::shared_ptr<GameObject> object : m_gameObjects)
+    for (const std::shared_ptr<GameObject>& object : m_gameObjects)
     {
-        // if ray intersects cube...
-        // Keep in mind the game objects are not in any particular order so it may hit
-        // an object that is behind as it comes first in the object list
+        if (RayIntersectsAABB(ray_start, ray_direction, object->GetBoundingBox(), t))
+        {
+            std::cout << "Ray intersects object: " << object->GetName() << " at t = " << t << std::endl;
+            if (t < closest_t)
+            {
+                closest_t = t;
+                closest_object = object;
+            }
+            // Add visual feedback, e.g., change object color
+            //object->SetColor(glm::vec3(1.0f, 0.0f, 0.0f)); // Assuming you have a SetColor method
+        }
+    }
+
+    if (closest_object)
+    {
+        std::cout << "Ray intersected the closest object: " << closest_object->GetName() << std::endl;
     }
 }
 
-bool Xplor::EngineManager::RayHitsBoundingBox(const glm::vec3& rayOrigin, const glm::vec3& rayDirection, const BoundingBox& bbox)
+/// <summary>
+/// Check for the closest Bounding Box that is closest to the rays origin in a given direction
+/// </summary>
+/// <param name="ray_origin">Converted world coordinate of where cursor is clicked</param>
+/// <param name="ray_direction">The direction from the ray's start to where it terminates</param>
+/// <param name="bbox">Bounding box of a game object</param>
+/// <param name="out_t">Indicates the distance from the ray's origin to the intersection point along the ray's direction vector</param>
+/// <returns></returns>
+bool Xplor::EngineManager::RayIntersectsAABB(const glm::vec3& ray_origin, const glm::vec3& ray_direction, const BoundingBox& bbox, float& out_t)
 {
-    return false;
+    // Ray intersections with X axis
+    float t_min = (bbox.min.x - ray_origin.x) / ray_direction.x; // entry point
+    float t_max = (bbox.max.x - ray_origin.x) / ray_direction.x; // exit point
+
+    // Ensure the entry and exit points are in proper order
+    if (t_min > t_max)
+        std::swap(t_min, t_max);
+    
+
+    // Ray intersections with Y axis
+    float ty_min = (bbox.min.y - ray_origin.y) / ray_direction.y;
+    float ty_max = (bbox.max.y - ray_origin.y) / ray_direction.y;
+
+    // Check if there is no overlap between the intervals on the X and Y axis
+    if (t_max < ty_min || t_min > ty_max)
+    {
+        // Ray misses the bounding box
+        return false;
+    }
+
+    // Update the intersection interval that accounts for the X and Y planes
+    t_min = std::max(t_min, ty_min); // update entry point to its latest intersection
+    t_max = std::min(t_max, ty_max); // update exit point to its earliest exit
+        
+
+    // Ray intersections with the Z axis
+    float tz_min = (bbox.min.z - ray_origin.z) / ray_direction.z;
+    float tz_max = (bbox.max.z - ray_origin.z) / ray_direction.z;
+
+    // Check if there is no overlap between the intervals on the X, Y and Z axis
+    if (t_max  < tz_min || t_min > tz_max)
+    {
+        // Ray misses the bounding box
+        return false;
+    }
+
+    // Update the intersection interval that accounts for the X, Y and Z planes
+    t_min = std::max(t_min, tz_min); // update entry point to its latest intersection
+    t_max = std::min(t_max, tz_max); // update exit point to its earliest exit
+
+
+    out_t = t_min; //Smallest depth where the ray intersects the box
+    return true; // Ray intersects bbox
 }
 
 /// <summary>

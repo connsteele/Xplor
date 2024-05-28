@@ -11,6 +11,7 @@
 #include <array>
 #include <memory>
 
+
 struct ImageData
 {
 	int width;
@@ -31,12 +32,12 @@ namespace Xplor {
 		
 		void AddTexture(std::string imagePath, ImageFormat format)
 		{
-			m_texturePaths.push_back({ imagePath, format });
+			m_texture_paths.push_back({ imagePath, format });
 		}
 
 		void InitTextures()
 		{
-			for (auto pair : m_texturePaths)
+			for (auto pair : m_texture_paths)
 			{
 				auto imagePath = std::get<0>(pair);
 				auto format = std::get<1>(pair);
@@ -148,22 +149,51 @@ namespace Xplor {
 
 		void Update(const float delta_time)
 		{
+			glm::vec3 last_position = m_position;
+			UpdatePosition(delta_time);
+
+			if (last_position != m_position)
+			{
+				UpdateBoundingBox();
+			}			
+		}
+
+		void UpdatePosition(const float delta_time)
+		{
 			// Transformations
 			glm::vec3 update_velocity = delta_time * m_velocity;
 			m_position += update_velocity;
 		}
 
-		void Render(glm::mat4 viewMatrix, glm::mat4 projectionMatrix)
+		void UpdateBoundingBox()
+		{
+			glm::vec3 min = m_position - glm::vec3(0.5f) * m_scale;
+			glm::vec3 max = m_position + glm::vec3(0.5f) * m_scale;
+			m_bbox = { min, max };
+
+			//// old method
+			// Currently this is assuming the object is a cube
+			/*int size = 1.0f;
+			m_bbox.min = m_position - glm::vec3(size / 2.0f);
+			m_bbox.max = m_position + glm::vec3(size / 2.0f);*/
+		}
+
+		void Render(glm::mat4 view_matrix, glm::mat4 projection_matrix)
 		{
 			m_shader->useProgram();
 
 			// Send coordinate matrices to the shader
-			int locModel = glGetUniformLocation(m_shader->getID(), "model");
-			glUniformMatrix4fv(locModel, 1, GL_FALSE, glm::value_ptr(modelMatrix));
+			/*int locModel = glGetUniformLocation(m_shader->getID(), "model");
+			glUniformMatrix4fv(locModel, 1, GL_FALSE, glm::value_ptr(m_model_matrix));
 			int locView = glGetUniformLocation(m_shader->getID(), "view");
-			glUniformMatrix4fv(locView, 1, GL_FALSE, glm::value_ptr(viewMatrix));
+			glUniformMatrix4fv(locView, 1, GL_FALSE, glm::value_ptr(view_matrix));
 			int locProjection = glGetUniformLocation(m_shader->getID(), "projection");
-			glUniformMatrix4fv(locProjection, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
+			glUniformMatrix4fv(locProjection, 1, GL_FALSE, glm::value_ptr(projection_matrix));*/
+			
+			m_shader->setUniform("model", m_model_matrix);
+			m_shader->setUniform("view", view_matrix);
+			m_shader->setUniform("projection", projection_matrix);
+
 
 
 			// Bind Relevant Textures
@@ -176,24 +206,23 @@ namespace Xplor {
 			// Transform and draw the object
 			glm::mat4 model = glm::mat4(1.0f);
 			model = glm::translate(model, m_position);
-			if (m_rotationAmount != 0)
+			if (m_rotation_amount != 0)
 			{
-				model = glm::rotate(model, glm::radians(m_rotationAmount), m_rotationAxis);
+				model = glm::rotate(model, glm::radians(m_rotation_amount), m_rotation_axis);
 
 			}
 			m_shader->setUniform("model", model);
 
 			glBindVertexArray(m_VAO);
 			// Check for an EBO
-			if (m_EBO != 0)
-			{
-				glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(m_geometry.GetEBOSize()), GL_UNSIGNED_INT, 0);
-			}
-			else
+			if (!m_EBO)
 			{
 				// change this to draw to a variable size
 				glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(m_geometry.GetIndexCount()));
-
+			}
+			else
+			{
+				glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(m_geometry.GetEBOSize()), GL_UNSIGNED_INT, 0);
 			}
 
 			// Unbinds
@@ -201,6 +230,8 @@ namespace Xplor {
 			glBindTexture(GL_TEXTURE_2D, 0); // Unbind the texture
 			m_shader->endProgram();
 		}
+
+		void DrawBoundingBox(const glm::mat4& view_matrix, const glm::mat4& projection_matrix);
 
 		void Delete()
 		{
@@ -219,19 +250,22 @@ namespace Xplor {
 		}
 
 		/// <summary>
-		/// Set the position of the object. Also initializes the object's bounding box.
+		/// Set the position of the object. Also updates the object's bounding box.
 		/// </summary>
 		/// <param name="pos">Position to place the object in the world.</param>
-		void SetPosition(glm::vec3 pos)
+		void SetPosition(const glm::vec3& position)
 		{
-			m_position = pos;
-			// Currently this is assuming the object is a cube
-			int size = 1.0f;
-			m_bbox.min = pos - glm::vec3(size / 2.0f);
-			m_bbox.min = pos + glm::vec3(size / 2.0f);
+			m_position = position;
+			UpdateBoundingBox();
 		}
 
-		const BoundingBox GetBoundingBox() const
+		void SetScale(const glm::vec3& scale)
+		{
+			m_scale = scale;
+			UpdateBoundingBox();
+		}
+
+		const BoundingBox& GetBoundingBox() const
 		{
 			return m_bbox;
 		}
@@ -242,8 +276,8 @@ namespace Xplor {
 		/// <param name="rot">Holds Pitch, Yaw and Roll in degrees to rotate</param>
 		void SetRotation(glm::vec3 rotAxis, float rotAmount)
 		{
-			m_rotationAxis = rotAxis;
-			m_rotationAmount = rotAmount;
+			m_rotation_axis = rotAxis;
+			m_rotation_amount = rotAmount;
 		}
 
 		const std::vector<uint32_t> GetTextures() const
@@ -293,13 +327,13 @@ namespace Xplor {
 				{ "VAO", m_VAO},
 				{ "VBO", m_VBO},
 				{ "EBO", m_EBO},
-				{ "texture paths", m_texturePaths}
+				{ "texture paths", m_texture_paths}
 			};
 		}
 
 		virtual void Deserialze(const json& j)
 		{
-			m_objectType = j.at("type").get<Xplor::GameObjectType>();
+			m_object_type = j.at("type").get<Xplor::GameObjectType>();
 			m_id = j.at("id").get<uint32_t>();
 			m_name = j.at("name").get<std::string>();
 			auto jPosition = j.at("position").get<std::vector<float>>();
@@ -308,7 +342,7 @@ namespace Xplor {
 			m_geometry.Deserialize(j.at("geometry"));
 			InitGeometry();
 
-			m_texturePaths = j.at("texture paths");
+			m_texture_paths = j.at("texture paths");
 			InitTextures();
 
 			m_shader = std::make_shared<Xplor::Shader>();
@@ -328,7 +362,7 @@ namespace Xplor {
 		/// <returns>An enum representing the game object type</returns>
 		virtual Xplor::GameObjectType GetObjectType() const
 		{
-			return m_objectType;
+			return m_object_type;
 		}
 		
 
@@ -339,22 +373,27 @@ namespace Xplor {
 		std::string m_name{};
 		const std::string resources = "..//resources//";
 		std::vector<uint32_t> m_textures{};
+		std::vector<std::tuple<std::string, ImageFormat>> m_texture_paths;
 		std::shared_ptr<Shader> m_shader{};
 		uint32_t m_VBO{}, m_VAO{}, m_EBO{};
-		std::vector<std::tuple<std::string, ImageFormat>> m_texturePaths;
-		// Number of indices needed to be rendered
-		size_t m_indexCount{};
+		
+		size_t m_index_count{}; // Number of indices needed to be rendered
 		glm::vec3 m_position{};
-		glm::vec3 m_rotationAxis{};
-		float m_rotationAmount{};
 		glm::vec3 m_velocity{};
-		Xplor::GameObjectType m_objectType{ Xplor::GameObjectType::GameObject };
+		glm::vec3 m_scale{1.0f};
+
+		glm::vec3 m_rotation_axis{};
+		float m_rotation_amount{};
+		
+		Xplor::GameObjectType m_object_type{ Xplor::GameObjectType::GameObject };
 		Geometry m_geometry;
 		// Axis Alinged Bounding Box for Collisions
 		BoundingBox m_bbox;
+		// Bounding box VAO and VBO
+		GLuint m_bboxVAO = 0, m_bboxVBO = 0, m_bboxEBO = 0;
 
 		// Want a matrix stack instead of all of these
-		glm::mat4 modelMatrix{};
+		glm::mat4 m_model_matrix{};
 
 	private:
 
@@ -363,11 +402,11 @@ namespace Xplor {
 
 	class PropObject : public GameObject
 	{
-		Xplor::GameObjectType objectType{ Xplor::GameObjectType::PropObject };
+		Xplor::GameObjectType object_type{ Xplor::GameObjectType::PropObject };
 
 		Xplor::GameObjectType GetObjectType() const override
 		{
-			return objectType;
+			return object_type;
 		}
 
 	};

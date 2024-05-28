@@ -79,6 +79,43 @@ public:
     }
 
 
+    static std::vector<float> GenerateBoundingBoxVertices(const glm::vec3& min, const glm::vec3& max)
+    {
+        return {
+            // Front Face
+            min.x, min.y, min.z,  // 0
+            max.x, min.y, min.z,  // 1
+            max.x, max.y, min.z,  // 2
+            min.x, max.y, min.z,  // 3
+            // Back face
+            min.x, min.y, max.z,  // 4
+            max.x, min.y, max.z,  // 5
+            max.x, max.y, max.z,  // 6
+            min.x, max.y, max.z   // 7
+        };
+    }
+
+    static std::vector<unsigned int> GenerateBoundingBoxIndices()
+    {
+        return {
+            // Front face
+            0, 1,
+            1, 2,
+            2, 3,
+            3, 0,
+            // Back face
+            4, 5,
+            5, 6,
+            6, 7,
+            7, 4,
+            // Connect front and back faces
+            0, 4,
+            1, 5,
+            2, 6,
+            3, 7
+        };
+    }
+
 private:
 
 };

@@ -171,6 +171,7 @@ void WindowManager::MouseButtonCallback(GLFWwindow* window, int button, int acti
 {
 	constexpr bool CURSOR_RAYCAST = true; // This should probably be a member variable
 	constexpr bool DEBUG = true; // Spawn debugging objects where clicked
+
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
 	{
 		if (CURSOR_RAYCAST)
@@ -197,19 +198,16 @@ void WindowManager::MouseButtonCallback(GLFWwindow* window, int button, int acti
 			glm::vec3 ray_end = glm::unProject(glm::vec3(x_pos, y_pos, 1.0f), view, projection, viewport);
 			glm::vec3 ray_direction = glm::normalize(ray_end - ray_start);
 
-			std::cout << "World coordinates: (" << ray_start.x << ", " << ray_start.y << ", " << ray_start.z << ")" << std::endl;
-
-			//--- Perform Ray Intersections
-			// iterate through game objects and perform ray tests against the bbox for each
-			// perhaps I should hand off the data here to the engine manager
-			engine_manager->RayIntersectionTests(ray_start, ray_end);
-
 
 			if (DEBUG)
 			{
+				//std::cout << "World coordinates: (" << ray_start.x << ", " << ray_start.y << ", " << ray_start.z << ")" << std::endl;
 				// Animate this along the path
 				engine_manager->AddDebugObject(ray_start, ray_direction);
 			}
+
+			//--- Perform Ray Intersections
+			engine_manager->RayIntersectionTest(ray_start, ray_direction);
 		}
 	}
 }
