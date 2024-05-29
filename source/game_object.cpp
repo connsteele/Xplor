@@ -1,5 +1,6 @@
 #include "game_object.hpp"
 #include "generator_geometry.hpp"
+#include "shader_manager.hpp"
 
 
 void Xplor::GameObject::DrawBoundingBox(const glm::mat4& view_matrix, const glm::mat4& projection_matrix)
@@ -29,13 +30,8 @@ void Xplor::GameObject::DrawBoundingBox(const glm::mat4& view_matrix, const glm:
 	}
 
 	// Set the shader
-	std::string vertex_full_path = resources + "shaders//bounding.vs";
-	std::string fragment_full_path = resources + "shaders//bounding_color.fs";
-
-	static std::unique_ptr<Xplor::Shader> bbox_shader = std::make_unique<Xplor::Shader>(vertex_full_path.c_str(), fragment_full_path.c_str());
-	static bool init = false;
-	if (!init)
-		bbox_shader->init();
+	std::shared_ptr<Shader> bbox_shader;
+	ShaderManager::getInstance()->findShader("bounding", bbox_shader);
 	bbox_shader->useProgram();
 
 	// Set the view and projection matrices
