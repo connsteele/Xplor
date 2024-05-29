@@ -181,7 +181,7 @@ void WindowManager::MouseButtonCallback(GLFWwindow* window, int button, int acti
 			glfwGetCursorPos(window, &x_pos, &y_pos);
 
 			auto engine_manager = Xplor::EngineManager::GetInstance();
-			auto camera = engine_manager->GetCamera();
+			auto camera = engine_manager->getCamera();
 			auto view = camera->m_view_matrix;
 			auto projection = camera->m_projection_matrix;
 
@@ -203,11 +203,11 @@ void WindowManager::MouseButtonCallback(GLFWwindow* window, int button, int acti
 			{
 				//std::cout << "World coordinates: (" << ray_start.x << ", " << ray_start.y << ", " << ray_start.z << ")" << std::endl;
 				// Animate this along the path
-				engine_manager->AddDebugObject(ray_start, ray_direction);
+				engine_manager->addDebugObject(ray_start, ray_direction);
 			}
 
 			//--- Perform Ray Intersections
-			engine_manager->RayIntersectionTest(ray_start, ray_direction);
+			engine_manager->rayIntersectionTest(ray_start, ray_direction);
 		}
 	}
 }

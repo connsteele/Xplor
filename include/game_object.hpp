@@ -28,14 +28,14 @@ namespace Xplor {
 	class GameObject
 	{
 	public:
-		void Init();
+		void init();
 		
-		void AddTexture(std::string imagePath, ImageFormat format)
+		void addTexture(std::string imagePath, ImageFormat format)
 		{
 			m_texture_paths.push_back({ imagePath, format });
 		}
 
-		void InitTextures()
+		void initTextures()
 		{
 			for (auto pair : m_texture_paths)
 			{
@@ -79,12 +79,12 @@ namespace Xplor {
 		}
 
 		// Ideally this should support multiple shaders 
-		void AddShader(std::shared_ptr<Shader> shader)
+		void addShader(std::shared_ptr<Shader> shader)
 		{
 			m_shader = shader;
 		}
 
-		void AddGeometry(float* geometryData, size_t dataSize, unsigned int stepSize, uint32_t indexCount)
+		void addGeometry(float* geometryData, size_t dataSize, unsigned int stepSize, uint32_t indexCount)
 		{
 			m_geometry.SetData(geometryData, dataSize);
 			m_geometry.SetStepSize(stepSize);
@@ -99,73 +99,36 @@ namespace Xplor {
 		/// <param name="ebo"></param>
 		/// <param name="eboSize"></param>
 		/// <param name="stepSize"></param>
-		void AddGeometry(float* geometryData, size_t dataSize, unsigned int* ebo, size_t eboSize, unsigned int stepSize)
+		void addGeometry(float* geometryData, size_t dataSize, unsigned int* ebo, size_t eboSize, unsigned int stepSize)
 		{
 			m_geometry.SetData(geometryData, dataSize);
 			m_geometry.SetEBO(ebo, eboSize);
 			m_geometry.SetStepSize(stepSize);
 		}
 
-		void InitGeometry()
-		{
-			if (!m_geometry.GetData())
-			{
-				assert(false && "No geometry data to initialize");
-				return;
-			}
+		void initGeometry();
 
+		void initBoundingBoxDraw();
 
-			glGenVertexArrays(1, &m_VAO); // Generate one VAO
-			glGenBuffers(1, &m_VBO); // Generate one buffer object in the OGL Context
-
-			glBindVertexArray(m_VAO); // bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
-			glBindBuffer(GL_ARRAY_BUFFER, m_VBO); // Bind the buffer object to a buffer type
-
-			// Copy data into the buffer object bound to target. The target here
-			// is  GL_ARRAYBUFFER which is bound to the VBO.
-			glBufferData(GL_ARRAY_BUFFER, m_geometry.GetSize() * sizeof(float), m_geometry.GetData(), GL_STATIC_DRAW);
-
-			// Check to see if the EBO is populated
-			if (m_geometry.GetEBO())
-			{
-				glGenBuffers(1, &m_EBO); // EBO allows us to use indicies for drawing order
-
-				// Setup EBO
-				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
-				glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_geometry.GetEBOSize() * sizeof(unsigned int), m_geometry.GetEBO(), GL_STATIC_DRAW);
-
-			}
-
-			// Tell OpenGL how to interpret the vertex data per attribute
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, m_geometry.GetStep() * sizeof(float), reinterpret_cast<void*>(0));
-			glEnableVertexAttribArray(0);
-			// define and enable texture coordinates input
-			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, m_geometry.GetStep() * sizeof(float), reinterpret_cast<void*>(3 * sizeof(float)));
-			glEnableVertexAttribArray(1);
-
-			glBindVertexArray(0); // Unbind the VAO
-		}
-
-
-		void Update(const float delta_time)
+		void update(const float delta_time)
 		{
 			glm::vec3 last_position = m_position;
-			UpdatePosition(delta_time);
+			updatePosition(delta_time);
 
 			if (last_position != m_position)
 			{
-				UpdateBoundingBox();
+				updateBoundingBox();
 			}			
 		}
 
-		void UpdatePosition(const float delta_time)
+		void updatePosition(const float delta_time)
 		{
 			// Transformations
 			glm::vec3 update_velocity = delta_time * m_velocity;
 			m_position += update_velocity;
 		}
 
-		void UpdateBoundingBox()
+		void updateBoundingBox()
 		{
 			glm::vec3 min = m_position - glm::vec3(0.5f) * m_scale;
 			glm::vec3 max = m_position + glm::vec3(0.5f) * m_scale;
@@ -178,7 +141,7 @@ namespace Xplor {
 			m_bbox.max = m_position + glm::vec3(size / 2.0f);*/
 		}
 
-		void UpdateModelMatrix()
+		void updateModelMatrix()
 		{
 			glm::mat4 model = glm::mat4(1.0f);
 			model = glm::translate(model, m_position);
@@ -189,43 +152,9 @@ namespace Xplor {
 			m_model_matrix = model;
 		}
 
-		void Render(glm::mat4 view_matrix, glm::mat4 projection_matrix)
-		{
-			m_shader->useProgram();
+		void draw(glm::mat4 view_matrix, glm::mat4 projection_matrix);
 
-			// Send coordinate matrices to the shader
-			UpdateModelMatrix();
-			m_shader->setUniform("model", m_model_matrix); // NEED TO CHANGE THE CODE BELOW 
-			m_shader->setUniform("view", view_matrix);
-			m_shader->setUniform("projection", projection_matrix);
-
-			// Bind Relevant Textures
-			for (int i = 0; i < m_textures.size(); i++)
-			{
-				glActiveTexture(GL_TEXTURE0 + i);
-				glBindTexture(GL_TEXTURE_2D, m_textures[i]);
-			}
-
-
-			glBindVertexArray(m_VAO);
-			// Check for an EBO
-			if (!m_EBO)
-			{
-				// change this to draw to a variable size
-				glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(m_geometry.GetIndexCount()));
-			}
-			else
-			{
-				glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(m_geometry.GetEBOSize()), GL_UNSIGNED_INT, 0);
-			}
-
-			// Unbinds
-			glBindVertexArray(0); // Unbind the VAO
-			glBindTexture(GL_TEXTURE_2D, 0); // Unbind the texture
-			m_shader->endProgram();
-		}
-
-		void DrawBoundingBox(const glm::mat4& view_matrix, const glm::mat4& projection_matrix);
+		void drawBoundingBox(const glm::mat4& view_matrix, const glm::mat4& projection_matrix);
 
 		void Delete()
 		{
@@ -238,7 +167,7 @@ namespace Xplor {
 			glDeleteBuffers(1, &m_EBO);
 		}
 
-		void AddImpulse(glm::vec3 impulse)
+		void addImpulse(glm::vec3 impulse)
 		{
 			m_velocity += impulse;
 		}
@@ -247,19 +176,19 @@ namespace Xplor {
 		/// Set the position of the object. Also updates the object's bounding box.
 		/// </summary>
 		/// <param name="pos">Position to place the object in the world.</param>
-		void SetPosition(const glm::vec3& position)
+		void setPosition(const glm::vec3& position)
 		{
 			m_position = position;
-			UpdateBoundingBox();
+			updateBoundingBox();
 		}
 
-		void SetScale(const glm::vec3& scale)
+		void setScale(const glm::vec3& scale)
 		{
 			m_scale = scale;
-			UpdateBoundingBox();
+			updateBoundingBox();
 		}
 
-		const BoundingBox& GetBoundingBox() const
+		const BoundingBox& getBoundingBox() const
 		{
 			return m_bbox;
 		}
@@ -268,43 +197,43 @@ namespace Xplor {
 		/// 
 		/// </summary>
 		/// <param name="rot">Holds Pitch, Yaw and Roll in degrees to rotate</param>
-		void SetRotation(glm::vec3 rotAxis, float rotAmount)
+		void setRotation(glm::vec3 rotAxis, float rotAmount)
 		{
 			m_rotation_axis = rotAxis;
 			m_rotation_amount = rotAmount;
 		}
 
-		const std::vector<uint32_t> GetTextures() const
+		const std::vector<uint32_t> getTextures() const
 		{
 			return m_textures;
 		};
 
-		const std::shared_ptr<Shader> GetShader() const
+		const std::shared_ptr<Shader> getShader() const
 		{
 			return m_shader;
 		}
 
-		void SetID(uint32_t id)
+		void setID(uint32_t id)
 		{
 			m_id = id;
 		}
 
-		const uint32_t GetID()
+		const uint32_t getID()
 		{
 			return m_id;
 		}
 
-		const std::string& GetName()
+		const std::string& getName()
 		{
 			return m_name;
 		}
 
-		void SetName(std::string name)
+		void setName(std::string name)
 		{
 			m_name = name;
 		}
 
-		void SetVelocity(const glm::vec3& velocity)
+		void setVelocity(const glm::vec3& velocity)
 		{
 			m_velocity = velocity;
 		}
@@ -312,7 +241,7 @@ namespace Xplor {
 		json Serialize() const
 		{
 			return {
-				{ "type", GetObjectType()},
+				{ "type", getObjectType()},
 				{ "id", m_id },
 				{ "name", m_name },
 				{ "position", {m_position.x, m_position.y, m_position.z}},
@@ -334,10 +263,10 @@ namespace Xplor {
 			m_position = glm::vec3(jPosition[0], jPosition[1], jPosition[2]);
 
 			m_geometry.Deserialize(j.at("geometry"));
-			InitGeometry();
+			initGeometry();
 
 			m_texture_paths = j.at("texture paths");
-			InitTextures();
+			initTextures();
 
 			m_shader = std::make_shared<Xplor::Shader>();
 			m_shader->Deserialize(j.at("shader"));
@@ -354,7 +283,7 @@ namespace Xplor {
 		/// derived classes
 		/// </summary>
 		/// <returns>An enum representing the game object type</returns>
-		virtual Xplor::GameObjectType GetObjectType() const
+		virtual Xplor::GameObjectType getObjectType() const
 		{
 			return m_object_type;
 		}
@@ -373,6 +302,7 @@ namespace Xplor {
 		
 		size_t m_index_count{}; // Number of indices needed to be rendered
 		glm::vec3 m_position{};
+		glm::vec3 m_last_position{}; // Used with bounding box drawing
 		glm::vec3 m_velocity{};
 		glm::vec3 m_scale{1.0f};
 
@@ -398,7 +328,7 @@ namespace Xplor {
 	{
 		Xplor::GameObjectType object_type{ Xplor::GameObjectType::PropObject };
 
-		Xplor::GameObjectType GetObjectType() const override
+		Xplor::GameObjectType getObjectType() const override
 		{
 			return object_type;
 		}

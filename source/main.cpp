@@ -23,7 +23,7 @@ struct ImgData
 };
 
 
-void PrintMaxVertexAttrib()
+void printMaxVertexAttrib()
 {
     int maxAttributes;
     glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &maxAttributes);
@@ -31,29 +31,29 @@ void PrintMaxVertexAttrib()
 
 }
 
-void CreateSceneA()
+void createSceneA()
 {
     //------ Object Creation
     std::shared_ptr<Xplor::PropObject> planeA = std::make_shared<Xplor::PropObject>();
     std::shared_ptr<Xplor::PropObject> cubeA = std::make_shared<Xplor::PropObject>();
     std::shared_ptr<Xplor::PropObject> cubeB = std::make_shared<Xplor::PropObject>();
 
-    planeA->SetName("Metal Plane");
-    cubeA->SetName("Box Dog");
-    cubeB->SetName("Box Metal");
+    planeA->setName("Metal Plane");
+    cubeA->setName("Box Dog");
+    cubeB->setName("Box Metal");
 
     //------ Image Loading
-    planeA->AddTexture("images//Firefly_Metal_Box.jpg", Xplor::ImageFormat::jpg);
-    planeA->InitTextures();
+    planeA->addTexture("images//Firefly_Metal_Box.jpg", Xplor::ImageFormat::jpg);
+    planeA->initTextures();
 
-    cubeA->AddTexture("images//woodBox.jpg", Xplor::ImageFormat::jpg);
-    cubeA->AddTexture("images//dog.png", Xplor::ImageFormat::png);
-    cubeA->InitTextures();
+    cubeA->addTexture("images//woodBox.jpg", Xplor::ImageFormat::jpg);
+    cubeA->addTexture("images//dog.png", Xplor::ImageFormat::png);
+    cubeA->initTextures();
 
 
-    cubeB->AddTexture("images//Firefly_Metal_Box.jpg", Xplor::ImageFormat::jpg);
-    cubeB->AddTexture("images//dog.png", Xplor::ImageFormat::png);
-    cubeB->InitTextures();
+    cubeB->addTexture("images//Firefly_Metal_Box.jpg", Xplor::ImageFormat::jpg);
+    cubeB->addTexture("images//dog.png", Xplor::ImageFormat::png);
+    cubeB->initTextures();
 
 
     //------ Shader Creation
@@ -90,9 +90,9 @@ void CreateSceneA()
     std::shared_ptr<Xplor::Shader> shader_simple;
     shader_manager->findShader("simple", shader_simple);
 
-    planeA->AddShader(shader_one_tex);
-    cubeA->AddShader(shader_simple);
-    cubeB->AddShader(shader_one_tex);
+    planeA->addShader(shader_one_tex);
+    cubeA->addShader(shader_simple);
+    cubeB->addShader(shader_one_tex);
 
     // cubeBBOX
 
@@ -111,29 +111,29 @@ void CreateSceneA()
     auto planeEBO = GeometryGenerator::GeneratePlaneEBO();
 
     // Send Geometry information to the game object
-    planeA->SetPosition(glm::vec3(-1.f, 0.0f, 1.f));
-    planeA->AddGeometry(geometryPlane.data(), geometryPlane.size(), planeEBO.data(), planeEBO.size(), 5);
-    planeA->InitGeometry();
+    planeA->setPosition(glm::vec3(-1.f, 0.0f, 1.f));
+    planeA->addGeometry(geometryPlane.data(), geometryPlane.size(), planeEBO.data(), planeEBO.size(), 5);
+    planeA->initGeometry();
 
     auto geometryCube = GeometryGenerator::GenerateCubeData();
-    cubeA->SetPosition(glm::vec3(0.0f, 0.0f, 0.0f));
-    cubeA->AddGeometry(geometryCube.data(), geometryCube.size(), 5, 36);
-    cubeA->InitGeometry();
+    cubeA->setPosition(glm::vec3(0.0f, 0.0f, 0.0f));
+    cubeA->addGeometry(geometryCube.data(), geometryCube.size(), 5, 36);
+    cubeA->initGeometry();
 
-    cubeB->SetPosition(glm::vec3(5.0f, 3.0f, -5.0f));
-    cubeB->AddGeometry(geometryCube.data(), geometryCube.size(), 5, 36);
-    cubeB->InitGeometry();
+    cubeB->setPosition(glm::vec3(5.0f, 3.0f, -5.0f));
+    cubeB->addGeometry(geometryCube.data(), geometryCube.size(), 5, 36);
+    cubeB->initGeometry();
 
     // Temporary - Update BBoxes manually to force accurate generation
-    planeA->UpdateBoundingBox();
-    cubeA->UpdateBoundingBox();
-    cubeB->UpdateBoundingBox();
+    planeA->updateBoundingBox();
+    cubeA->updateBoundingBox();
+    cubeB->updateBoundingBox();
 
 
     std::shared_ptr<Xplor::EngineManager> xplorM = Xplor::EngineManager::GetInstance();
-    xplorM->AddGameObject(planeA);
-    xplorM->AddGameObject(cubeA);
-    xplorM->AddGameObject(cubeB);
+    xplorM->addGameObject(planeA);
+    xplorM->addGameObject(cubeA);
+    xplorM->addGameObject(cubeB);
 }
 
 int main(/*int argc, char **argv*/) {
@@ -141,21 +141,21 @@ int main(/*int argc, char **argv*/) {
     //---- Setup ----
     std::shared_ptr<Xplor::EngineManager> xplorM = Xplor::EngineManager::GetInstance();
 
-    xplorM->CreateWindow(1920, 1080, false);
+    xplorM->createWindow(1920, 1080, false);
     std::shared_ptr<WindowManager> windowManager = WindowManager::GetInstance();
     glEnable(GL_DEPTH_TEST);
 
     windowManager->PrintHardwareInfo();
-    PrintMaxVertexAttrib();
+    printMaxVertexAttrib();
 
 
     //---- Scene Setup
     constexpr bool EXPORT_SCENE = true;
     constexpr bool IMPORT_SCENE = false;
     if (IMPORT_SCENE)
-        xplorM->ImportScene("test.json");
+        xplorM->importScene("test.json");
     else
-        CreateSceneA();
+        createSceneA();
         
 
     //---- Camera Setup
@@ -165,15 +165,15 @@ int main(/*int argc, char **argv*/) {
     camVecs.camera_up = glm::vec3(0.f , 1.f, 0.f);
     // float cameraSpeed = 3.f;
 
-    xplorM->CreateCamera(camVecs);
+    xplorM->createCamera(camVecs);
 
 
     //---- Engine Main Loop ----
     //-----------------------------------------------------
-    xplorM->Run();
+    xplorM->run();
 
     if (EXPORT_SCENE)
-        xplorM->ExportScene("test.json");
+        xplorM->exportScene("test.json");
 
     
     //---- Cleanup ----

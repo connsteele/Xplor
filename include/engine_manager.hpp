@@ -21,18 +21,18 @@ namespace Xplor
     public:
         void Init();
 
-        void CreateWindow(int width, int height, bool fullscreen);
+        void createWindow(int width, int height, bool fullscreen);
 
-        void CreateCamera(CameraVectors vectors, float speed = 3.f, float fov = 90.f);
+        void createCamera(CameraVectors vectors, float speed = 3.f, float fov = 90.f);
 
-        bool Run();
+        bool run();
 
 
         // Update all game logic
-        void Update(float deltaTime);
+        void update(float deltaTime);
 
         // Render all game objects
-        void Render(glm::mat4 viewMatrix, glm::mat4 projectionMatrix);
+        void render(glm::mat4 viewMatrix, glm::mat4 projectionMatrix);
 
         static std::shared_ptr<EngineManager> GetInstance();
 
@@ -40,20 +40,20 @@ namespace Xplor
         // We want a method that will add an object into our vector to keep track of
         // so we can update it with all the other ones and render it
 
-        void AddGameObject(std::shared_ptr<GameObject> object);
+        void addGameObject(std::shared_ptr<GameObject> object);
 
-        void RayIntersectionTest(const glm::vec3 ray_start, const glm::vec3 ray_direction);
+        void rayIntersectionTest(const glm::vec3 ray_start, const glm::vec3 ray_direction);
 
-        bool RayIntersectsAABB(const glm::vec3& ray_origin, const glm::vec3& ray_direction, const BoundingBox& bbox, float& out_t);
+        bool rayIntersectsAABB(const glm::vec3& ray_origin, const glm::vec3& ray_direction, const BoundingBox& bbox, float& out_t);
 
-        void ExportScene(std::string filepath)
+        void exportScene(std::string filepath)
         {
             json scene_json = SerializeScene();
             std::ofstream file(filepath);
             file << std::setw(4) << scene_json;
         }
 
-        void ImportScene(std::string filepath)
+        void importScene(std::string filepath)
         {
             std::ifstream inputFile(filepath);
             json scene_json;
@@ -61,21 +61,21 @@ namespace Xplor
             DeserializeScene(scene_json);
         }
 
-        void AddDebugObject(const glm::vec3& position);
-        void AddDebugObject(const glm::vec3& position, const glm::vec3& velocity);
+        void addDebugObject(const glm::vec3& position);
+        void addDebugObject(const glm::vec3& position, const glm::vec3& velocity);
 
 
-        size_t GetObjectCount()
+        size_t getObjectCount()
         {
             return m_objectCount;
         }
 
-        std::shared_ptr<Camera> GetCamera()
+        std::shared_ptr<Camera> getCamera()
         {
             return m_active_camera;
         }
 
-        const float GetDeltaTime() const
+        const float getDeltaTime() const
         {
             return m_delta_time;
         }

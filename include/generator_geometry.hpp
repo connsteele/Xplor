@@ -10,7 +10,7 @@ public:
 
     static std::array<float, 180> GenerateCubeData()
     {
-        std::array data{
+        std::array<float, 180> data{
             // First 3 are points and second 2 are texture coordinates
             -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
              0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
@@ -53,14 +53,14 @@ public:
              0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
             -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
             -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
-            };
+        };
 
         return data;
     }
 
     static std::array<float, 20> GeneratePlaneData()
     {
-        std::array vertices{
+        std::array<float, 20> vertices{
             0.5f, 0.5f, 0.0f, 0.0f, 1.0f, // top right
             0.5f, -0.5f, 0.0f, 1.f, 1.f, // bot right
             -0.5f, -0.5f, 0.0f, 1.f, 0.f, // bot left
@@ -79,9 +79,9 @@ public:
     }
 
 
-    static std::vector<float> GenerateBoundingBoxVertices(const glm::vec3& min, const glm::vec3& max)
+    static std::array<float, 108> GenerateBoundingBoxVertices(const glm::vec3& min, const glm::vec3& max)
     {
-        return {
+        std::array<float, 108> data{
             min.x, min.y, min.z,  
             max.x, min.y, min.z,  
             max.x,  max.y, min.z, 
@@ -124,6 +124,7 @@ public:
             min.x,  max.y,  max.z,
             min.x,  max.y, min.z
         };
+        return data;
     }
 
     //static std::vector<unsigned int> GenerateBoundingBoxIndices()

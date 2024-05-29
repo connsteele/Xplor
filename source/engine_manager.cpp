@@ -16,7 +16,7 @@ void Xplor::EngineManager::Init()
 
 }
 
-void Xplor::EngineManager::CreateWindow(int width, int height, bool fullscreen)
+void Xplor::EngineManager::createWindow(int width, int height, bool fullscreen)
 {
 	std::shared_ptr<WindowManager> windowManager = WindowManager::GetInstance();
     windowManager->Init(width, height, fullscreen);
@@ -28,7 +28,7 @@ void Xplor::EngineManager::CreateWindow(int width, int height, bool fullscreen)
 
 }
 
-void Xplor::EngineManager::CreateCamera(CameraVectors vectors, float speed, float fov)
+void Xplor::EngineManager::createCamera(CameraVectors vectors, float speed, float fov)
 {
 	float cameraSpeed = speed;
 	float cameraFOV = fov;
@@ -36,7 +36,7 @@ void Xplor::EngineManager::CreateCamera(CameraVectors vectors, float speed, floa
 	m_active_camera = std::make_shared<Camera>(vectors, cameraSpeed, cameraFOV);
 }
 
-bool Xplor::EngineManager::Run()
+bool Xplor::EngineManager::run()
 {
     auto RebuildFontAtlas = [](float fontSize) {
         ImGuiIO& io = ImGui::GetIO();
@@ -102,10 +102,10 @@ bool Xplor::EngineManager::Run()
         }*/
 
         //--- Logic Update
-        Update(delta_time);
+        update(delta_time);
 
         //---- Scene Rendering
-        Render(m_active_camera->m_view_matrix, m_active_camera->m_projection_matrix);
+        render(m_active_camera->m_view_matrix, m_active_camera->m_projection_matrix);
 
         //---- ImGui Rendering
         ImGui::Render();
@@ -127,25 +127,28 @@ bool Xplor::EngineManager::Run()
 }
 
 
-void Xplor::EngineManager::Update(float deltaTime)
+void Xplor::EngineManager::update(float deltaTime)
 {
     m_active_camera->Update(deltaTime);
 
     for (auto object : m_gameObjects)
     {               
-        object->Update(deltaTime);
+        object->update(deltaTime);
     }
 
 }
 
-void Xplor::EngineManager::Render(glm::mat4 view_matrix, glm::mat4 projection_matrix)
+void Xplor::EngineManager::render(glm::mat4 view_matrix, glm::mat4 projection_matrix)
 {
     constexpr bool DEBUG = true;
 	for (auto object : m_gameObjects)
 	{
-		object->Render(view_matrix, projection_matrix);
+		object->draw(view_matrix, projection_matrix);
         if (DEBUG)
-            object->DrawBoundingBox(view_matrix, projection_matrix);
+        {
+            object->drawBoundingBox(view_matrix, projection_matrix);
+        }
+            
 	}
 }
 
@@ -159,13 +162,13 @@ std::shared_ptr<Xplor::EngineManager> Xplor::EngineManager::GetInstance()
 	return m_instance;
 }
 
-void Xplor::EngineManager::AddGameObject(std::shared_ptr<GameObject> object)
+void Xplor::EngineManager::addGameObject(std::shared_ptr<GameObject> object)
 {
-    object->SetID(++m_objectCount);
+    object->setID(++m_objectCount);
 	m_gameObjects.push_back(object);
 }
 
-void Xplor::EngineManager::RayIntersectionTest(const glm::vec3 ray_start, const glm::vec3 ray_direction)
+void Xplor::EngineManager::rayIntersectionTest(const glm::vec3 ray_start, const glm::vec3 ray_direction)
 {
     float t; // depth
     float closest_t = std::numeric_limits<float>::max();
@@ -173,9 +176,9 @@ void Xplor::EngineManager::RayIntersectionTest(const glm::vec3 ray_start, const 
 
     for (const std::shared_ptr<GameObject>& object : m_gameObjects)
     {
-        if (RayIntersectsAABB(ray_start, ray_direction, object->GetBoundingBox(), t))
+        if (rayIntersectsAABB(ray_start, ray_direction, object->getBoundingBox(), t))
         {
-            std::cout << "Ray intersects object: " << object->GetName() << " at t = " << t << std::endl;
+            std::cout << "Ray intersects object: " << object->getName() << " at t = " << t << std::endl;
             if (t < closest_t)
             {
                 closest_t = t;
@@ -188,7 +191,7 @@ void Xplor::EngineManager::RayIntersectionTest(const glm::vec3 ray_start, const 
 
     if (closest_object)
     {
-        std::cout << "Ray intersected the closest object: " << closest_object->GetName() << std::endl;
+        std::cout << "Ray intersected the closest object: " << closest_object->getName() << std::endl;
     }
 }
 
@@ -200,7 +203,7 @@ void Xplor::EngineManager::RayIntersectionTest(const glm::vec3 ray_start, const 
 /// <param name="bbox">Bounding box of a game object</param>
 /// <param name="out_t">Indicates the distance from the ray's origin to the intersection point along the ray's direction vector</param>
 /// <returns></returns>
-bool Xplor::EngineManager::RayIntersectsAABB(const glm::vec3& ray_origin, const glm::vec3& ray_direction, const BoundingBox& bbox, float& out_t)
+bool Xplor::EngineManager::rayIntersectsAABB(const glm::vec3& ray_origin, const glm::vec3& ray_direction, const BoundingBox& bbox, float& out_t)
 {
     // Ray intersections with X axis
     float t_min = (bbox.min.x - ray_origin.x) / ray_direction.x; // entry point
@@ -251,20 +254,20 @@ bool Xplor::EngineManager::RayIntersectsAABB(const glm::vec3& ray_origin, const 
 /// Create a cube prop with a debug texture at the give position
 /// </summary>
 /// <param name="position"></param>
-void Xplor::EngineManager::AddDebugObject(const glm::vec3& position)
+void Xplor::EngineManager::addDebugObject(const glm::vec3& position)
 {
     std::shared_ptr<Xplor::PropObject> debug_object = std::make_shared<Xplor::PropObject>();
-    debug_object->SetName("Debug Object");
-    debug_object->SetPosition(position);
+    debug_object->setName("Debug Object");
+    debug_object->setPosition(position);
 
-    debug_object->AddTexture("images//debug.jpg", ImageFormat::jpg);
-    debug_object->InitTextures();
+    debug_object->addTexture("images//debug.jpg", ImageFormat::jpg);
+    debug_object->initTextures();
 
     // Add a simple shader
     auto shader = std::make_shared<Shader>("..//resources//shaders//simple.vs", "..//resources//shaders//simple.fs");
     shader->init();
-    debug_object->AddShader(shader);
-    auto shader_id = debug_object->GetShader();
+    debug_object->addShader(shader);
+    auto shader_id = debug_object->getShader();
 
     shader_id->useProgram();
     shader_id->setUniform("customTexture1", 0);
@@ -273,11 +276,11 @@ void Xplor::EngineManager::AddDebugObject(const glm::vec3& position)
     auto cube_data = GeometryGenerator::GenerateCubeData();
     const int step_size = 5;
     const int index_count = 36;
-    debug_object->AddGeometry(cube_data.data(), cube_data.size(), step_size, index_count);
-    debug_object->InitGeometry();
+    debug_object->addGeometry(cube_data.data(), cube_data.size(), step_size, index_count);
+    debug_object->initGeometry();
 
 
-    AddGameObject(debug_object);
+    addGameObject(debug_object);
 
 }
 
@@ -286,30 +289,30 @@ void Xplor::EngineManager::AddDebugObject(const glm::vec3& position)
 /// </summary>
 /// <param name="position"></param>
 /// <param name="velocity"></param>
-void Xplor::EngineManager::AddDebugObject(const glm::vec3& position, const glm::vec3& velocity)
+void Xplor::EngineManager::addDebugObject(const glm::vec3& position, const glm::vec3& velocity)
 {
     std::shared_ptr<Xplor::PropObject> debug_object = std::make_shared<Xplor::PropObject>();
-    debug_object->SetName("Debug Object");
-    debug_object->SetPosition(position);
+    debug_object->setName("Debug Object");
+    debug_object->setPosition(position);
 
     // Should have a way to check if the current texture already exists
     // this should exist somewhere else for better performance
-    debug_object->AddTexture("images//debug.jpg", ImageFormat::jpg);
-    debug_object->InitTextures();
+    debug_object->addTexture("images//debug.jpg", ImageFormat::jpg);
+    debug_object->initTextures();
 
     // Use a the one texture shader
     auto shader_manager = ShaderManager::getInstance();
     std::shared_ptr<Shader> shader;
     shader_manager->findShader("one texture", shader);
-    debug_object->AddShader(shader);
+    debug_object->addShader(shader);
 
     auto cube_data = GeometryGenerator::GenerateCubeData();
     const int step_size = 5;
     const int index_count = 36;
-    debug_object->AddGeometry(cube_data.data(), cube_data.size(), step_size, index_count);
-    debug_object->InitGeometry();
+    debug_object->addGeometry(cube_data.data(), cube_data.size(), step_size, index_count);
+    debug_object->initGeometry();
 
-    debug_object->SetVelocity(velocity);
-    AddGameObject(debug_object);
+    debug_object->setVelocity(velocity);
+    addGameObject(debug_object);
 
 }
