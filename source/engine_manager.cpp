@@ -137,14 +137,14 @@ void Xplor::EngineManager::Update(float deltaTime)
 
 }
 
-void Xplor::EngineManager::Render(glm::mat4 viewMatrix, glm::mat4 projectionMatrix)
+void Xplor::EngineManager::Render(glm::mat4 view_matrix, glm::mat4 projection_matrix)
 {
     constexpr bool DEBUG = true;
 	for (auto object : m_gameObjects)
 	{
-		object->Render(viewMatrix, projectionMatrix);
+		object->Render(view_matrix, projection_matrix);
         if (DEBUG)
-            object->DrawBoundingBox(viewMatrix, projectionMatrix);
+            object->DrawBoundingBox(view_matrix, projection_matrix);
 	}
 }
 

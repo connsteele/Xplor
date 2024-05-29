@@ -60,19 +60,24 @@ void CreateSceneA()
     std::string fragmentShaderPath = "//shaders//simple.fs";
     std::string fragmentOneTexShaderPath = "//shaders//simpleOneTex.fs";
     std::string fragFlatColorPath = "//shaders//flatColor.fs";
+    
 
     std::string fullVertexPath = resources + vertexShaderPath;
     std::string fullFragmentPath = resources + fragmentShaderPath;
     std::string fullFragOneTexPath = resources + fragmentOneTexShaderPath;
     std::string fullFragFlatColorPath = resources + fragFlatColorPath;
+    std::string bbox_vertex_full_path = resources + "shaders//bounding.vs";
+    std::string bbox_fragment_full_path = resources + "shaders//bounding_color.fs";
 
 
     std::shared_ptr<Xplor::Shader> simpleShader = std::make_shared<Xplor::Shader>
-        (Xplor::Shader(fullVertexPath.c_str(), fullFragmentPath.c_str()));
+        (fullVertexPath.c_str(), fullFragmentPath.c_str());
     std::shared_ptr<Xplor::Shader> simpleShaderOneTex = std::make_shared<Xplor::Shader>
-        (Xplor::Shader(fullVertexPath.c_str(), fullFragOneTexPath.c_str()));
+        (fullVertexPath.c_str(), fullFragOneTexPath.c_str());
     std::shared_ptr<Xplor::Shader> shaderFlatColor = std::make_shared<Xplor::Shader>
-        (Xplor::Shader(fullVertexPath.c_str(), fullFragFlatColorPath.c_str()));
+        (fullVertexPath.c_str(), fullFragFlatColorPath.c_str());
+    std::shared_ptr<Xplor::Shader>  bbox_shader = std::make_shared<Xplor::Shader>
+        (bbox_vertex_full_path.c_str(), bbox_fragment_full_path.c_str());
 
     simpleShader->Init();
     simpleShaderOneTex->Init();
@@ -87,6 +92,8 @@ void CreateSceneA()
 
     cubeB->AddShader(simpleShaderOneTex);
     auto cubeBShader = cubeB->GetShader();
+
+    // cubeBBOX
 
     //------ Define shader uniforms
     planeAShader->useProgram();

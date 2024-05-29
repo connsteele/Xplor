@@ -11,21 +11,15 @@ void Xplor::GameObject::DrawBoundingBox(const glm::mat4& view_matrix, const glm:
 		glGenBuffers(1, &m_bboxVAO);
 		glBindVertexArray(m_bboxVAO);
 
-		// Generate VBO and EBO
+		// Generate VBO
 		glGenBuffers(1, &m_bboxVBO);
-		glGenBuffers(1, &m_bboxEBO);
 
 		// Get bounding box vertices and indices
 		std::vector<float> vertices = GeometryGenerator::GenerateBoundingBoxVertices(m_bbox.min, m_bbox.max);
-		std::vector<unsigned int> indices = GeometryGenerator::GenerateBoundingBoxIndices();
 
 		// Bind VBO
 		glBindBuffer(GL_ARRAY_BUFFER, m_bboxVBO);
 		glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
-
-		// Bind EBO
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_bboxEBO);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
 
 		// Vertex Positions
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
@@ -38,7 +32,10 @@ void Xplor::GameObject::DrawBoundingBox(const glm::mat4& view_matrix, const glm:
 	std::string vertex_full_path = resources + "shaders//bounding.vs";
 	std::string fragment_full_path = resources + "shaders//bounding_color.fs";
 
-	std::unique_ptr<Xplor::Shader> bbox_shader = std::make_unique<Xplor::Shader>(vertex_full_path.c_str(), fragment_full_path.c_str());
+	static std::unique_ptr<Xplor::Shader> bbox_shader = std::make_unique<Xplor::Shader>(vertex_full_path.c_str(), fragment_full_path.c_str());
+	static bool init = false;
+	if (!init)
+		bbox_shader->Init();
 	bbox_shader->useProgram();
 
 	// Set the view and projection matrices
@@ -63,9 +60,10 @@ void Xplor::GameObject::DrawBoundingBox(const glm::mat4& view_matrix, const glm:
 
 	// Draw the bounding box
 	glBindVertexArray(m_bboxVAO);
-	GLsizei bounding_index_count = 24;
+	GLsizei bounding_vertex_count = 36;
 	//glDrawElements(GL_LINES, bounding_index_count, GL_UNSIGNED_INT, 0);
-	glDrawElements(GL_TRIANGLES, bounding_index_count, GL_UNSIGNED_INT, 0);
+	glLineWidth(10.0f);
+	glDrawArrays(GL_LINE_STRIP, 0, static_cast<GLsizei>(bounding_vertex_count));
 
 	glBindVertexArray(0); // unbind VAO
 

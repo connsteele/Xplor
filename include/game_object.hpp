@@ -143,7 +143,7 @@ namespace Xplor {
 			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, m_geometry.GetStep() * sizeof(float), reinterpret_cast<void*>(3 * sizeof(float)));
 			glEnableVertexAttribArray(1);
 
-			
+			glBindVertexArray(0); // Unbind the VAO
 		}
 
 
@@ -167,23 +167,35 @@ namespace Xplor {
 
 		void UpdateBoundingBox()
 		{
-			/*glm::vec3 min = m_position - glm::vec3(0.5f) * m_scale;
+			glm::vec3 min = m_position - glm::vec3(0.5f) * m_scale;
 			glm::vec3 max = m_position + glm::vec3(0.5f) * m_scale;
-			m_bbox = { min, max };*/
+			m_bbox = { min, max };
 
 			//// old method
 			// Currently this is assuming the object is a cube
-			int size = 1.0f;
+			/*int size = 1.0f;
 			m_bbox.min = m_position - glm::vec3(size / 2.0f);
-			m_bbox.max = m_position + glm::vec3(size / 2.0f);
+			m_bbox.max = m_position + glm::vec3(size / 2.0f);*/
+		}
+
+		void UpdateModelMatrix()
+		{
+			glm::mat4 model = glm::mat4(1.0f);
+			model = glm::translate(model, m_position);
+			if (m_rotation_amount)
+			{
+				model = glm::rotate(model, glm::radians(m_rotation_amount), m_rotation_axis);
+			}
+			m_model_matrix = model;
 		}
 
 		void Render(glm::mat4 view_matrix, glm::mat4 projection_matrix)
 		{
 			m_shader->useProgram();
 
-			// Send coordinate matrices to the shader			
-			m_shader->setUniform("model", m_model_matrix);
+			// Send coordinate matrices to the shader
+			UpdateModelMatrix();
+			m_shader->setUniform("model", m_model_matrix); // NEED TO CHANGE THE CODE BELOW 
 			m_shader->setUniform("view", view_matrix);
 			m_shader->setUniform("projection", projection_matrix);
 
@@ -194,14 +206,6 @@ namespace Xplor {
 				glBindTexture(GL_TEXTURE_2D, m_textures[i]);
 			}
 
-			// Transform and draw the object
-			glm::mat4 model = glm::mat4(1.0f);
-			model = glm::translate(model, m_position);
-			if (m_rotation_amount)
-			{
-				model = glm::rotate(model, glm::radians(m_rotation_amount), m_rotation_axis);
-			}
-			m_shader->setUniform("model", model);
 
 			glBindVertexArray(m_VAO);
 			// Check for an EBO
@@ -383,7 +387,7 @@ namespace Xplor {
 		GLuint m_bboxVAO = 0, m_bboxVBO = 0, m_bboxEBO = 0;
 
 		// Want a matrix stack instead of all of these
-		glm::mat4 m_model_matrix{};
+		glm::mat4 m_model_matrix{1.0f};
 
 	private:
 
