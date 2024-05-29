@@ -8,7 +8,9 @@ project(Xplor-Engine)
 set(
     SOURCES_ENGINE
     source/main.cpp
+    source/manager.cpp
     source/shader.cpp
+    source/shader_manager.cpp
     source/engine_manager.cpp
     source/matrix_stack.cpp
     source/window_manager.cpp
@@ -17,7 +19,9 @@ set(
     source/generator_geometry.cpp
     source/geometry.cpp
     include/xplor_types.hpp
+    include/manager.hpp
     include/shader.hpp
+    include/shader_manager.hpp
     include/engine_manager.hpp
     include/matrix_stack.hpp
     include/window_manager.hpp

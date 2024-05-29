@@ -35,7 +35,7 @@ void Xplor::GameObject::DrawBoundingBox(const glm::mat4& view_matrix, const glm:
 	static std::unique_ptr<Xplor::Shader> bbox_shader = std::make_unique<Xplor::Shader>(vertex_full_path.c_str(), fragment_full_path.c_str());
 	static bool init = false;
 	if (!init)
-		bbox_shader->Init();
+		bbox_shader->init();
 	bbox_shader->useProgram();
 
 	// Set the view and projection matrices

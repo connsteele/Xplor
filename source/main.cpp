@@ -5,12 +5,14 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 #include <memory>
+#include <vector>
 #include "shader.hpp"
 #include "engine_manager.hpp"
 #include "window_manager.hpp"
 #include "game_object.hpp"
 #include "camera.hpp"
 #include "generator_geometry.hpp"
+#include "shader_manager.hpp"
 
 struct ImgData
 {
@@ -56,59 +58,54 @@ void CreateSceneA()
 
     //------ Shader Creation
     const std::string resources = "..//resources";
-    std::string vertexShaderPath = "//shaders//simple.vs";
-    std::string fragmentShaderPath = "//shaders//simple.fs";
-    std::string fragmentOneTexShaderPath = "//shaders//simpleOneTex.fs";
-    std::string fragFlatColorPath = "//shaders//flatColor.fs";
-    
+    std::string fullVertexPath = resources + "//shaders//simple.vs";
+    std::string fullFragmentPath = resources + "//shaders//simple.fs";
+    std::string fullFragOneTexPath = resources + "//shaders//simpleOneTex.fs";
+    std::string fullFragFlatColorPath = resources + "//shaders//flatColor.fs";
+    std::string bbox_vertex_full_path = resources + "//shaders//bounding.vs";
+    std::string bbox_fragment_full_path = resources + "//shaders//bounding_color.fs";
+    std::vector<std::vector<std::string>> shader_paths { 
+        {"simple", fullVertexPath, fullFragmentPath},
+        {"one texture", fullVertexPath, fullFragOneTexPath}, 
+        {"flat color", fullVertexPath, fullFragFlatColorPath},
+        {"bounding", bbox_vertex_full_path, bbox_fragment_full_path}
+    };
 
-    std::string fullVertexPath = resources + vertexShaderPath;
-    std::string fullFragmentPath = resources + fragmentShaderPath;
-    std::string fullFragOneTexPath = resources + fragmentOneTexShaderPath;
-    std::string fullFragFlatColorPath = resources + fragFlatColorPath;
-    std::string bbox_vertex_full_path = resources + "shaders//bounding.vs";
-    std::string bbox_fragment_full_path = resources + "shaders//bounding_color.fs";
+    auto shader_manager = Xplor::ShaderManager::getInstance();
+    for (auto shader_info : shader_paths)
+    {
+        try
+        {
+            shader_manager->createShader(shader_info[0], shader_info[1], shader_info[2]);
+        }
+        catch (const std::runtime_error& error)
+        {
+            __debugbreak(); // Windows only
+            std::cerr << "Caught runtime error: " << error.what() << std::endl;
+        }
+    }
 
+    std::shared_ptr<Xplor::Shader> shader_one_tex;
+    shader_manager->findShader("one texture", shader_one_tex);
+    std::shared_ptr<Xplor::Shader> shader_simple;
+    shader_manager->findShader("simple", shader_simple);
 
-    std::shared_ptr<Xplor::Shader> simpleShader = std::make_shared<Xplor::Shader>
-        (fullVertexPath.c_str(), fullFragmentPath.c_str());
-    std::shared_ptr<Xplor::Shader> simpleShaderOneTex = std::make_shared<Xplor::Shader>
-        (fullVertexPath.c_str(), fullFragOneTexPath.c_str());
-    std::shared_ptr<Xplor::Shader> shaderFlatColor = std::make_shared<Xplor::Shader>
-        (fullVertexPath.c_str(), fullFragFlatColorPath.c_str());
-    std::shared_ptr<Xplor::Shader>  bbox_shader = std::make_shared<Xplor::Shader>
-        (bbox_vertex_full_path.c_str(), bbox_fragment_full_path.c_str());
-
-    simpleShader->Init();
-    simpleShaderOneTex->Init();
-    shaderFlatColor->Init();
-
-
-    planeA->AddShader(simpleShaderOneTex);
-    auto planeAShader = planeA->GetShader();
-
-    cubeA->AddShader(simpleShader);
-    auto cubeAShader = cubeA->GetShader();
-
-    cubeB->AddShader(simpleShaderOneTex);
-    auto cubeBShader = cubeB->GetShader();
+    planeA->AddShader(shader_one_tex);
+    cubeA->AddShader(shader_simple);
+    cubeB->AddShader(shader_one_tex);
 
     // cubeBBOX
 
     //------ Define shader uniforms
-    planeAShader->useProgram();
-    planeAShader->setUniform("customTexture1", 0);
-    planeAShader->endProgram();
+    shader_one_tex->useProgram();
+    shader_one_tex->setUniform("customTexture1", 0);
+    shader_one_tex->endProgram();
 
-    cubeAShader->useProgram();
+    shader_simple->useProgram();
     // Inform the shader where the texture samplers are located
-    cubeAShader->setUniform("customTexture1", 0);
-    cubeAShader->setUniform("customTexture2", 1);
-    cubeAShader->endProgram();
-
-    cubeBShader->useProgram();
-    cubeBShader->setUniform("customTexture1", 0);
-    cubeBShader->endProgram();
+    shader_simple->setUniform("customTexture1", 0);
+    shader_simple->setUniform("customTexture2", 1);
+    shader_simple->endProgram();
 
     auto geometryPlane = GeometryGenerator::GeneratePlaneData();
     auto planeEBO = GeometryGenerator::GeneratePlaneEBO();

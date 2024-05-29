@@ -30,7 +30,7 @@ namespace Xplor
 		/// <param name="fragmentShaderPath">Absolute path to fragment shader file.</param>
 		Shader(const char* vertexShaderPath, const char* fragmentShaderPath);
 
-		void Init()
+		void init()
 		{
 			if (m_fragmentPath.empty() || m_vertexPath.empty())
 			{
@@ -63,6 +63,7 @@ namespace Xplor
 			}
 			catch (std::ifstream::failure exception)
 			{
+				__debugbreak(); // Windows only
 				std::cout << "ERROR: Shader file could not be read" << std::endl;
 			}
 

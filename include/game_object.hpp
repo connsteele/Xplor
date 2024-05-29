@@ -341,7 +341,7 @@ namespace Xplor {
 
 			m_shader = std::make_shared<Xplor::Shader>();
 			m_shader->Deserialize(j.at("shader"));
-			m_shader->Init();
+			m_shader->init();
 
 			m_VAO = j.at("VAO").get<uint32_t>();
 			m_VBO = j.at("VBO").get<uint32_t>();

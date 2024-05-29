@@ -6,6 +6,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <shader_manager.hpp>
 
 
 std::shared_ptr<Xplor::EngineManager> Xplor::EngineManager::m_instance = nullptr;
@@ -261,7 +262,7 @@ void Xplor::EngineManager::AddDebugObject(const glm::vec3& position)
 
     // Add a simple shader
     auto shader = std::make_shared<Shader>("..//resources//shaders//simple.vs", "..//resources//shaders//simple.fs");
-    shader->Init();
+    shader->init();
     debug_object->AddShader(shader);
     auto shader_id = debug_object->GetShader();
 
@@ -291,25 +292,22 @@ void Xplor::EngineManager::AddDebugObject(const glm::vec3& position, const glm::
     debug_object->SetName("Debug Object");
     debug_object->SetPosition(position);
 
+    // Should have a way to check if the current texture already exists
+    // this should exist somewhere else for better performance
     debug_object->AddTexture("images//debug.jpg", ImageFormat::jpg);
     debug_object->InitTextures();
 
-    // Add a simple shader
-    auto shader = std::make_shared<Shader>("..//resources//shaders//simple.vs", "..//resources//shaders//simple.fs");
-    shader->Init();
+    // Use a the one texture shader
+    auto shader_manager = ShaderManager::getInstance();
+    std::shared_ptr<Shader> shader;
+    shader_manager->findShader("one texture", shader);
     debug_object->AddShader(shader);
-    auto shader_id = debug_object->GetShader();
-
-    shader_id->useProgram();
-    shader_id->setUniform("customTexture1", 0);
-    shader_id->endProgram();
 
     auto cube_data = GeometryGenerator::GenerateCubeData();
     const int step_size = 5;
     const int index_count = 36;
     debug_object->AddGeometry(cube_data.data(), cube_data.size(), step_size, index_count);
     debug_object->InitGeometry();
-
 
     debug_object->SetVelocity(velocity);
     AddGameObject(debug_object);
