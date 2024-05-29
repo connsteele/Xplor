@@ -45,7 +45,7 @@ void Xplor::GameObject::DrawBoundingBox(const glm::mat4& view_matrix, const glm:
 
 	// No need to transalte as the bounding box already takes the objects position into account
 	glm::mat4 model = glm::mat4(1.0f);
-	// model = glm::translate(model, m_position);
+	model = glm::translate(model, m_position);
 	// Scale too?
 	/*if (m_rotation_amount)
 	{
