@@ -167,34 +167,25 @@ namespace Xplor {
 
 		void UpdateBoundingBox()
 		{
-			glm::vec3 min = m_position - glm::vec3(0.5f) * m_scale;
+			/*glm::vec3 min = m_position - glm::vec3(0.5f) * m_scale;
 			glm::vec3 max = m_position + glm::vec3(0.5f) * m_scale;
-			m_bbox = { min, max };
+			m_bbox = { min, max };*/
 
 			//// old method
 			// Currently this is assuming the object is a cube
-			/*int size = 1.0f;
+			int size = 1.0f;
 			m_bbox.min = m_position - glm::vec3(size / 2.0f);
-			m_bbox.max = m_position + glm::vec3(size / 2.0f);*/
+			m_bbox.max = m_position + glm::vec3(size / 2.0f);
 		}
 
 		void Render(glm::mat4 view_matrix, glm::mat4 projection_matrix)
 		{
 			m_shader->useProgram();
 
-			// Send coordinate matrices to the shader
-			/*int locModel = glGetUniformLocation(m_shader->getID(), "model");
-			glUniformMatrix4fv(locModel, 1, GL_FALSE, glm::value_ptr(m_model_matrix));
-			int locView = glGetUniformLocation(m_shader->getID(), "view");
-			glUniformMatrix4fv(locView, 1, GL_FALSE, glm::value_ptr(view_matrix));
-			int locProjection = glGetUniformLocation(m_shader->getID(), "projection");
-			glUniformMatrix4fv(locProjection, 1, GL_FALSE, glm::value_ptr(projection_matrix));*/
-			
+			// Send coordinate matrices to the shader			
 			m_shader->setUniform("model", m_model_matrix);
 			m_shader->setUniform("view", view_matrix);
 			m_shader->setUniform("projection", projection_matrix);
-
-
 
 			// Bind Relevant Textures
 			for (int i = 0; i < m_textures.size(); i++)
@@ -206,10 +197,9 @@ namespace Xplor {
 			// Transform and draw the object
 			glm::mat4 model = glm::mat4(1.0f);
 			model = glm::translate(model, m_position);
-			if (m_rotation_amount != 0)
+			if (m_rotation_amount)
 			{
 				model = glm::rotate(model, glm::radians(m_rotation_amount), m_rotation_axis);
-
 			}
 			m_shader->setUniform("model", model);
 

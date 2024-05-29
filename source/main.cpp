@@ -116,9 +116,15 @@ void CreateSceneA()
     cubeA->AddGeometry(geometryCube.data(), geometryCube.size(), 5, 36);
     cubeA->InitGeometry();
 
-    cubeB->SetPosition(glm::vec3(2.0f, 0.0f, -3.0f));
+    cubeB->SetPosition(glm::vec3(5.0f, 3.0f, -5.0f));
     cubeB->AddGeometry(geometryCube.data(), geometryCube.size(), 5, 36);
     cubeB->InitGeometry();
+
+    // Temporary - Update BBoxes manually to force accurate generation
+    planeA->UpdateBoundingBox();
+    cubeA->UpdateBoundingBox();
+    cubeB->UpdateBoundingBox();
+
 
     std::shared_ptr<Xplor::EngineManager> xplorM = Xplor::EngineManager::GetInstance();
     xplorM->AddGameObject(planeA);

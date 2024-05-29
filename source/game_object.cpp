@@ -16,7 +16,7 @@ void Xplor::GameObject::DrawBoundingBox(const glm::mat4& view_matrix, const glm:
 		glGenBuffers(1, &m_bboxEBO);
 
 		// Get bounding box vertices and indices
-		std::vector<float> vertices = GeometryGenerator::GenerateBoundingBoxVertices(m_bbox.min, m_bbox.min);
+		std::vector<float> vertices = GeometryGenerator::GenerateBoundingBoxVertices(m_bbox.min, m_bbox.max);
 		std::vector<unsigned int> indices = GeometryGenerator::GenerateBoundingBoxIndices();
 
 		// Bind VBO
@@ -46,14 +46,31 @@ void Xplor::GameObject::DrawBoundingBox(const glm::mat4& view_matrix, const glm:
 	bbox_shader->setUniform("projection", projection_matrix);
 
 
-	// Set the model matrix to the identity matrix
+	// No need to transalte as the bounding box already takes the objects position into account
 	glm::mat4 model = glm::mat4(1.0f);
+	// model = glm::translate(model, m_position);
+	// Scale too?
+	/*if (m_rotation_amount)
+	{
+		model = glm::rotate(model, glm::radians(m_rotation_amount), m_rotation_axis);
+	}*/
 	bbox_shader->setUniform("model", model);
+
+
+	// Enable line drawing mode
+	/*glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	glEnable(GL_DEPTH_TEST);*/
 
 	// Draw the bounding box
 	glBindVertexArray(m_bboxVAO);
-	glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, 0);
+	GLsizei bounding_index_count = 24;
+	//glDrawElements(GL_LINES, bounding_index_count, GL_UNSIGNED_INT, 0);
+	glDrawElements(GL_TRIANGLES, bounding_index_count, GL_UNSIGNED_INT, 0);
+
 	glBindVertexArray(0); // unbind VAO
 
 	bbox_shader->endProgram();
+
+	// Restore polygon mode to fill (default)
+	/*glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);*/
 }

@@ -139,7 +139,7 @@ void Xplor::EngineManager::Update(float deltaTime)
 
 void Xplor::EngineManager::Render(glm::mat4 viewMatrix, glm::mat4 projectionMatrix)
 {
-    constexpr bool DEBUG = false;
+    constexpr bool DEBUG = true;
 	for (auto object : m_gameObjects)
 	{
 		object->Render(viewMatrix, projectionMatrix);
