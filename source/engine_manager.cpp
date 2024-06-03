@@ -144,8 +144,11 @@ void Xplor::EngineManager::render(glm::mat4 view_matrix, glm::mat4 projection_ma
 	for (auto object : m_game_objects)
 	{
 		object->draw(view_matrix, projection_matrix);
-        if (object->getSelected())
+        
+
+        if (auto search = m_selected.find(object) ; search != m_selected.end())
         {
+            // Draw the selection overlay
             glEnable(GL_BLEND); // Allow alpha
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             glDisable(GL_DEPTH_TEST); // Disable depth testing to draw ontop
@@ -155,13 +158,12 @@ void Xplor::EngineManager::render(glm::mat4 view_matrix, glm::mat4 projection_ma
             glEnable(GL_DEPTH_TEST);
             glDisable(GL_BLEND);
         }
+
         if (DRAW_BOUNDING)
         {
             object->drawBoundingBox(view_matrix, projection_matrix);
-        }
-            
-	}
-    
+        }   
+	}    
 }
 
 void Xplor::EngineManager::addGameObject(std::shared_ptr<GameObject> object)
@@ -185,7 +187,6 @@ void Xplor::EngineManager::rayCursorTest(const Xplor::Ray& ray)
             {
                 closest_t = t;
                 closest_object = object;
-                closest_object->m_selected = true;
             }
             // Add visual feedback, e.g., change object color
             //object->SetColor(glm::vec3(1.0f, 0.0f, 0.0f)); // Assuming you have a SetColor method
@@ -194,6 +195,7 @@ void Xplor::EngineManager::rayCursorTest(const Xplor::Ray& ray)
 
     if (closest_object)
     {
+        m_selected.insert(closest_object);
         std::cout << "Ray intersected the closest object: " << closest_object->getName() << std::endl;
     }
 }
@@ -292,5 +294,10 @@ void Xplor::EngineManager::addDebugObject(const glm::vec3& position, const glm::
     debug_object->setVelocity(velocity);
     addGameObject(debug_object);
 
+}
+
+void Xplor::EngineManager::clearSelection()
+{
+    m_selected.clear();
 }
 

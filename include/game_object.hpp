@@ -238,10 +238,6 @@ namespace Xplor {
 			m_velocity = velocity;
 		}
 
-		const bool getSelected() const
-		{
-			return m_selected;
-		}
 
 		json Serialize() const
 		{
@@ -292,8 +288,6 @@ namespace Xplor {
 		{
 			return m_object_type;
 		}
-		
-		bool m_selected{ false };
 
 	protected:
 

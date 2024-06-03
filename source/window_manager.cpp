@@ -160,50 +160,63 @@ void WindowManager::MouseMoveCallback(GLFWwindow* window, double x_pos, double y
 
 void WindowManager::MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
-	constexpr bool CURSOR_RAYCAST = true; // This should probably be a member variable
-	constexpr bool DEBUG = false; // Spawn debugging objects where clicked
 
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
 	{
-		if (CURSOR_RAYCAST)
-		{
-			//--- Convert screen coordinates to world coordinates via Ray Casting
-			double x_pos, y_pos;
-			glfwGetCursorPos(window, &x_pos, &y_pos);
-
-			auto engine_manager = Xplor::EngineManager::getInstance();
-			auto camera = engine_manager->getCamera();
-			auto view = camera->m_view_matrix;
-			auto projection = camera->m_projection_matrix;
-
-
-			int window_width, window_height;
-			glfwGetWindowSize(window, &window_width, &window_height);
-			glm::vec4 viewport = glm::vec4(0, 0, window_width, window_height);
-
-			// Invert the Y coordinate
-			y_pos = window_height - y_pos;
-
-			// Convert Normalized Device Coordinates (NDC) -> Homogenous Clip Space -> Eye Coordinates -> World Coordinates
-			glm::vec3 ray_start = glm::unProject(glm::vec3(x_pos, y_pos, 0.0f), view, projection, viewport);
-			glm::vec3 ray_end = glm::unProject(glm::vec3(x_pos, y_pos, 1.0f), view, projection, viewport);
-			glm::vec3 ray_direction = glm::normalize(ray_end - ray_start);
-
-			Xplor::Ray cursor_ray{ray_start, ray_direction, 1.0f / ray_direction};
-
-
-			if (DEBUG)
-			{
-				//std::cout << "World coordinates: (" << ray_start.x << ", " << ray_start.y << ", " << ray_start.z << ")" << std::endl;
-				// Animate this along the path
-				engine_manager->addDebugObject(ray_start, ray_direction);
-			}
-
-			//--- Perform Ray Intersections
-			engine_manager->rayCursorTest(cursor_ray);
-		}
+		leftMouseClickCallback(window, mods);
 	}
 }
+
+void WindowManager::leftMouseClickCallback(GLFWwindow* window, int mods)
+{
+	constexpr bool CURSOR_RAYCAST = true; // This should probably be a member variable
+	constexpr bool DEBUG = false; // Spawn debugging objects where clicked
+
+	if (CURSOR_RAYCAST)
+	{
+		auto engine_manager = Xplor::EngineManager::getInstance();
+
+		// Clear the selected game objects
+		if (mods != GLFW_MOD_SHIFT)
+			engine_manager->clearSelection();
+
+		//--- Convert screen coordinates to world coordinates via Ray Casting
+		double x_pos, y_pos;
+		glfwGetCursorPos(window, &x_pos, &y_pos);
+
+		
+		auto camera = engine_manager->getCamera();
+		auto view = camera->m_view_matrix;
+		auto projection = camera->m_projection_matrix;
+
+
+		int window_width, window_height;
+		glfwGetWindowSize(window, &window_width, &window_height);
+		glm::vec4 viewport = glm::vec4(0, 0, window_width, window_height);
+
+		// Invert the Y coordinate
+		y_pos = window_height - y_pos;
+
+		// Convert Normalized Device Coordinates (NDC) -> Homogenous Clip Space -> Eye Coordinates -> World Coordinates
+		glm::vec3 ray_start = glm::unProject(glm::vec3(x_pos, y_pos, 0.0f), view, projection, viewport);
+		glm::vec3 ray_end = glm::unProject(glm::vec3(x_pos, y_pos, 1.0f), view, projection, viewport);
+		glm::vec3 ray_direction = glm::normalize(ray_end - ray_start);
+
+		Xplor::Ray cursor_ray{ ray_start, ray_direction, 1.0f / ray_direction };
+
+
+		if (DEBUG)
+		{
+			//std::cout << "World coordinates: (" << ray_start.x << ", " << ray_start.y << ", " << ray_start.z << ")" << std::endl;
+			// Animate this along the path
+			engine_manager->addDebugObject(ray_start, ray_direction);
+		}
+
+		//--- Perform Ray Intersections
+		engine_manager->rayCursorTest(cursor_ray);
+	}
+}
+
 
 void WindowManager::SetMouseCallbacks()
 {

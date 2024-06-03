@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <xplor_types.hpp>
+#include <set>
 #include <memory>
 #include "manager.hpp"
 #include "window_manager.hpp"
@@ -69,6 +70,8 @@ namespace Xplor
             return m_object_count;
         }
 
+        void clearSelection();
+
         std::shared_ptr<Camera> getCamera()
         {
             return m_active_camera;
@@ -84,7 +87,8 @@ namespace Xplor
 
         // Drop templating on this for now, this vector contains every game objects in the scene
         //std::vector<GameObject> gameObjects;
-        std::vector<std::shared_ptr<GameObject>> m_game_objects;
+        std::vector<std::shared_ptr<GameObject>> m_game_objects{};
+        std::set<std::shared_ptr<GameObject>> m_selected{}; // used for O(logn) lookup time and better cache locality than unorderd
         std::shared_ptr<Camera> m_active_camera;
         float m_last_frame_time{};
         size_t m_object_count{};

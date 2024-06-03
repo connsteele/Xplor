@@ -44,6 +44,8 @@ public:
 
 	static void ScrollCallback(GLFWwindow* window, double offsetX, double offsetY);
 
+	static void leftMouseClickCallback(GLFWwindow* window, int mods);
+
 	void UpdateMousePosition(float xpos, float ypos);
 
 	void WindowManager::UpdateMouseScroll(float offsetX, float offsetY);

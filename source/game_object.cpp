@@ -75,6 +75,7 @@ namespace Xplor
 	void GameObject::draw(glm::mat4 view_matrix, glm::mat4 projection_matrix, const std::string & name)
 	{
 		std::shared_ptr<Shader> shader;
+
 		if (name.empty())
 		{
 			shader = m_shader;
