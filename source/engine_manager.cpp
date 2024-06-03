@@ -205,49 +205,23 @@ void Xplor::EngineManager::rayIntersectionTest(const Xplor::Ray& ray)
 /// <returns></returns>
 bool Xplor::EngineManager::rayIntersectsAABB(const Xplor::Ray & ray, const BoundingBox& bbox, float& out_t)
 {
-    // Ray intersections with X axis
-    float t_min = (bbox.min.x - ray.origin.x) / ray.direction.x; // entry point
-    float t_max = (bbox.max.x - ray.origin.x) /  ray.direction.x; // exit point
+    float tmin = std::numeric_limits<float>::min();
+    float tmax = std::numeric_limits<float>::max();
 
-    // Ensure the entry and exit points are in proper order
-    if (t_min > t_max)
-        std::swap(t_min, t_max);
-    
-
-    // Ray intersections with Y axis
-    float ty_min = (bbox.min.y - ray.origin.y) /  ray.direction.y;
-    float ty_max = (bbox.max.y - ray.origin.y) /  ray.direction.y;
-
-    // Check if there is no overlap between the intervals on the X and Y axis
-    if (t_max < ty_min || t_min > ty_max)
+    // Go through each dimension (x, y, z)
+    for (int d = 0; d < 3; d++)
     {
-        // Ray misses the bounding box
-        return false;
+        float t1 = (bbox.min[d] - ray.origin[d]) * ray.direction_inv[d];
+        float t2 = (bbox.max[d] - ray.origin[d]) * ray.direction_inv[d];
+
+        tmin = std::max(tmin, std::min(t1, t2));
+        tmax = std::min(tmax, std::max(t1, t2));
+
     }
 
-    // Update the intersection interval that accounts for the X and Y planes
-    t_min = std::max(t_min, ty_min); // update entry point to its latest intersection
-    t_max = std::min(t_max, ty_max); // update exit point to its earliest exit
-        
+    out_t = (tmin < tmax) ? tmin : -1.0f;
 
-    // Ray intersections with the Z axis
-    float tz_min = (bbox.min.z - ray.origin.z) /  ray.direction.z;
-    float tz_max = (bbox.max.z - ray.origin.z) /  ray.direction.z;
-
-    // Check if there is no overlap between the intervals on the X, Y and Z axis
-    if (t_max  < tz_min || t_min > tz_max)
-    {
-        // Ray misses the bounding box
-        return false;
-    }
-
-    // Update the intersection interval that accounts for the X, Y and Z planes
-    t_min = std::max(t_min, tz_min); // update entry point to its latest intersection
-    t_max = std::min(t_max, tz_max); // update exit point to its earliest exit
-
-
-    out_t = t_min; //Smallest depth where the ray intersects the box
-    return true; // Ray intersects bbox
+    return tmin < tmax;
 }
 
 /// <summary>
