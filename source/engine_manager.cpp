@@ -214,14 +214,14 @@ bool Xplor::EngineManager::rayIntersectsAABB(const Xplor::Ray & ray, const Bound
         float t1 = (bbox.min[d] - ray.origin[d]) * ray.direction_inv[d];
         float t2 = (bbox.max[d] - ray.origin[d]) * ray.direction_inv[d];
 
-        tmin = std::max(tmin, std::min(t1, t2));
-        tmax = std::min(tmax, std::max(t1, t2));
+        tmin = std::min(std::max(t1, tmin), std::max(t2, tmin));
+        tmax = std::max(std::min(t1, tmax), std::min(t2, tmax));
 
     }
 
-    out_t = (tmin < tmax) ? tmin : -1.0f;
+    out_t = (tmin <= tmax) ? tmin : -1.0f;
 
-    return tmin < tmax;
+    return tmin <= tmax;
 }
 
 /// <summary>
