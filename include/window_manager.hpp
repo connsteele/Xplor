@@ -36,13 +36,13 @@ public:
 	/// <param name="cameraSpee"></param>
 	void ProcessInputs(glm::vec3 & out_camera_pos, const glm::vec3 camera_front, const glm::vec3 camera_up, const float camera_speed);
 
-	void SetMouseCallbacks();
+	void setMouseCallbacks();
 
-	static void MouseMoveCallback(GLFWwindow* window, double xpos, double ypos);
+	static void mousePositionCallback(GLFWwindow* window, double xpos, double ypos);
 
-	static void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
+	static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 
-	static void ScrollCallback(GLFWwindow* window, double offsetX, double offsetY);
+	static void scrollCallback(GLFWwindow* window, double offsetX, double offsetY);
 
 	static void leftMouseClickCallback(GLFWwindow* window, int mods);
 

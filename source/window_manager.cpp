@@ -95,7 +95,7 @@ void WindowManager::init(int window_width, int window_height, bool fullscreen)
 	// io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 	ImGui_ImplGlfw_InitForOpenGL(m_window, true);
 	// GL 3.3 + GLSL 330
-	const char* glsl_version = "#version 330";
+	constexpr char* glsl_version = "#version 330";
 	ImGui_ImplOpenGL3_Init(glsl_version);
 
 
@@ -149,8 +149,10 @@ void WindowManager::GetFOV(float& out_FOV)
 //---------- Mouse
 //------------------------------------------------------------------------------------------
 
-void WindowManager::MouseMoveCallback(GLFWwindow* window, double x_pos, double y_pos)
+void WindowManager::mousePositionCallback(GLFWwindow* window, double x_pos, double y_pos)
 {
+	ImGui_ImplGlfw_CursorPosCallback(window, x_pos, y_pos);
+
 	WindowManager* windowManager = static_cast<WindowManager*>(glfwGetWindowUserPointer(window));
 	if (windowManager)
 	{
@@ -158,13 +160,21 @@ void WindowManager::MouseMoveCallback(GLFWwindow* window, double x_pos, double y
 	}
 }
 
-void WindowManager::MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
+void WindowManager::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
+	// Forward callback to ImGui
+	ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
 
-	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+	// ImGui is not capturing mouse
+	if (!ImGui::GetIO().WantCaptureMouse)
 	{
-		leftMouseClickCallback(window, mods);
+		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+		{
+			leftMouseClickCallback(window, mods);
+		}
 	}
+
+	
 }
 
 void WindowManager::leftMouseClickCallback(GLFWwindow* window, int mods)
@@ -218,20 +228,25 @@ void WindowManager::leftMouseClickCallback(GLFWwindow* window, int mods)
 }
 
 
-void WindowManager::SetMouseCallbacks()
+void WindowManager::setMouseCallbacks()
 {
-	
-	glfwSetCursorPosCallback(m_window, WindowManager::MouseMoveCallback); // Creates issues with imgui, also determines if the camera will move with the mouse or not
-	glfwSetScrollCallback(m_window, WindowManager::ScrollCallback);
-	glfwSetMouseButtonCallback(m_window, WindowManager::MouseButtonCallback);
+	// The callbacks will forward data to imgui
+	glfwSetCursorPosCallback(m_window, WindowManager::mousePositionCallback); // Creates issues with imgui, also determines if the camera will move with the mouse or not
+	glfwSetScrollCallback(m_window, WindowManager::scrollCallback);
+	glfwSetMouseButtonCallback(m_window, WindowManager::mouseButtonCallback);
 }
 
-void WindowManager::ScrollCallback(GLFWwindow* window, double offsetX, double offsetY)
+void WindowManager::scrollCallback(GLFWwindow* window, double offset_X, double offset_Y)
 {
-	WindowManager* windowManager = static_cast<WindowManager*>(glfwGetWindowUserPointer(window));
-	if (windowManager) {
-		windowManager->UpdateMouseScroll(static_cast<float>(offsetX), static_cast<float>(offsetY));
-	}
+	ImGui_ImplGlfw_ScrollCallback(window, offset_X, offset_Y); // Forward to imgui
+
+	if (!ImGui::GetIO().WantCaptureMouse)
+	{
+		WindowManager* windowManager = static_cast<WindowManager*>(glfwGetWindowUserPointer(window));
+		if (windowManager) {
+			windowManager->UpdateMouseScroll(static_cast<float>(offset_X), static_cast<float>(offset_Y));
+		}
+	}	
 }
 
 void WindowManager::UpdateMouseScroll(float offsetX, float offsetY)
@@ -290,7 +305,7 @@ void WindowManager::PollEvents()
 }
 
 // Handle all incoming keyboard and mouse events
-void WindowManager::ProcessInputs(glm::vec3& out_camera_pos, const glm::vec3 camera_front, const glm::vec3 camera_up, const float camera_speed)
+void WindowManager::processInputs(glm::vec3& out_camera_pos, const glm::vec3 camera_front, const glm::vec3 camera_up, const float camera_speed)
 {
 	if (!m_window)
 	{
