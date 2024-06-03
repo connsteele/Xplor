@@ -29,7 +29,7 @@ void Xplor::Camera::Update(const float delta_time)
 
     //---- Translation
     float camera_final_speed = m_speed * delta_time;
-    windowManager->ProcessInputs(m_vectors.camera_position, m_vectors.camera_front, m_vectors.camera_up, camera_final_speed);
+    windowManager->processInputs(m_vectors.camera_position, m_vectors.camera_front, m_vectors.camera_up, camera_final_speed);
 
     //---- Rotation
     static float pitch = 0.0f;

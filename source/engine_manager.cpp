@@ -21,7 +21,7 @@ void Xplor::EngineManager::createWindow(int width, int height, bool fullscreen)
 
     // ------- Set mouse related callbacks and window functionality
 	
-    windowManager->setMouseCallbacks();
+    windowManager->setCallbacks();
 	windowManager->CaptureCursor(GLFW_CURSOR_NORMAL);
 
 }

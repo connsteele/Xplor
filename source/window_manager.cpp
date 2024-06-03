@@ -187,7 +187,7 @@ void WindowManager::leftMouseClickCallback(GLFWwindow* window, int mods)
 		auto engine_manager = Xplor::EngineManager::getInstance();
 
 		// Clear the selected game objects
-		if (mods != GLFW_MOD_SHIFT)
+		if (!(mods & GLFW_MOD_SHIFT))
 			engine_manager->clearSelection();
 
 		//--- Convert screen coordinates to world coordinates via Ray Casting
@@ -227,13 +227,35 @@ void WindowManager::leftMouseClickCallback(GLFWwindow* window, int mods)
 	}
 }
 
+void WindowManager::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+	ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
 
-void WindowManager::setMouseCallbacks()
+	if (!ImGui::GetIO().WantCaptureKeyboard)
+	{
+		// handle non imgui events 
+	}
+}
+
+void WindowManager::characterCallback(GLFWwindow* window, unsigned int codepoint)
+{
+	ImGui_ImplGlfw_CharCallback(window, codepoint);
+	if (!ImGui::GetIO().WantCaptureKeyboard)
+	{
+		// Handle non imgui character input for text fields
+	}
+}
+
+
+void WindowManager::setCallbacks()
 {
 	// The callbacks will forward data to imgui
 	glfwSetCursorPosCallback(m_window, WindowManager::mousePositionCallback); // Creates issues with imgui, also determines if the camera will move with the mouse or not
 	glfwSetScrollCallback(m_window, WindowManager::scrollCallback);
 	glfwSetMouseButtonCallback(m_window, WindowManager::mouseButtonCallback);
+	glfwSetKeyCallback(m_window, WindowManager::keyCallback);
+	glfwSetCharCallback(m_window, WindowManager::characterCallback);
+
 }
 
 void WindowManager::scrollCallback(GLFWwindow* window, double offset_X, double offset_Y)
