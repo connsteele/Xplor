@@ -152,7 +152,7 @@ namespace Xplor {
 			m_model_matrix = model;
 		}
 
-		void draw(glm::mat4 view_matrix, glm::mat4 projection_matrix);
+		void draw(glm::mat4 view_matrix, glm::mat4 projection_matrix, const std::string & name = "");
 
 		void drawBoundingBox(const glm::mat4& view_matrix, const glm::mat4& projection_matrix);
 
@@ -238,6 +238,11 @@ namespace Xplor {
 			m_velocity = velocity;
 		}
 
+		const bool getSelected() const
+		{
+			return m_selected;
+		}
+
 		json Serialize() const
 		{
 			return {
@@ -288,27 +293,31 @@ namespace Xplor {
 			return m_object_type;
 		}
 		
+		bool m_selected{ false };
 
 	protected:
+
+	private:
 		// Unique identifier for object
 		uint32_t m_id{};
 		// Optional identifier (makes searching for this object easier)
 		std::string m_name{};
+		
 		const std::string resources = "..//resources//";
 		std::vector<uint32_t> m_textures{};
 		std::vector<std::tuple<std::string, ImageFormat>> m_texture_paths;
 		std::shared_ptr<Shader> m_shader{};
 		uint32_t m_VBO{}, m_VAO{}, m_EBO{};
-		
+
 		size_t m_index_count{}; // Number of indices needed to be rendered
 		glm::vec3 m_position{};
 		glm::vec3 m_last_position{}; // Used with bounding box drawing
 		glm::vec3 m_velocity{};
-		glm::vec3 m_scale{1.0f};
+		glm::vec3 m_scale{ 1.0f };
 
 		glm::vec3 m_rotation_axis{};
 		float m_rotation_amount{};
-		
+
 		Xplor::GameObjectType m_object_type{ Xplor::GameObjectType::GameObject };
 		Geometry m_geometry;
 		// Axis Alinged Bounding Box for Collisions
@@ -317,9 +326,7 @@ namespace Xplor {
 		GLuint m_bboxVAO = 0, m_bboxVBO = 0, m_bboxEBO = 0;
 
 		// Want a matrix stack instead of all of these
-		glm::mat4 m_model_matrix{1.0f};
-
-	private:
+		glm::mat4 m_model_matrix{ 1.0f };
 
 	}; // end class
 

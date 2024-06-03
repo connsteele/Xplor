@@ -23,7 +23,7 @@ namespace Xplor
             static std::shared_ptr<T> m_instance;
     };
 
-    // Declaration the space
+    // Declare space
     template<typename T>
     std::shared_ptr<T> Manager<T>::m_instance = nullptr; 
 }

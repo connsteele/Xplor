@@ -9,8 +9,6 @@
 #include <shader_manager.hpp>
 
 
-std::shared_ptr<Xplor::EngineManager> Xplor::EngineManager::m_instance = nullptr;
-
 void Xplor::EngineManager::Init()
 {
 
@@ -18,8 +16,8 @@ void Xplor::EngineManager::Init()
 
 void Xplor::EngineManager::createWindow(int width, int height, bool fullscreen)
 {
-	std::shared_ptr<WindowManager> windowManager = WindowManager::GetInstance();
-    windowManager->Init(width, height, fullscreen);
+	std::shared_ptr<WindowManager> windowManager = WindowManager::getInstance();
+    windowManager->init(width, height, fullscreen);
 
     // ------- Set mouse related callbacks and window functionality
 	
@@ -52,8 +50,8 @@ bool Xplor::EngineManager::run()
     float fontSize = 18.0f;
     RebuildFontAtlas(fontSize);
 
-    auto window_manager = WindowManager::GetInstance();
-    while (!glfwWindowShouldClose(window_manager->GetWindow())) // Need to setup my own events for this to work better
+    auto window_manager = WindowManager::getInstance();
+    while (!glfwWindowShouldClose(window_manager->getWindow())) // Need to setup my own events for this to work better
     {
         //--- Update Delta Time
         float current_frame_time = static_cast<float>(glfwGetTime());
@@ -110,13 +108,13 @@ bool Xplor::EngineManager::run()
         //---- ImGui Rendering
         ImGui::Render();
         int display_w, display_h;
-        glfwGetFramebufferSize(window_manager->GetWindow(), &display_w, &display_h);
+        glfwGetFramebufferSize(window_manager->getWindow(), &display_w, &display_h);
         glViewport(0, 0, display_w, display_h);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 
         // Swap the front and back buffers
-        window_manager->UpdateBuffers();
+        window_manager->updateBuffers();
 
         // Check for window font resizing
         /*fontSize = 20;
@@ -127,62 +125,67 @@ bool Xplor::EngineManager::run()
 }
 
 
-void Xplor::EngineManager::update(float deltaTime)
+void Xplor::EngineManager::update(float delta_time)
 {
-    m_active_camera->Update(deltaTime);
+    m_active_camera->Update(delta_time);
 
-    for (auto object : m_gameObjects)
+    for (auto object : m_game_objects)
     {               
-        object->update(deltaTime);
+        object->update(delta_time);
     }
 
 }
 
 void Xplor::EngineManager::render(glm::mat4 view_matrix, glm::mat4 projection_matrix)
 {
-    constexpr bool DEBUG = true;
-	for (auto object : m_gameObjects)
+    constexpr bool DRAW_BOUNDING = true;
+    
+
+	for (auto object : m_game_objects)
 	{
 		object->draw(view_matrix, projection_matrix);
-        if (DEBUG)
+        if (object->getSelected())
+        {
+            glEnable(GL_BLEND); // Allow alpha
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glDisable(GL_DEPTH_TEST); // Disable depth testing to draw ontop
+
+            object->draw(view_matrix, projection_matrix, "select");
+
+            glEnable(GL_DEPTH_TEST);
+            glDisable(GL_BLEND);
+        }
+        if (DRAW_BOUNDING)
         {
             object->drawBoundingBox(view_matrix, projection_matrix);
         }
             
 	}
-}
-
-std::shared_ptr<Xplor::EngineManager> Xplor::EngineManager::GetInstance()
-{
-	if (!m_instance)
-	{
-		m_instance = std::make_shared<Xplor::EngineManager>();
-	}
-
-	return m_instance;
+    
 }
 
 void Xplor::EngineManager::addGameObject(std::shared_ptr<GameObject> object)
 {
-    object->setID(++m_objectCount);
-	m_gameObjects.push_back(object);
+    object->setID(++m_object_count);
+	m_game_objects.push_back(object);
 }
 
-void Xplor::EngineManager::rayIntersectionTest(const Xplor::Ray& ray)
+void Xplor::EngineManager::rayCursorTest(const Xplor::Ray& ray)
 {
     float t; // depth
     float closest_t = std::numeric_limits<float>::max();
     std::shared_ptr<GameObject> closest_object = nullptr;
 
-    for (const std::shared_ptr<GameObject>& object : m_gameObjects)
+    for (const std::shared_ptr<GameObject>& object : m_game_objects)
     {
-        if (rayIntersectsAABB(ray, object->getBoundingBox(), t))
+        if (rayIntersect(ray, object->getBoundingBox(), t))
         {
             std::cout << "Ray intersects object: " << object->getName() << " at t = " << t << std::endl;
             if (t < closest_t)
             {
                 closest_t = t;
                 closest_object = object;
+                closest_object->m_selected = true;
             }
             // Add visual feedback, e.g., change object color
             //object->SetColor(glm::vec3(1.0f, 0.0f, 0.0f)); // Assuming you have a SetColor method
@@ -203,7 +206,7 @@ void Xplor::EngineManager::rayIntersectionTest(const Xplor::Ray& ray)
 /// <param name="bbox">Bounding box of a game object</param>
 /// <param name="out_t">Indicates the distance from the ray's origin to the intersection point along the ray's direction vector</param>
 /// <returns></returns>
-bool Xplor::EngineManager::rayIntersectsAABB(const Xplor::Ray & ray, const BoundingBox& bbox, float& out_t)
+bool Xplor::EngineManager::rayIntersect(const Xplor::Ray & ray, const BoundingBox& bbox, float& out_t)
 {
     float tmin = std::numeric_limits<float>::min();
     float tmax = std::numeric_limits<float>::max();
@@ -290,3 +293,4 @@ void Xplor::EngineManager::addDebugObject(const glm::vec3& position, const glm::
     addGameObject(debug_object);
 
 }
+

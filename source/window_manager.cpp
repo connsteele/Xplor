@@ -1,6 +1,7 @@
 #include "window_manager.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 #include "engine_manager.hpp"
+#include "shader_manager.hpp"
 #include <iostream>
 
 //--------- GLFW Function Prototypes Impls 
@@ -29,7 +30,7 @@ std::shared_ptr<WindowManager> WindowManager::m_instance{ nullptr };
 //--------- Window Manager Methods Impls 
 //------------------------------------------------------------------------------------------
 
-void WindowManager::Init(int window_width, int window_height, bool fullscreen)
+void WindowManager::init(int window_width, int window_height, bool fullscreen)
 {
 	//--- Start glfw up
 	if (!glfwInit())
@@ -98,10 +99,12 @@ void WindowManager::Init(int window_width, int window_height, bool fullscreen)
 	ImGui_ImplOpenGL3_Init(glsl_version);
 
 
+	// Create the object selection shader
+	createSelectShader();
 }
 
 // Swaps the front and back buffers
-void WindowManager::UpdateBuffers()
+void WindowManager::updateBuffers()
 {
 	glfwSwapBuffers(m_window);
 }
@@ -135,23 +138,11 @@ void WindowManager::PrintHardwareInfo()
 }
 
 
-std::shared_ptr<WindowManager> WindowManager::GetInstance()
-{
-	if (!m_instance)
-	{
-		m_instance = std::make_shared<WindowManager>();
-	}
-
-	return m_instance;
-}
-
 
 void WindowManager::GetFOV(float& out_FOV)
 {
 	out_FOV = m_FOV;
 }
-
-
 
 
 
@@ -170,7 +161,7 @@ void WindowManager::MouseMoveCallback(GLFWwindow* window, double x_pos, double y
 void WindowManager::MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
 	constexpr bool CURSOR_RAYCAST = true; // This should probably be a member variable
-	constexpr bool DEBUG = true; // Spawn debugging objects where clicked
+	constexpr bool DEBUG = false; // Spawn debugging objects where clicked
 
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
 	{
@@ -180,7 +171,7 @@ void WindowManager::MouseButtonCallback(GLFWwindow* window, int button, int acti
 			double x_pos, y_pos;
 			glfwGetCursorPos(window, &x_pos, &y_pos);
 
-			auto engine_manager = Xplor::EngineManager::GetInstance();
+			auto engine_manager = Xplor::EngineManager::getInstance();
 			auto camera = engine_manager->getCamera();
 			auto view = camera->m_view_matrix;
 			auto projection = camera->m_projection_matrix;
@@ -209,7 +200,7 @@ void WindowManager::MouseButtonCallback(GLFWwindow* window, int button, int acti
 			}
 
 			//--- Perform Ray Intersections
-			engine_manager->rayIntersectionTest(cursor_ray);
+			engine_manager->rayCursorTest(cursor_ray);
 		}
 	}
 }
@@ -347,4 +338,29 @@ void WindowManager::CreateEditorUI()
 	auto io = ImGui::GetIO();
 	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
 	ImGui::End();
+}
+
+//------------------------------------------------------ Private Methods ------------------------------------------------------//
+
+bool WindowManager::createSelectShader()
+{
+	auto shader_manager = Xplor::ShaderManager::getInstance();
+
+	std::string vertex = resources + "//shaders//select.vs";
+	std::string fragment = resources + "//shaders//select.fs";
+
+
+	auto shader_info = Xplor::ShaderBasics{"select", vertex, fragment};
+
+	try
+	{
+		shader_manager->createShader(shader_info);
+	}
+	catch (std::runtime_error err)
+	{
+		__debugbreak(); // Windows only
+		std::cerr << "Caught runtime error: " << err.what() << std::endl;
+	}
+
+	return false;
 }

@@ -9,8 +9,8 @@ Xplor::Camera::Camera(Xplor::CameraVectors cameraVecs, float speed, float fov)
 	m_speed = speed;
 
 	// Get the current aspect ratio
-	auto windowManager = WindowManager::GetInstance();
-	auto window = windowManager->GetWindow();
+	auto windowManager = WindowManager::getInstance();
+	auto window = windowManager->getWindow();
 	int windowWidth, windowHeight;
 	glfwGetWindowSize(window, &windowWidth, &windowHeight);
 	float aspectRatio = static_cast<float>(windowWidth) / static_cast<float>(windowHeight);
@@ -25,7 +25,7 @@ Xplor::Camera::Camera(Xplor::CameraVectors cameraVecs, float speed, float fov)
 
 void Xplor::Camera::Update(const float delta_time)
 {
-    auto windowManager = WindowManager::GetInstance();
+    auto windowManager = WindowManager::getInstance();
 
     //---- Translation
     float camera_final_speed = m_speed * delta_time;

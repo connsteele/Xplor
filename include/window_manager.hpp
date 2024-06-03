@@ -7,6 +7,7 @@
 #include "glfw/glfw3.h"
 #include "glm/glm.hpp"
 #include "string"
+#include "manager.hpp"
 #include <memory>
 
 enum class Vsync {
@@ -16,16 +17,16 @@ enum class Vsync {
 	TripleBuffered = 3,
 };
 
-class WindowManager
+class WindowManager : public Xplor::Manager<WindowManager>
 {
 
 public:
 	glm::vec4 m_clear_color{0.1f, 0.3f, 0.5f, 1.0f};
 
 
-	void Init(int windowWidth, int windowHeight, bool fullscreen);
+	void init(int windowWidth, int windowHeight, bool fullscreen);
 
-	void UpdateBuffers();
+	void updateBuffers();
 
 	/// <summary>
 	/// Need to move the camera data out of here. This is a temporary measure
@@ -65,14 +66,12 @@ public:
 
 	void PrintHardwareInfo();
 
-	static std::shared_ptr<WindowManager> GetInstance();
-
 	void GetMouseOffsets(float& offsetX, float& offsetY);
 
 	void GetFOV(float &out_FOV);
 
 	// Not the safest behavior here
-	GLFWwindow* GetWindow()
+	GLFWwindow* getWindow()
 	{
 		return m_window;
 	}
@@ -81,13 +80,14 @@ public:
 	
 
 private:
-	static std::shared_ptr<WindowManager> m_instance;
 	const std::string resources = "..//resources";
 	GLFWwindow* m_window{};
 	float m_cursorOffsetX{}, m_cursorOffsetY{};
 	bool m_activeMouse{};
 	float m_FOV = 90.0f;
 	
+
+	bool createSelectShader();
 
 }; // end class
 

@@ -64,7 +64,7 @@ void createSceneA()
     std::string fullFragFlatColorPath = resources + "//shaders//flatColor.fs";
     std::string bbox_vertex_full_path = resources + "//shaders//bounding.vs";
     std::string bbox_fragment_full_path = resources + "//shaders//bounding_color.fs";
-    std::vector<std::vector<std::string>> shader_paths { 
+    std::vector<Xplor::ShaderBasics> shader_paths { 
         {"simple", fullVertexPath, fullFragmentPath},
         {"one texture", fullVertexPath, fullFragOneTexPath}, 
         {"flat color", fullVertexPath, fullFragFlatColorPath},
@@ -76,7 +76,7 @@ void createSceneA()
     {
         try
         {
-            shader_manager->createShader(shader_info[0], shader_info[1], shader_info[2]);
+            shader_manager->createShader(shader_info);
         }
         catch (const std::runtime_error& error)
         {
@@ -130,7 +130,7 @@ void createSceneA()
     cubeB->updateBoundingBox();
 
 
-    std::shared_ptr<Xplor::EngineManager> xplorM = Xplor::EngineManager::GetInstance();
+    std::shared_ptr<Xplor::EngineManager> xplorM = Xplor::EngineManager::getInstance();
     xplorM->addGameObject(planeA);
     xplorM->addGameObject(cubeA);
     xplorM->addGameObject(cubeB);
@@ -139,10 +139,10 @@ void createSceneA()
 int main(/*int argc, char **argv*/) {
    
     //---- Setup ----
-    std::shared_ptr<Xplor::EngineManager> xplorM = Xplor::EngineManager::GetInstance();
+    std::shared_ptr<Xplor::EngineManager> xplorM = Xplor::EngineManager::getInstance();
 
     xplorM->createWindow(1920, 1080, false);
-    std::shared_ptr<WindowManager> windowManager = WindowManager::GetInstance();
+    std::shared_ptr<WindowManager> windowManager = WindowManager::getInstance();
     glEnable(GL_DEPTH_TEST);
 
     windowManager->PrintHardwareInfo();

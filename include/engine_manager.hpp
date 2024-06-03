@@ -3,6 +3,7 @@
 #include <vector>
 #include <xplor_types.hpp>
 #include <memory>
+#include "manager.hpp"
 #include "window_manager.hpp"
 #include "camera.hpp"
 #include "game_object.hpp"
@@ -11,7 +12,7 @@
 
 namespace Xplor
 {
-    class EngineManager
+    class EngineManager : public Manager<EngineManager>
     {
         // The engine manager should manage all other managers and fit all
         // the piece together. In the editor the engine manager is what will
@@ -34,17 +35,15 @@ namespace Xplor
         // Render all game objects
         void render(glm::mat4 viewMatrix, glm::mat4 projectionMatrix);
 
-        static std::shared_ptr<EngineManager> GetInstance();
-
 
         // We want a method that will add an object into our vector to keep track of
         // so we can update it with all the other ones and render it
 
         void addGameObject(std::shared_ptr<GameObject> object);
 
-        void rayIntersectionTest(const Xplor::Ray& ray);
+        void rayCursorTest(const Xplor::Ray& ray);
 
-        bool rayIntersectsAABB(const Xplor::Ray & ray, const BoundingBox& bbox, float& out_t);
+        bool rayIntersect(const Xplor::Ray & ray, const BoundingBox& bbox, float& out_t);
 
         void exportScene(std::string filepath)
         {
@@ -67,7 +66,7 @@ namespace Xplor
 
         size_t getObjectCount()
         {
-            return m_objectCount;
+            return m_object_count;
         }
 
         std::shared_ptr<Camera> getCamera()
@@ -83,19 +82,21 @@ namespace Xplor
     private:
         float m_delta_time; // Time between current and last frame
 
-        static std::shared_ptr<EngineManager> m_instance;
         // Drop templating on this for now, this vector contains every game objects in the scene
         //std::vector<GameObject> gameObjects;
-        std::vector<std::shared_ptr<GameObject>> m_gameObjects;
+        std::vector<std::shared_ptr<GameObject>> m_game_objects;
         std::shared_ptr<Camera> m_active_camera;
         float m_last_frame_time{};
-        size_t m_objectCount{};
+        size_t m_object_count{};
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
 
         json SerializeScene() const
         {
             json sceneData;
-            for (const auto& object : m_gameObjects)
+            for (const auto& object : m_game_objects)
             {
                 sceneData.push_back(object->Serialize());
             }
@@ -105,7 +106,7 @@ namespace Xplor
 
         void DeserializeScene(const json& sceneData)
         {
-            m_gameObjects.clear();
+            m_game_objects.clear();
 
             for (const auto& objectData : sceneData)
             {
@@ -115,13 +116,13 @@ namespace Xplor
                 case Xplor::GameObjectType::GameObject: {
                     auto object = std::make_shared<GameObject>();
                     object->Deserialze(objectData);
-                    m_gameObjects.push_back(object);
+                    m_game_objects.push_back(object);
                     break;
                 }
                 case Xplor::GameObjectType::PropObject: {
                     auto object = std::make_shared<PropObject>();
                     object->Deserialze(objectData);
-                    m_gameObjects.push_back(object);
+                    m_game_objects.push_back(object);
                     break;
                 }
                 default:

@@ -72,15 +72,29 @@ namespace Xplor
 		}
 	}
 
-	void GameObject::draw(glm::mat4 view_matrix, glm::mat4 projection_matrix)
+	void GameObject::draw(glm::mat4 view_matrix, glm::mat4 projection_matrix, const std::string & name)
 	{
-		m_shader->useProgram();
+		std::shared_ptr<Shader> shader;
+		if (name.empty())
+		{
+			shader = m_shader;
+		}
+		else
+		{
+			if (!ShaderManager::getInstance()->findShader(name, shader))
+			{
+				std::cerr << "Error shader with name: '" << name << "' cannot be found." << std::endl;
+				return;
+			}
+		}
+
+		shader->useProgram();
 
 		// Send coordinate matrices to the shader
 		updateModelMatrix();
-		m_shader->setUniform("model", m_model_matrix);
-		m_shader->setUniform("view", view_matrix);
-		m_shader->setUniform("projection", projection_matrix);
+		shader->setUniform("model", m_model_matrix);
+		shader->setUniform("view", view_matrix);
+		shader->setUniform("projection", projection_matrix);
 
 		// Bind Relevant Textures
 		for (int i = 0; i < m_textures.size(); i++)
@@ -105,14 +119,20 @@ namespace Xplor
 		// Unbinds
 		glBindVertexArray(0); // Unbind the VAO
 		glBindTexture(GL_TEXTURE_2D, 0); // Unbind the texture
-		m_shader->endProgram();
+		shader->endProgram();
 	}
 
 	void GameObject::drawBoundingBox(const glm::mat4& view_matrix, const glm::mat4& projection_matrix)
 	{
 		// Set the shader
+		std::string shader_name = "bounding";
 		std::shared_ptr<Shader> bbox_shader;
-		ShaderManager::getInstance()->findShader("bounding", bbox_shader);
+		if (!ShaderManager::getInstance()->findShader(shader_name, bbox_shader))
+		{
+			std::cerr << "Error shader with name: '" << shader_name << "' cannot be found." << std::endl;
+			return;
+		}
+		
 		bbox_shader->useProgram();
 
 		// Set the view and projection matrices
