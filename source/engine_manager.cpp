@@ -168,7 +168,7 @@ void Xplor::EngineManager::addGameObject(std::shared_ptr<GameObject> object)
 	m_gameObjects.push_back(object);
 }
 
-void Xplor::EngineManager::rayIntersectionTest(const glm::vec3 ray_start, const glm::vec3 ray_direction)
+void Xplor::EngineManager::rayIntersectionTest(const Xplor::Ray& ray)
 {
     float t; // depth
     float closest_t = std::numeric_limits<float>::max();
@@ -176,7 +176,7 @@ void Xplor::EngineManager::rayIntersectionTest(const glm::vec3 ray_start, const 
 
     for (const std::shared_ptr<GameObject>& object : m_gameObjects)
     {
-        if (rayIntersectsAABB(ray_start, ray_direction, object->getBoundingBox(), t))
+        if (rayIntersectsAABB(ray, object->getBoundingBox(), t))
         {
             std::cout << "Ray intersects object: " << object->getName() << " at t = " << t << std::endl;
             if (t < closest_t)
@@ -203,11 +203,11 @@ void Xplor::EngineManager::rayIntersectionTest(const glm::vec3 ray_start, const 
 /// <param name="bbox">Bounding box of a game object</param>
 /// <param name="out_t">Indicates the distance from the ray's origin to the intersection point along the ray's direction vector</param>
 /// <returns></returns>
-bool Xplor::EngineManager::rayIntersectsAABB(const glm::vec3& ray_origin, const glm::vec3& ray_direction, const BoundingBox& bbox, float& out_t)
+bool Xplor::EngineManager::rayIntersectsAABB(const Xplor::Ray & ray, const BoundingBox& bbox, float& out_t)
 {
     // Ray intersections with X axis
-    float t_min = (bbox.min.x - ray_origin.x) / ray_direction.x; // entry point
-    float t_max = (bbox.max.x - ray_origin.x) / ray_direction.x; // exit point
+    float t_min = (bbox.min.x - ray.origin.x) / ray.direction.x; // entry point
+    float t_max = (bbox.max.x - ray.origin.x) /  ray.direction.x; // exit point
 
     // Ensure the entry and exit points are in proper order
     if (t_min > t_max)
@@ -215,8 +215,8 @@ bool Xplor::EngineManager::rayIntersectsAABB(const glm::vec3& ray_origin, const 
     
 
     // Ray intersections with Y axis
-    float ty_min = (bbox.min.y - ray_origin.y) / ray_direction.y;
-    float ty_max = (bbox.max.y - ray_origin.y) / ray_direction.y;
+    float ty_min = (bbox.min.y - ray.origin.y) /  ray.direction.y;
+    float ty_max = (bbox.max.y - ray.origin.y) /  ray.direction.y;
 
     // Check if there is no overlap between the intervals on the X and Y axis
     if (t_max < ty_min || t_min > ty_max)
@@ -231,8 +231,8 @@ bool Xplor::EngineManager::rayIntersectsAABB(const glm::vec3& ray_origin, const 
         
 
     // Ray intersections with the Z axis
-    float tz_min = (bbox.min.z - ray_origin.z) / ray_direction.z;
-    float tz_max = (bbox.max.z - ray_origin.z) / ray_direction.z;
+    float tz_min = (bbox.min.z - ray.origin.z) /  ray.direction.z;
+    float tz_max = (bbox.max.z - ray.origin.z) /  ray.direction.z;
 
     // Check if there is no overlap between the intervals on the X, Y and Z axis
     if (t_max  < tz_min || t_min > tz_max)

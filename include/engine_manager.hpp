@@ -42,9 +42,9 @@ namespace Xplor
 
         void addGameObject(std::shared_ptr<GameObject> object);
 
-        void rayIntersectionTest(const glm::vec3 ray_start, const glm::vec3 ray_direction);
+        void rayIntersectionTest(const Xplor::Ray& ray);
 
-        bool rayIntersectsAABB(const glm::vec3& ray_origin, const glm::vec3& ray_direction, const BoundingBox& bbox, float& out_t);
+        bool rayIntersectsAABB(const Xplor::Ray & ray, const BoundingBox& bbox, float& out_t);
 
         void exportScene(std::string filepath)
         {

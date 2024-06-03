@@ -49,4 +49,9 @@ namespace Xplor {
 		glm::vec3 max;
 	};
 
+	struct Ray {
+		glm::vec3 origin;
+		glm::vec3 direction;
+	};
+
 }; // end namespace
