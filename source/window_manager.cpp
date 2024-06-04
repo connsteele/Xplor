@@ -419,12 +419,10 @@ void WindowManager::createEditorFrame(const std::vector<std::shared_ptr<Xplor::G
 		ImGui::Text("Selected Object: %s", selected_object->getName().c_str());
 		auto pos = selected_object->getPosition();
 		// ImGui::Text("Position: (%.2f, %.2f, %.2f)", pos.x, pos.y, pos.z);
-		ImGui::Text("Position");
-		ImGui::SameLine();
-		static float imgui_pos[3] = { pos.x, pos.y, pos.z};
-		ImGui::DragFloat3("", imgui_pos, 0.01f, -100.0f, 100.0f);
-		glm::vec3 new_pos{ imgui_pos[0], imgui_pos[1], imgui_pos[2] };
-		//selected_object->setPosition(new_pos);
+		float vec_pos[3] = {pos.x, pos.y, pos.z};
+		labeledDragFloat3("Position", vec_pos, 0.01f, -100.f, 100.f);
+		glm::vec3 new_pos{vec_pos[0], vec_pos[1], vec_pos[2]};
+		selected_object->setPosition(new_pos);
 
 		ImGui::Separator();
 	}
@@ -478,3 +476,33 @@ bool WindowManager::createSelectShader()
 
 	return false;
 }
+
+void WindowManager::labeledDragFloat3(const char* label, float (&values)[3], float drag_speed, float value_min, float value_max)
+{
+	ImGui::Text("%s", label); // Main label
+
+	ImGui::PushID(label);
+
+	// Can be used for further drag float specification
+	const char* format = "%.3f";
+	float power = 1.0f;
+
+	// X Component
+	ImGui::Text("X");
+	ImGui::SameLine();
+	ImGui::DragFloat("##X", &values[0], drag_speed, value_min, value_max);
+
+	// Y Component
+	ImGui::Text("Y");
+	ImGui::SameLine();
+	ImGui::DragFloat("##Y", &values[1], drag_speed, value_min, value_max);
+
+	// Z Component
+	ImGui::Text("Z");
+	ImGui::SameLine();
+	ImGui::DragFloat("##Z", &values[2], drag_speed, value_min, value_max);
+
+	ImGui::PopID();
+
+}
+

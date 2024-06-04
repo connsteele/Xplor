@@ -98,5 +98,7 @@ private:
 
 	bool createSelectShader();
 
+	void labeledDragFloat3(const char* label, float(&values)[3], float drag_speed, float value_min, float value_max);
+
 }; // end class
 
