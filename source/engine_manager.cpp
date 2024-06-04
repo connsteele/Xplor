@@ -316,6 +316,11 @@ bool Xplor::EngineManager::isSelected(const std::shared_ptr<GameObject>& game_ob
     return search != m_selected.end();
 }
 
+void Xplor::EngineManager::addToSelection(const std::shared_ptr<GameObject>& game_object)
+{
+    m_selected.insert(game_object);
+}
+
 const std::vector<std::shared_ptr<Xplor::GameObject>> Xplor::EngineManager::getGameObjects() const
 {
     return m_game_objects;

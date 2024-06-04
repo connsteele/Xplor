@@ -388,10 +388,10 @@ void WindowManager::createEditorFrame(const std::vector<std::shared_ptr<Xplor::G
 	auto engine_manager = Xplor::EngineManager::getInstance();
 	static int selected_obj_index = -1;
 	int number_game_objects = game_objects.size();
-	int child_height = 25 * number_game_objects; // should limit to a max size which will allow for scrolling
+	int child_height = 26 * number_game_objects; // should limit to a max size which will allow for scrolling
 	child_height = (child_height > 600) ? 600 : child_height;
 	int child_width = 400;
-	ImGui::BeginChild("Game Objects", ImVec2(child_width, child_height), ImGuiChildFlags_Border); //ImGuiChildFlags_ResizeX
+	ImGui::BeginChild("Scene", ImVec2(child_width, child_height), ImGuiChildFlags_Border); //ImGuiChildFlags_ResizeX
 	for (int i = 0; i < number_game_objects; i++)
 	{
 		auto game_object = game_objects[i];
@@ -406,6 +406,8 @@ void WindowManager::createEditorFrame(const std::vector<std::shared_ptr<Xplor::G
 		if (ImGui::Selectable(game_object->getName().c_str(), selected_obj_index == i))
 		{
 			selected_obj_index = i;
+			engine_manager->clearSelection();
+			engine_manager->addToSelection(game_object);
 		}
 	}
 	ImGui::EndChild();
@@ -416,7 +418,14 @@ void WindowManager::createEditorFrame(const std::vector<std::shared_ptr<Xplor::G
 		const std::shared_ptr<Xplor::GameObject> selected_object = game_objects[selected_obj_index];
 		ImGui::Text("Selected Object: %s", selected_object->getName().c_str());
 		auto pos = selected_object->getPosition();
-		ImGui::Text("Position: (%.2f, %.2f, %.2f)", pos.x, pos.y, pos.z);
+		// ImGui::Text("Position: (%.2f, %.2f, %.2f)", pos.x, pos.y, pos.z);
+		ImGui::Text("Position");
+		ImGui::SameLine();
+		static float imgui_pos[3] = { pos.x, pos.y, pos.z};
+		ImGui::DragFloat3("", imgui_pos, 0.01f, -100.0f, 100.0f);
+		glm::vec3 new_pos{ imgui_pos[0], imgui_pos[1], imgui_pos[2] };
+		//selected_object->setPosition(new_pos);
+
 		ImGui::Separator();
 	}
 

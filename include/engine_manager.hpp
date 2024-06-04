@@ -86,6 +86,8 @@ namespace Xplor
 
         bool isSelected(const std::shared_ptr<GameObject>& game_object);
 
+        void addToSelection(const std::shared_ptr<GameObject>& game_object);
+
         const std::vector<std::shared_ptr<GameObject>> getGameObjects() const;
 
     private:
