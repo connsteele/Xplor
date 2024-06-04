@@ -35,7 +35,7 @@ void Xplor::Camera::Update(const float delta_time)
     static float pitch = 0.0f;
     static float yaw = -90.0f;
     float offsetX, offsetY;
-    windowManager->GetMouseOffsets(offsetX, offsetY);
+    windowManager->getMouseOffsets(offsetX, offsetY);
     yaw += offsetX;
     pitch += offsetY;
     // Contrain the pitch to stop a lookAt flip
@@ -56,6 +56,6 @@ void Xplor::Camera::Update(const float delta_time)
     m_view_matrix = glm::lookAt(m_vectors.camera_position, m_target, m_vectors.camera_up);
 
     float windowFOV;
-    windowManager->GetFOV(windowFOV);
+    windowManager->getFOV(windowFOV);
     m_projection_matrix = glm::perspective(glm::radians(windowFOV), 1280.f / 720.f, 0.1f, 100.f);
 }

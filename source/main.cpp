@@ -145,7 +145,7 @@ int main(/*int argc, char **argv*/) {
     std::shared_ptr<WindowManager> windowManager = WindowManager::getInstance();
     glEnable(GL_DEPTH_TEST);
 
-    windowManager->PrintHardwareInfo();
+    windowManager->printHardwareInfo();
     printMaxVertexAttrib();
 
 

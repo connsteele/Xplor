@@ -34,7 +34,7 @@ namespace Xplor
         void update(float deltaTime);
 
         // Render all game objects
-        void render(glm::mat4 viewMatrix, glm::mat4 projectionMatrix);
+        void render_objects(glm::mat4 viewMatrix, glm::mat4 projectionMatrix);
 
 
         // We want a method that will add an object into our vector to keep track of
@@ -81,6 +81,10 @@ namespace Xplor
         {
             return m_delta_time;
         }
+
+        void imguiDockSpace();
+
+        const std::vector<std::shared_ptr<GameObject>> getGameObjects() const;
 
     private:
         float m_delta_time; // Time between current and last frame

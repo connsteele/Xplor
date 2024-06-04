@@ -228,6 +228,11 @@ namespace Xplor {
 			return m_name;
 		}
 
+		const glm::vec3 getPosition()
+		{
+			return m_position;
+		}
+
 		void setName(std::string name)
 		{
 			m_name = name;

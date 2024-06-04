@@ -8,6 +8,7 @@
 #include "glm/glm.hpp"
 #include "string"
 #include "manager.hpp"
+#include "game_object.hpp"
 #include <memory>
 
 enum class Vsync {
@@ -50,31 +51,33 @@ public:
 
 	static void characterCallback(GLFWwindow* window, unsigned int codepoint);
 
-	void UpdateMousePosition(float xpos, float ypos);
+	void updateMousePosition(float xpos, float ypos);
 
-	void WindowManager::UpdateMouseScroll(float offsetX, float offsetY);
+	void updateMouseScroll(float offsetX, float offsetY);
 
-	void NewImguiFrame();
+	void newImguiFrame();
 
-	void CreateEditorUI();
+	void createEditorFrame(const std::vector<std::shared_ptr<Xplor::GameObject>>& game_objects);
+
+	void createPerformanceFrame();
 
 	/// <summary>
 	/// Set GLFW's capture behavior regarding the cursor
 	/// </summary>
 	/// <param name="mode">GLFW_CURSOR_NORMAL, GLFW_CURSOR_DISABLED, GLFW_CURSOR_HIDDEN</param>
-	void CaptureCursor(int mode);
+	void captureCursor(int mode);
 
-	void PollEvents();
+	void pollEvents();
 
-	void Shutdown();
+	void shutdown();
 
-	void SetVsync(Vsync interval);
+	void setVsync(Vsync interval);
 
-	void PrintHardwareInfo();
+	void printHardwareInfo();
 
-	void GetMouseOffsets(float& offsetX, float& offsetY);
+	void getMouseOffsets(float& offsetX, float& offsetY);
 
-	void GetFOV(float &out_FOV);
+	void getFOV(float &out_FOV);
 
 	// Not the safest behavior here
 	GLFWwindow* getWindow()

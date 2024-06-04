@@ -22,7 +22,7 @@ void Xplor::EngineManager::createWindow(int width, int height, bool fullscreen)
     // ------- Set mouse related callbacks and window functionality
 	
     windowManager->setCallbacks();
-	windowManager->CaptureCursor(GLFW_CURSOR_NORMAL);
+	windowManager->captureCursor(GLFW_CURSOR_NORMAL);
 
 }
 
@@ -36,7 +36,7 @@ void Xplor::EngineManager::createCamera(CameraVectors vectors, float speed, floa
 
 bool Xplor::EngineManager::run()
 {
-    auto RebuildFontAtlas = [](float fontSize) {
+    auto rebuildFontAtlas = [](float fontSize) {
         ImGuiIO& io = ImGui::GetIO();
         io.Fonts->Clear();
 
@@ -48,7 +48,7 @@ bool Xplor::EngineManager::run()
     };
 
     float fontSize = 18.0f;
-    RebuildFontAtlas(fontSize);
+    rebuildFontAtlas(fontSize);
 
     auto window_manager = WindowManager::getInstance();
     while (!glfwWindowShouldClose(window_manager->getWindow())) // Need to setup my own events for this to work better
@@ -62,17 +62,20 @@ bool Xplor::EngineManager::run()
 
         //--- Input
         //-----------------------------------------------------
-        window_manager->PollEvents();
+        window_manager->pollEvents();
         //float cameraFinalSpeed = m_activeCamera->m_speed * deltaTime;
 
         // I need to change how this logic happens. The window manager should process the inputs here
         // but then after that it should let the camera know if it needs to move
         //windowManager->ProcessInputs(cameraPosition, cameraFront, cameraUp, cameraFinalSpeed);
 
-        //--- ImGui
-        window_manager->NewImguiFrame();
+        //--- ImGui Setup and Logic
+        window_manager->newImguiFrame();
 
-        window_manager->CreateEditorUI();
+
+        // change this to a render/draw call for all imgui elements
+        window_manager->createEditorFrame(m_game_objects);
+        window_manager->createPerformanceFrame();
 
         // Rendering commands
         //-----------------------------------------------------
@@ -103,7 +106,7 @@ bool Xplor::EngineManager::run()
         update(delta_time);
 
         //---- Scene Rendering
-        render(m_active_camera->m_view_matrix, m_active_camera->m_projection_matrix);
+        render_objects(m_active_camera->m_view_matrix, m_active_camera->m_projection_matrix);
 
         //---- ImGui Rendering
         ImGui::Render();
@@ -121,6 +124,12 @@ bool Xplor::EngineManager::run()
         RebuildFontAtlas(fontSize);*/
     }
 
+    // Cleanup
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+    window_manager->shutdown();
+
 	return false;
 }
 
@@ -136,7 +145,7 @@ void Xplor::EngineManager::update(float delta_time)
 
 }
 
-void Xplor::EngineManager::render(glm::mat4 view_matrix, glm::mat4 projection_matrix)
+void Xplor::EngineManager::render_objects(glm::mat4 view_matrix, glm::mat4 projection_matrix)
 {
     constexpr bool DRAW_BOUNDING = true;
     
@@ -300,4 +309,10 @@ void Xplor::EngineManager::clearSelection()
 {
     m_selected.clear();
 }
+
+const std::vector<std::shared_ptr<Xplor::GameObject>> Xplor::EngineManager::getGameObjects() const
+{
+    return m_game_objects;
+}
+
 

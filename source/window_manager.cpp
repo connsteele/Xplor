@@ -80,7 +80,7 @@ void WindowManager::init(int window_width, int window_height, bool fullscreen)
 	glfwGetWindowSize(m_window, &window_width, &window_height);*/
 	glViewport(0, 0, window_width, window_height);
 
-	SetVsync(Vsync::On);
+	setVsync(Vsync::On);
 
 	//--------- ImGui
 	IMGUI_CHECKVERSION();
@@ -88,11 +88,11 @@ void WindowManager::init(int window_width, int window_height, bool fullscreen)
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 	ImGui::StyleColorsDark();
 	ImFontConfig imConfig;
 	imConfig.SizePixels = 18.0f;
 	io.Fonts->AddFontDefault(&imConfig);
-	// io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 	ImGui_ImplGlfw_InitForOpenGL(m_window, true);
 	// GL 3.3 + GLSL 330
 	constexpr char* glsl_version = "#version 330";
@@ -109,7 +109,7 @@ void WindowManager::updateBuffers()
 	glfwSwapBuffers(m_window);
 }
 
-void WindowManager::Shutdown()
+void WindowManager::shutdown()
 {
 	if (m_window)
 	{
@@ -119,13 +119,13 @@ void WindowManager::Shutdown()
 	glfwTerminate();
 }
 
-void WindowManager::SetVsync(Vsync interval)
+void WindowManager::setVsync(Vsync interval)
 {
 	glfwSwapInterval(static_cast<int>(interval));
 }
 
 
-void WindowManager::PrintHardwareInfo()
+void WindowManager::printHardwareInfo()
 {
 	auto vendor = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
 	auto openglVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
@@ -139,7 +139,7 @@ void WindowManager::PrintHardwareInfo()
 
 
 
-void WindowManager::GetFOV(float& out_FOV)
+void WindowManager::getFOV(float& out_FOV)
 {
 	out_FOV = m_FOV;
 }
@@ -156,7 +156,7 @@ void WindowManager::mousePositionCallback(GLFWwindow* window, double x_pos, doub
 	WindowManager* windowManager = static_cast<WindowManager*>(glfwGetWindowUserPointer(window));
 	if (windowManager)
 	{
-		windowManager->UpdateMousePosition(static_cast<float>(x_pos), static_cast<float>(y_pos));
+		windowManager->updateMousePosition(static_cast<float>(x_pos), static_cast<float>(y_pos));
 	}
 }
 
@@ -266,12 +266,12 @@ void WindowManager::scrollCallback(GLFWwindow* window, double offset_X, double o
 	{
 		WindowManager* windowManager = static_cast<WindowManager*>(glfwGetWindowUserPointer(window));
 		if (windowManager) {
-			windowManager->UpdateMouseScroll(static_cast<float>(offset_X), static_cast<float>(offset_Y));
+			windowManager->updateMouseScroll(static_cast<float>(offset_X), static_cast<float>(offset_Y));
 		}
 	}	
 }
 
-void WindowManager::UpdateMouseScroll(float offsetX, float offsetY)
+void WindowManager::updateMouseScroll(float offsetX, float offsetY)
 {
 	m_FOV -= offsetY;
 
@@ -282,7 +282,7 @@ void WindowManager::UpdateMouseScroll(float offsetX, float offsetY)
 		m_FOV = 120.0f;
 }
 
-void WindowManager::UpdateMousePosition(float xpos, float ypos)
+void WindowManager::updateMousePosition(float xpos, float ypos)
 {
 	m_activeMouse = true;
 
@@ -298,13 +298,13 @@ void WindowManager::UpdateMousePosition(float xpos, float ypos)
 	lastY = ypos;
 }
 
-void WindowManager::CaptureCursor(int mode)
+void WindowManager::captureCursor(int mode)
 {
 	glfwSetInputMode(m_window, GLFW_CURSOR, mode);
 	//glfwSetCursorPos(m_window, 0.0, 0.0);
 }
 
-void WindowManager::GetMouseOffsets(float& offsetX, float& offsetY)
+void WindowManager::getMouseOffsets(float& offsetX, float& offsetY)
 {
 	if (!m_activeMouse)
 	{
@@ -321,7 +321,7 @@ void WindowManager::GetMouseOffsets(float& offsetX, float& offsetY)
 
 //----------- Inputs (general)
 //------------------------------------------------------------------------------------------
-void WindowManager::PollEvents()
+void WindowManager::pollEvents()
 {
 	glfwPollEvents();
 }
@@ -362,31 +362,52 @@ void WindowManager::processInputs(glm::vec3& out_camera_pos, const glm::vec3 cam
 //----------- IMGUI
 //------------------------------------------------------------------------------------------
 
-void WindowManager::NewImguiFrame()
+void WindowManager::newImguiFrame()
 {
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
 }
 
-void WindowManager::CreateEditorUI()
+void WindowManager::createEditorFrame(const std::vector<std::shared_ptr<Xplor::GameObject>>& game_objects)
 {
+	ImGui::Begin("Editor"); // Create a frame and append into it.
+
+	for (auto game_object : game_objects)
+	{
+		if (ImGui::TreeNode(game_object->getName().c_str()))
+		{
+			auto pos = game_object->getPosition();
+			ImGui::Text("Position: (%.2f, %.2f, %.2f)", pos.x, pos.y, pos.z);
+			ImGui::Text("Rotation:");
+			ImGui::Text("Scale:");
+			ImGui::TreePop();
+		}
+	}
+
+
 	static float f = 0.0f;
-	static int counter = 0;
-
-
-	ImGui::Begin("Editor"); // Create a window and append into it.
-
-	ImGui::Text("UI Text.");
 	ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
 	ImGui::ColorEdit3("clear color", (float*)&m_clear_color);
-
+	
+	static int counter = 0;
+	ImGui::Text("UI Text");
 	if (ImGui::Button("Button"))   // Buttons return true when clicked (most widgets return true when edited/activated)
 		counter++;
 	ImGui::SameLine();
 	ImGui::Text("counter = %d", counter);
+	
+
+	ImGui::End();
+}
+
+void WindowManager::createPerformanceFrame()
+{
+	ImGui::Begin("Performance Metrics");
+
 	auto io = ImGui::GetIO();
 	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+
 	ImGui::End();
 }
 
