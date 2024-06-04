@@ -373,7 +373,7 @@ void WindowManager::createEditorFrame(const std::vector<std::shared_ptr<Xplor::G
 {
 	ImGui::Begin("Editor"); // Create a frame and append into it.
 
-	for (auto game_object : game_objects)
+	/*for (auto game_object : game_objects)
 	{
 		if (ImGui::TreeNode(game_object->getName().c_str()))
 		{
@@ -383,8 +383,42 @@ void WindowManager::createEditorFrame(const std::vector<std::shared_ptr<Xplor::G
 			ImGui::Text("Scale:");
 			ImGui::TreePop();
 		}
-	}
+	}*/
 
+	auto engine_manager = Xplor::EngineManager::getInstance();
+	static int selected_obj_index = -1;
+	int number_game_objects = game_objects.size();
+	int child_height = 25 * number_game_objects; // should limit to a max size which will allow for scrolling
+	child_height = (child_height > 600) ? 600 : child_height;
+	int child_width = 400;
+	ImGui::BeginChild("Game Objects", ImVec2(child_width, child_height), ImGuiChildFlags_Border); //ImGuiChildFlags_ResizeX
+	for (int i = 0; i < number_game_objects; i++)
+	{
+		auto game_object = game_objects[i];
+
+		// Check if the object is already selected
+		// search the set of selected objects
+		if (engine_manager->isSelected(game_object))
+		{
+			selected_obj_index = i;
+		}
+
+		if (ImGui::Selectable(game_object->getName().c_str(), selected_obj_index == i))
+		{
+			selected_obj_index = i;
+		}
+	}
+	ImGui::EndChild();
+	ImGui::Separator();
+
+	if (selected_obj_index != -1)
+	{
+		const std::shared_ptr<Xplor::GameObject> selected_object = game_objects[selected_obj_index];
+		ImGui::Text("Selected Object: %s", selected_object->getName().c_str());
+		auto pos = selected_object->getPosition();
+		ImGui::Text("Position: (%.2f, %.2f, %.2f)", pos.x, pos.y, pos.z);
+		ImGui::Separator();
+	}
 
 	static float f = 0.0f;
 	ImGui::SliderFloat("float", &f, 0.0f, 1.0f);

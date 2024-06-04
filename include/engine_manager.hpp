@@ -84,6 +84,8 @@ namespace Xplor
 
         void imguiDockSpace();
 
+        bool isSelected(const std::shared_ptr<GameObject>& game_object);
+
         const std::vector<std::shared_ptr<GameObject>> getGameObjects() const;
 
     private:

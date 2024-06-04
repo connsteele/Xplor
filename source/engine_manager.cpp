@@ -310,6 +310,12 @@ void Xplor::EngineManager::clearSelection()
     m_selected.clear();
 }
 
+bool Xplor::EngineManager::isSelected(const std::shared_ptr<GameObject>& game_object)
+{
+    auto search = m_selected.find(game_object);
+    return search != m_selected.end();
+}
+
 const std::vector<std::shared_ptr<Xplor::GameObject>> Xplor::EngineManager::getGameObjects() const
 {
     return m_game_objects;
