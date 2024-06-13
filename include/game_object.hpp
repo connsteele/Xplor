@@ -232,6 +232,11 @@ namespace Xplor {
 		{
 			return m_position;
 		}
+		
+		const glm::vec3 getVelocity()
+		{
+			return m_velocity;
+		}
 
 		void setName(std::string name)
 		{

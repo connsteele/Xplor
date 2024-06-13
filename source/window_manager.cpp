@@ -179,7 +179,7 @@ void WindowManager::mouseButtonCallback(GLFWwindow* window, int button, int acti
 
 void WindowManager::leftMouseClickCallback(GLFWwindow* window, int mods)
 {
-	constexpr bool CURSOR_RAYCAST = true; // This should probably be a member variable
+	bool CURSOR_RAYCAST = true; // This should probably be a member variable
 	constexpr bool DEBUG = false; // Spawn debugging objects where clicked
 
 	if (CURSOR_RAYCAST)
@@ -391,18 +391,25 @@ void WindowManager::createEditorFrame(const std::vector<std::shared_ptr<Xplor::G
 	int child_height = 26 * number_game_objects; // should limit to a max size which will allow for scrolling
 	child_height = (child_height > 600) ? 600 : child_height;
 	int child_width = 400;
+	ImGui::SeparatorText("Scene");
 	ImGui::BeginChild("Scene", ImVec2(child_width, child_height), ImGuiChildFlags_Border); //ImGuiChildFlags_ResizeX
 	for (int i = 0; i < number_game_objects; i++)
 	{
 		auto game_object = game_objects[i];
 
-		// Check if the object is already selected
-		// search the set of selected objects
+		// If the selection is empty clear it from the UI
+		if (engine_manager->isSelectionEmpty())
+		{
+			selected_obj_index = -1;
+		}
+
+		// Check if an object has been selected
 		if (engine_manager->isSelected(game_object))
 		{
 			selected_obj_index = i;
 		}
 
+		// Display the objects as selectable UI elements
 		if (ImGui::Selectable(game_object->getName().c_str(), selected_obj_index == i))
 		{
 			selected_obj_index = i;
@@ -411,28 +418,47 @@ void WindowManager::createEditorFrame(const std::vector<std::shared_ptr<Xplor::G
 		}
 	}
 	ImGui::EndChild();
-	ImGui::Separator();
 
+	// Object Specfic Information
+	ImGui::Separator();
 	if (selected_obj_index != -1)
 	{
-		const std::shared_ptr<Xplor::GameObject> selected_object = game_objects[selected_obj_index];
-		ImGui::Text("Selected Object: %s", selected_object->getName().c_str());
+		auto selected_object = game_objects[selected_obj_index];
+
+		// Name and ID
+		ImGui::Text("Selected Object: ");
+		ImGui::SameLine();
+		ImGui::Text(selected_object->getName().c_str());
+		std::string obj_id = "ID: " + std::to_string(selected_object->getID());
+		ImGui::Text(obj_id.c_str());
+		ImGui::Separator();
+
+		// Position 
 		auto pos = selected_object->getPosition();
 		// ImGui::Text("Position: (%.2f, %.2f, %.2f)", pos.x, pos.y, pos.z);
-		float vec_pos[3] = {pos.x, pos.y, pos.z};
-		labeledDragFloat3("Position", vec_pos, 0.01f, -100.f, 100.f);
-		glm::vec3 new_pos{vec_pos[0], vec_pos[1], vec_pos[2]};
+		float arr_pos[3] = {pos.x, pos.y, pos.z};
+		labeledDragFloat3("Position", arr_pos, 0.01f, -100.f, 100.f);
+		glm::vec3 new_pos{arr_pos[0], arr_pos[1], arr_pos[2]};
 		selected_object->setPosition(new_pos);
 
+		// Velocity
 		ImGui::Separator();
-	}
+		auto vel = selected_object->getVelocity();
+		float arr_vel[3] = {vel.x, vel.y, vel.z};
+		labeledDragFloat3("Velocity", arr_vel, 0.01f, -100.f, 100.f);
+		glm::vec3 new_vel = { arr_vel[0],arr_vel[1] ,arr_vel[2] };
+		selected_object->setVelocity(new_vel);
 
+	}
+	
+
+
+	ImGui::Separator();
 	static float f = 0.0f;
 	ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
 	ImGui::ColorEdit3("clear color", (float*)&m_clear_color);
 	
 	static int counter = 0;
-	ImGui::Text("UI Text");
 	if (ImGui::Button("Button"))   // Buttons return true when clicked (most widgets return true when edited/activated)
 		counter++;
 	ImGui::SameLine();

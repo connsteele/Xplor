@@ -321,6 +321,11 @@ void Xplor::EngineManager::addToSelection(const std::shared_ptr<GameObject>& gam
     m_selected.insert(game_object);
 }
 
+bool Xplor::EngineManager::isSelectionEmpty() const
+{
+    return m_selected.empty();
+}
+
 const std::vector<std::shared_ptr<Xplor::GameObject>> Xplor::EngineManager::getGameObjects() const
 {
     return m_game_objects;

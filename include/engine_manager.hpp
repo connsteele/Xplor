@@ -88,6 +88,8 @@ namespace Xplor
 
         void addToSelection(const std::shared_ptr<GameObject>& game_object);
 
+        bool isSelectionEmpty() const;
+
         const std::vector<std::shared_ptr<GameObject>> getGameObjects() const;
 
     private:
