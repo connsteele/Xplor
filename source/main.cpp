@@ -64,7 +64,7 @@ void createSceneA()
     std::string fullFragFlatColorPath = resources + "//shaders//flatColor.fs";
     std::string bbox_vertex_full_path = resources + "//shaders//bounding.vs";
     std::string bbox_fragment_full_path = resources + "//shaders//bounding_color.fs";
-    std::vector<Xplor::ShaderBasics> shader_paths { 
+    std::vector<Xplor::ShaderInfo> shader_paths { 
         {"simple", fullVertexPath, fullFragmentPath},
         {"one texture", fullVertexPath, fullFragOneTexPath}, 
         {"flat color", fullVertexPath, fullFragFlatColorPath},
@@ -115,7 +115,7 @@ void createSceneA()
     planeA->addGeometry(geometryPlane.data(), geometryPlane.size(), planeEBO.data(), planeEBO.size(), 5);
     planeA->initGeometry();
 
-    auto geometryCube = GeometryGenerator::GenerateCubeData();
+    auto geometryCube = GeometryGenerator::generateCubeData();
     cubeA->setPosition(glm::vec3(0.0f, 0.0f, 0.0f));
     cubeA->addGeometry(geometryCube.data(), geometryCube.size(), 5, 36);
     cubeA->initGeometry();

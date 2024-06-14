@@ -373,17 +373,7 @@ void WindowManager::createEditorFrame(const std::vector<std::shared_ptr<Xplor::G
 {
 	ImGui::Begin("Editor"); // Create a frame and append into it.
 
-	/*for (auto game_object : game_objects)
-	{
-		if (ImGui::TreeNode(game_object->getName().c_str()))
-		{
-			auto pos = game_object->getPosition();
-			ImGui::Text("Position: (%.2f, %.2f, %.2f)", pos.x, pos.y, pos.z);
-			ImGui::Text("Rotation:");
-			ImGui::Text("Scale:");
-			ImGui::TreePop();
-		}
-	}*/
+	//------ Refactor TreeNodes when objects can be nested
 
 	auto engine_manager = Xplor::EngineManager::getInstance();
 	static int selected_obj_index = -1;
@@ -458,11 +448,11 @@ void WindowManager::createEditorFrame(const std::vector<std::shared_ptr<Xplor::G
 	ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
 	ImGui::ColorEdit3("clear color", (float*)&m_clear_color);
 	
-	static int counter = 0;
-	if (ImGui::Button("Button"))   // Buttons return true when clicked (most widgets return true when edited/activated)
-		counter++;
-	ImGui::SameLine();
-	ImGui::Text("counter = %d", counter);
+	//static int counter = 0;
+	//if (ImGui::Button("Button"))   // Buttons return true when clicked (most widgets return true when edited/activated)
+	//	counter++;
+	//ImGui::SameLine();
+	//ImGui::Text("counter = %d", counter);
 	
 
 	ImGui::End();
@@ -488,7 +478,7 @@ bool WindowManager::createSelectShader()
 	std::string fragment = resources + "//shaders//select.fs";
 
 
-	auto shader_info = Xplor::ShaderBasics{"select", vertex, fragment};
+	auto shader_info = Xplor::ShaderInfo{"select", vertex, fragment};
 
 	try
 	{

@@ -23,7 +23,7 @@ namespace Xplor
 		return shader;
 	}
 
-	std::shared_ptr<Shader> ShaderManager::createShader(const ShaderBasics& info)
+	std::shared_ptr<Shader> ShaderManager::createShader(const ShaderInfo& info)
 	{
 		// Check if a shader with the name already exists
 		auto iterator = m_name_to_shader.find(info.name);

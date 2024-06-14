@@ -4,6 +4,8 @@
 #include "xplor_types.hpp"
 #include "shader.hpp"
 #include "geometry.hpp"
+#include "GLFW/glfw3.h"
+#include "shader_manager.hpp"
 #include <stb_image.h>
 #include <iostream>
 #include <string>
@@ -21,7 +23,6 @@ struct ImageData
 };
 
 namespace Xplor {
-
 	// A Game Object should contain also relevant information about where to place an object in the game world
 	// and how to render it
 
@@ -30,53 +31,9 @@ namespace Xplor {
 	public:
 		void init();
 		
-		void addTexture(std::string imagePath, ImageFormat format)
-		{
-			m_texture_paths.push_back({ imagePath, format });
-		}
+		void addTexture(std::string imagePath, ImageFormat format);
 
-		void initTextures()
-		{
-			for (auto pair : m_texture_paths)
-			{
-				auto imagePath = std::get<0>(pair);
-				auto format = std::get<1>(pair);
-
-				ImageData imageBox;
-				stbi_set_flip_vertically_on_load(true); // Align the coordinates
-				std::string fullPath = resources + imagePath;
-				// Fill Variables with image data
-				imageBox.data = stbi_load(fullPath.c_str(), &imageBox.width, &imageBox.height, &imageBox.channels, 0);
-				if (!imageBox.data)
-				{
-					std::cout << "Error: Image failed to load" << std::endl;
-				}
-				//--- Texture generation
-				uint32_t texture1;
-				// Generate one texture and store it
-				glGenTextures(1, &texture1);
-				// Bind the texture
-				glBindTexture(GL_TEXTURE_2D, texture1);
-				// Set the texture filtering and wrapping
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-				// Generate the bound texture
-				if (format == ImageFormat::jpg)
-					glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imageBox.width, imageBox.height, 0, GL_RGB, GL_UNSIGNED_BYTE, imageBox.data);
-				else if (format == ImageFormat::png)
-					glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageBox.width, imageBox.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageBox.data);
-
-
-				// Generate mipmaps for the bound texture
-				glGenerateMipmap(GL_TEXTURE_2D);
-				// Free the image data once the texture has been created
-				stbi_image_free(imageBox.data);
-
-				m_textures.push_back(texture1);
-			}
-		}
+		void initTextures();
 
 		// Ideally this should support multiple shaders 
 		void addShader(std::shared_ptr<Shader> shader)
@@ -84,12 +41,7 @@ namespace Xplor {
 			m_shader = shader;
 		}
 
-		void addGeometry(float* geometryData, size_t dataSize, unsigned int stepSize, uint32_t indexCount)
-		{
-			m_geometry.SetData(geometryData, dataSize);
-			m_geometry.SetStepSize(stepSize);
-			m_geometry.SetIndexCount(indexCount);
-		}
+		void addGeometry(float* geometryData, size_t dataSize, unsigned int stepSize, uint32_t indexCount);
 
 		/// <summary>
 		/// Add geometry data overloaded for supporting EBOs
@@ -99,94 +51,35 @@ namespace Xplor {
 		/// <param name="ebo"></param>
 		/// <param name="eboSize"></param>
 		/// <param name="stepSize"></param>
-		void addGeometry(float* geometryData, size_t dataSize, unsigned int* ebo, size_t eboSize, unsigned int stepSize)
-		{
-			m_geometry.SetData(geometryData, dataSize);
-			m_geometry.SetEBO(ebo, eboSize);
-			m_geometry.SetStepSize(stepSize);
-		}
+		void addGeometry(float* geometryData, size_t dataSize, unsigned int* ebo, size_t eboSize, unsigned int stepSize);
 
 		void initGeometry();
 
 		void initBoundingBoxDraw();
 
-		void update(const float delta_time)
-		{
-			glm::vec3 last_position = m_position;
-			updatePosition(delta_time);
+		void update(const float delta_time);
 
-			if (last_position != m_position)
-			{
-				updateBoundingBox();
-			}			
-		}
+		void updatePosition(const float delta_time);
 
-		void updatePosition(const float delta_time)
-		{
-			// Transformations
-			glm::vec3 update_velocity = delta_time * m_velocity;
-			m_position += update_velocity;
-		}
+		void updateBoundingBox();
 
-		void updateBoundingBox()
-		{
-			glm::vec3 min = m_position - glm::vec3(0.5f) * m_scale;
-			glm::vec3 max = m_position + glm::vec3(0.5f) * m_scale;
-			m_bbox = { min, max };
-
-			//// old method
-			// Currently this is assuming the object is a cube
-			/*int size = 1.0f;
-			m_bbox.min = m_position - glm::vec3(size / 2.0f);
-			m_bbox.max = m_position + glm::vec3(size / 2.0f);*/
-		}
-
-		void updateModelMatrix()
-		{
-			glm::mat4 model = glm::mat4(1.0f);
-			model = glm::translate(model, m_position);
-			if (m_rotation_amount)
-			{
-				model = glm::rotate(model, glm::radians(m_rotation_amount), m_rotation_axis);
-			}
-			m_model_matrix = model;
-		}
+		void updateModelMatrix();
 
 		void draw(glm::mat4 view_matrix, glm::mat4 projection_matrix, const std::string & name = "");
 
 		void drawBoundingBox(const glm::mat4& view_matrix, const glm::mat4& projection_matrix);
 
-		void Delete()
-		{
-			if (m_shader)
-				m_shader->Delete();
+		void Delete();
 
-			// Check if these are populated first
-			glDeleteVertexArrays(1, &m_VAO);
-			glDeleteBuffers(1, &m_VBO);
-			glDeleteBuffers(1, &m_EBO);
-		}
-
-		void addImpulse(glm::vec3 impulse)
-		{
-			m_velocity += impulse;
-		}
+		void addImpulse(glm::vec3 impulse);
 
 		/// <summary>
 		/// Set the position of the object. Also updates the object's bounding box.
 		/// </summary>
 		/// <param name="pos">Position to place the object in the world.</param>
-		void setPosition(const glm::vec3& position)
-		{
-			m_position = position;
-			updateBoundingBox();
-		}
+		void setPosition(const glm::vec3& position);
 
-		void setScale(const glm::vec3& scale)
-		{
-			m_scale = scale;
-			updateBoundingBox();
-		}
+		void setScale(const glm::vec3& scale);
 
 		const BoundingBox& getBoundingBox() const
 		{
@@ -236,6 +129,11 @@ namespace Xplor {
 		const glm::vec3 getVelocity()
 		{
 			return m_velocity;
+		}
+
+		const glm::mat4& getModelMatrix()
+		{
+			return m_model_matrix;
 		}
 
 		void setName(std::string name)
@@ -344,6 +242,130 @@ namespace Xplor {
 			return object_type;
 		}
 
+	};
+
+
+	/// <summary>
+	/// Transformation Gizmo for selected object manipulation
+	/// </summary>
+	struct Gizmo
+	{
+		enum mode { NONE, TRANSLATE, ROTATE, SCALE };
+		mode current_mode{ NONE };
+		glm::vec3 axis; // axis being manipulated
+		GLuint VAO;
+		unsigned int index_count;
+		std::shared_ptr<Shader> shader;
+
+		bool is_hovered{ false };
+		bool is_active{ false };
+
+		void handleInput(GLFWwindow* window, const std::shared_ptr<GameObject> object, glm::mat4 view_matrix, glm::mat4 projection_matrix);
+
+		/// <summary>
+		/// Draw the Gizmo ontop of the game object
+		/// </summary>
+		/// <param name="object">Selected game object to draw the gizmo on</param>
+		/// <param name="view_matrix"></param>
+		/// <param name="projection_matrix"></param>
+		void draw(const std::shared_ptr<GameObject> object, glm::mat4 view_matrix, glm::mat4 projection_matrix)
+		{
+			glm::mat4 mat_model = object->getModelMatrix();
+
+			drawArrow(glm::vec3(1, 0, 0), mat_model, view_matrix, projection_matrix); // X
+			//drawArrow(glm::vec3(0, 1, 0), mat_model, view_matrix, projection_matrix); // Y
+			//drawArrow(glm::vec3(0, 0, 1), mat_model, view_matrix, projection_matrix); // Z
+		}
+
+
+		/// <summary>
+		/// Draw an arrow for the gizmo in the axis described by the parameters
+		/// </summary>
+		/// <param name="axis">Axis which to draw the arrow along</param>
+		/// <param name="model_matrix"></param>
+		/// <param name="view_matrix"></param>
+		/// <param name="projection_matrix"></param>
+		void drawArrow(glm::vec3 axis, glm::mat4 model_matrix, glm::mat4 view_matrix, glm::mat4 projection_matrix)
+		{
+			// pick a shader (refactor this to be included with the gizmo so its faster)
+			shader->useProgram();
+			shader->setUniform("model", model_matrix);
+			shader->setUniform("view", view_matrix);
+			shader->setUniform("projection", projection_matrix);
+
+			// Draw an simple arrow along an axis
+			glBindVertexArray(VAO);
+			//glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(index_count), GL_UNSIGNED_INT, 0);
+			GLsizei cube_indices = 36;
+			glDrawArrays(GL_TRIANGLES, 0, cube_indices);
+			glBindVertexArray(0);
+
+			shader->endProgram();
+		}
+
+		void initCylinderVAO(const std::vector<float>& verts, const std::vector<unsigned int>& indices)
+		{
+			GLuint VAO, VBO, EBO;
+			glGenVertexArrays(1, &VAO); // bind the VAO
+			glGenBuffers(1, &VBO);
+			glGenBuffers(1, &EBO);
+
+			glBindVertexArray(VAO);
+			glBindBuffer(GL_ARRAY_BUFFER, VBO);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+
+			glBufferData(VBO, verts.size() * sizeof(float), verts.data(), GL_STATIC_DRAW);
+			glBufferData(EBO, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
+
+			// position
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6, (void*)0);
+			glEnableVertexAttribArray(0);
+
+			// normals
+			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6, (void*)(3 * sizeof(float)));
+			glEnableVertexAttribArray(1);
+
+
+			glBindVertexArray(0); // unbind VAO
+			this->VAO = VAO;
+			index_count = indices.size();
+		}
+
+		void initCylinderVAO(std::array<float, 108> cube_data)
+		{
+			GLuint VBO;
+
+			glGenVertexArrays(1, &VAO);
+			glGenBuffers(1, &VBO);
+
+			glBindVertexArray(VAO);
+			glBindBuffer(GL_ARRAY_BUFFER, VBO);
+			glBufferData(GL_ARRAY_BUFFER, sizeof(cube_data), &cube_data, GL_STATIC_DRAW);
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+			glEnableVertexAttribArray(0);
+			
+			glBindVertexArray(0); // unbind VAO
+		}
+
+		void initGizmoShaders()
+		{
+			auto shader_manager = ShaderManager::getInstance();
+			std::string shader_name = "gizmo";
+			const std::string resources = "..//resources";
+			std::string vertex_path = resources + "//shaders//gizmo.vs";
+			std::string frag_path = resources + "//shaders//gizmo.fs";
+			ShaderInfo shader_info = { shader_name, vertex_path, frag_path };
+
+			try
+			{
+				this->shader = shader_manager->createShader(shader_info);
+			}
+			catch (const std::runtime_error& err)
+			{
+				__debugbreak(); // Windows only
+				std::cerr << "Failed to create shader '" + shader_name + "'";
+			}
+		}
 	};
 
 }; // end namespace

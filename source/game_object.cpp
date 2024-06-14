@@ -4,6 +4,73 @@
 
 namespace Xplor 
 {
+	//----------------------------------------------- Gizmo -----------------------------------------------
+
+
+	//----------------------------------------------- Game Object -----------------------------------------------
+
+	void GameObject::addTexture(std::string imagePath, ImageFormat format)
+	{
+		m_texture_paths.push_back({ imagePath, format });
+	}
+
+	void GameObject::initTextures()
+	{
+		for (auto pair : m_texture_paths)
+		{
+			auto imagePath = std::get<0>(pair);
+			auto format = std::get<1>(pair);
+
+			ImageData imageBox;
+			stbi_set_flip_vertically_on_load(true); // Align the coordinates
+			std::string fullPath = resources + imagePath;
+			// Fill Variables with image data
+			imageBox.data = stbi_load(fullPath.c_str(), &imageBox.width, &imageBox.height, &imageBox.channels, 0);
+			if (!imageBox.data)
+			{
+				std::cout << "Error: Image failed to load" << std::endl;
+			}
+			//--- Texture generation
+			uint32_t texture1;
+			// Generate one texture and store it
+			glGenTextures(1, &texture1);
+			// Bind the texture
+			glBindTexture(GL_TEXTURE_2D, texture1);
+			// Set the texture filtering and wrapping
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+			// Generate the bound texture
+			if (format == ImageFormat::jpg)
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imageBox.width, imageBox.height, 0, GL_RGB, GL_UNSIGNED_BYTE, imageBox.data);
+			else if (format == ImageFormat::png)
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageBox.width, imageBox.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageBox.data);
+
+
+			// Generate mipmaps for the bound texture
+			glGenerateMipmap(GL_TEXTURE_2D);
+			// Free the image data once the texture has been created
+			stbi_image_free(imageBox.data);
+
+			m_textures.push_back(texture1);
+		}
+	}
+
+	void GameObject::addGeometry(float* geometryData, size_t dataSize, unsigned int stepSize, uint32_t indexCount)
+	{
+		m_geometry.SetData(geometryData, dataSize);
+		m_geometry.SetStepSize(stepSize);
+		m_geometry.SetIndexCount(indexCount);
+	}
+
+	void GameObject::addGeometry(float* geometryData, size_t dataSize, unsigned int* ebo, size_t eboSize, unsigned int stepSize)
+	{
+		m_geometry.SetData(geometryData, dataSize);
+		m_geometry.SetEBO(ebo, eboSize);
+		m_geometry.SetStepSize(stepSize);
+	}
+
 	void GameObject::initGeometry()
 	{
 		if (!m_geometry.GetData())
@@ -72,19 +139,66 @@ namespace Xplor
 		}
 	}
 
-	void GameObject::draw(glm::mat4 view_matrix, glm::mat4 projection_matrix, const std::string & name)
+	void GameObject::update(const float delta_time)
+	{
+		glm::vec3 last_position = m_position;
+
+		// Should stack all transformations then just do one application of the model matrix update at the end
+		updatePosition(delta_time);
+
+		if (last_position != m_position) // If object moved at all
+		{
+			updateModelMatrix();
+			updateBoundingBox();
+		}
+	}
+
+	void GameObject::updatePosition(const float delta_time)
+	{
+		// Transformations
+		glm::vec3 update_velocity = delta_time * m_velocity;
+		m_position += update_velocity;
+	}
+
+	void GameObject::updateBoundingBox()
+	{
+		glm::vec3 min = m_position - glm::vec3(0.5f) * m_scale;
+		glm::vec3 max = m_position + glm::vec3(0.5f) * m_scale;
+		m_bbox = { min, max };
+
+		//// old method
+		// Currently this is assuming the object is a cube
+		/*int size = 1.0f;
+		m_bbox.min = m_position - glm::vec3(size / 2.0f);
+		m_bbox.max = m_position + glm::vec3(size / 2.0f);*/
+	}
+
+	void GameObject::updateModelMatrix()
+	{
+		// NEED TO UPDATE TO TAKE SCALE AND ROT INTO ACCOUNT
+
+		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::translate(model, m_position);
+		if (m_rotation_amount)
+		{
+			model = glm::rotate(model, glm::radians(m_rotation_amount), m_rotation_axis);
+		}
+		m_model_matrix = model;
+	}
+
+	void GameObject::draw(glm::mat4 view_matrix, glm::mat4 projection_matrix, const std::string & shader_name)
 	{
 		std::shared_ptr<Shader> shader;
 
-		if (name.empty())
+		if (shader_name.empty())
 		{
 			shader = m_shader;
 		}
 		else
 		{
-			if (!ShaderManager::getInstance()->findShader(name, shader))
+			if (!ShaderManager::getInstance()->findShader(shader_name, shader))
 			{
-				std::cerr << "Error shader with name: '" << name << "' cannot be found." << std::endl;
+				std::cerr << "Error shader with name: '" << shader_name << "' cannot be found." << std::endl;
 				return;
 			}
 		}
@@ -92,8 +206,7 @@ namespace Xplor
 		shader->useProgram();
 
 		// Send coordinate matrices to the shader
-		updateModelMatrix();
-		shader->setUniform("model", m_model_matrix);
+		shader->setUniform("model", m_model_matrix); // model is updated in the update call prior to draw
 		shader->setUniform("view", view_matrix);
 		shader->setUniform("projection", projection_matrix);
 
@@ -176,6 +289,36 @@ namespace Xplor
 		glBindVertexArray(0); // unbind VAO
 		bbox_shader->endProgram();
 		glLineWidth(1.0f); // restore line width
+	}
+
+	void GameObject::Delete()
+	{
+		if (m_shader)
+			m_shader->Delete();
+
+		// Check if these are populated first
+		glDeleteVertexArrays(1, &m_VAO);
+		glDeleteBuffers(1, &m_VBO);
+		glDeleteBuffers(1, &m_EBO);
+	}
+
+	void GameObject::addImpulse(glm::vec3 impulse)
+	{
+		m_velocity += impulse;
+	}
+
+	void GameObject::setPosition(const glm::vec3& position)
+	{
+		m_position = position;
+		updateModelMatrix();
+		updateBoundingBox();
+	}
+
+	void GameObject::setScale(const glm::vec3& scale)
+	{
+		m_scale = scale;
+		updateModelMatrix(); // this function doesn't take scale or rot into account currently
+		updateBoundingBox();
 	}
 }
 

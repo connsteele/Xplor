@@ -50,6 +50,15 @@ bool Xplor::EngineManager::run()
     float fontSize = 18.0f;
     rebuildFontAtlas(fontSize);
 
+    Gizmo gizmo; // Selected object transformation gizmo
+    float radius = 50;
+    float height = 100;
+    int slices = 30;
+    //gizmo.initCylinderVAO(GeometryGenerator::generateCylinderVertices(radius, height, slices),
+     //   GeometryGenerator::generateCylinderIndices(slices));
+    gizmo.initCylinderVAO(GeometryGenerator::generatePlainCubeData());
+    gizmo.initGizmoShaders();
+
     auto window_manager = WindowManager::getInstance();
     while (!glfwWindowShouldClose(window_manager->getWindow())) // Need to setup my own events for this to work better
     {
@@ -107,6 +116,11 @@ bool Xplor::EngineManager::run()
 
         //---- Scene Rendering
         render_objects(m_active_camera->m_view_matrix, m_active_camera->m_projection_matrix);
+        if (!m_selected.empty())
+        {
+            auto selected = *m_selected.begin(); // deref the iterator to get the first selected game object
+            gizmo.draw(selected, m_active_camera->m_view_matrix, m_active_camera->m_projection_matrix);
+        }
 
         //---- ImGui Rendering
         ImGui::Render();
@@ -261,7 +275,7 @@ void Xplor::EngineManager::addDebugObject(const glm::vec3& position)
     shader_id->setUniform("customTexture1", 0);
     shader_id->endProgram();
 
-    auto cube_data = GeometryGenerator::GenerateCubeData();
+    auto cube_data = GeometryGenerator::generateCubeData();
     const int step_size = 5;
     const int index_count = 36;
     debug_object->addGeometry(cube_data.data(), cube_data.size(), step_size, index_count);
@@ -294,7 +308,7 @@ void Xplor::EngineManager::addDebugObject(const glm::vec3& position, const glm::
     shader_manager->findShader("one texture", shader);
     debug_object->addShader(shader);
 
-    auto cube_data = GeometryGenerator::GenerateCubeData();
+    auto cube_data = GeometryGenerator::generateCubeData();
     const int step_size = 5;
     const int index_count = 36;
     debug_object->addGeometry(cube_data.data(), cube_data.size(), step_size, index_count);
