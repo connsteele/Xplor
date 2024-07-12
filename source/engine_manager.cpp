@@ -54,10 +54,12 @@ bool Xplor::EngineManager::run()
     float radius = 2;
     float height = 5;
     int slices = 8;
-    std::vector<Vertex> cyl_geom;
-    std::vector<int> cyl_indices;
+    std::vector<Vertex> cyl_geom, top_cap_geom;
+    std::vector<int> cyl_indices, cap_indices;
     GeometryGenerator::generateCylinder(radius, height, slices, cyl_geom, cyl_indices);
+    GeometryGenerator::generateCylinderCap(radius, height, slices, top_cap_geom, cap_indices);
     gizmo.initCylinderVAO(cyl_geom, cyl_indices);
+    gizmo.initCapVAO(top_cap_geom, cap_indices);
     gizmo.initGizmoShaders();
 
     auto window_manager = WindowManager::getInstance();

@@ -253,8 +253,8 @@ namespace Xplor {
 		enum mode { NONE, TRANSLATE, ROTATE, SCALE };
 		mode current_mode{ NONE };
 		glm::vec3 axis; // axis being manipulated
-		GLuint VAO;
-		unsigned int index_count;
+		GLuint VAO, capVAO;
+		unsigned int index_count, cap_index_count;
 		std::shared_ptr<Shader> shader;
 
 		bool is_hovered{ false };
@@ -295,7 +295,11 @@ namespace Xplor {
 
 			// Draw an simple arrow along an axis
 			glBindVertexArray(VAO);
-			glDrawElements(GL_TRIANGLES, index_count, GL_UNSIGNED_INT, 0);
+			glDrawElements(GL_LINE_STRIP, index_count, GL_UNSIGNED_INT, 0);
+			glBindVertexArray(0);
+			// Draw cylinder cap
+			glBindVertexArray(capVAO);
+			glDrawElements(GL_LINE_STRIP, index_count, GL_UNSIGNED_INT, 0);
 			glBindVertexArray(0);
 
 			shader->endProgram();
@@ -330,21 +334,35 @@ namespace Xplor {
 				std::cerr << "OpenGL error: " << err << std::endl;
 			}
 		}
-
-		void initCylinderVAO(std::array<float, 108> cube_data)
+		
+		void initCapVAO(const std::vector<Vertex>& verts, const std::vector<int>& indices)
 		{
-			GLuint VBO;
+			GLuint VBO, EBO;
+			cap_index_count = indices.size();
 
-			glGenVertexArrays(1, &VAO);
+			glGenVertexArrays(1, &capVAO); // bind the capVAO
 			glGenBuffers(1, &VBO);
+			glGenBuffers(1, &EBO);
 
-			glBindVertexArray(VAO);
+			glBindVertexArray(capVAO);
+
 			glBindBuffer(GL_ARRAY_BUFFER, VBO);
-			glBufferData(GL_ARRAY_BUFFER, sizeof(cube_data), &cube_data, GL_STATIC_DRAW);
+			glBufferData(GL_ARRAY_BUFFER, 3 * sizeof(float) * verts.size(), verts.data(), GL_STATIC_DRAW);
+
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * indices.size(), indices.data(), GL_STATIC_DRAW);
+
+			// position
 			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 			glEnableVertexAttribArray(0);
-			
-			glBindVertexArray(0); // unbind VAO
+
+			glBindVertexArray(0); // unbind capVAO
+
+			// Check for OpenGL errors
+			GLenum err;
+			while ((err = glGetError()) != GL_NO_ERROR) {
+				std::cerr << "OpenGL error: " << err << std::endl;
+			}
 		}
 
 		void initGizmoShaders()

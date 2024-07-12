@@ -182,53 +182,6 @@ public:
         return data;
     }
 
-
-    //static void generateCylinder(float radius, float height, int faces, 
-    //    std::vector<float> &out_geometry, std::vector<int>& out_indices)
-    //{
-    //    std::vector<float> unit_circle = generateUnitCircleVertices(faces);
-
-    //    height /= 2.0f;
-    //    int flip_height = 1; // when this hits two reset to 0 then inverse height
-
-    //    // Create two triangles per rectangular face
-    //    int k = 0; // unit circle index
-    //    int k_next = 3; // unit circle index one spot ahead
-    //    for (int i = 0, k = 0; i <= faces; ++i)
-    //    {
-    //        // If the elements of the unit circle are exhausted wrap around it
-    //        k_next = k_next > (faces * 3) ? 0 : k_next;
-    //        
-
-    //        // Position data for a rectangle, keep index order in mind
-    //        // top left 1
-    //        out_geometry.push_back(unit_circle[k] * radius);   // x
-    //        out_geometry.push_back(height);                    // y
-    //        out_geometry.push_back(unit_circle[k+2] * radius); // z
-    //        // bottom left 2
-    //        out_geometry.push_back(unit_circle[k] * radius);     // x
-    //        out_geometry.push_back(-height);                     // y
-    //        out_geometry.push_back(unit_circle[k + 2] * radius); // z
-    //        // bottom right 3
-    //        out_geometry.push_back(unit_circle[k_next] * radius);     // x
-    //        out_geometry.push_back(-height);                          // y
-    //        out_geometry.push_back(unit_circle[k_next + 2] * radius); // z
-    //        // top right 4
-    //        out_geometry.push_back(unit_circle[k_next] * radius);     // x
-    //        out_geometry.push_back(height);                           // y
-    //        out_geometry.push_back(unit_circle[k_next + 2] * radius); // z
-
-    //        // index order of points for CCW winding on both triangles
-    //        out_indices.insert(out_indices.end(), { k, k + 1, k + 2 }); // 1, 2, 3
-    //        out_indices.insert(out_indices.end(), { k+2, k+3, k });     // 3, 4, 1
-
-    //        // iterate over the unit circle
-    //        k += 3;
-    //        k_next += 3;
-
-    //    }
-    //}
-
     static void generateCylinder(float radius, float height, int faces,
         std::vector<Xplor::Vertex>& out_geometry, std::vector<int>& out_indices)
     {
@@ -250,6 +203,52 @@ public:
             out_indices.push_back(next * 2); // top right
             out_indices.push_back(next * 2 + 1); // bottom right
         }
+    }
+
+    static void generateCylinderCap(float radius, float height, int faces,
+        std::vector<Xplor::Vertex>& out_geometry, std::vector<int>& out_indices)
+    {
+        float face_step = 2 * PI / faces; // radians to rotate by for each 
+        
+        // create the top center and push it back
+        Xplor::Vertex top_center{0, height / 2.0f, 0};
+        out_geometry.push_back(top_center);
+
+        // Create two circles
+        // top
+        for (int i = 0; i < faces; ++i)
+        {
+            float angle = i * face_step; // radians for current face
+            out_geometry.push_back({ radius * cos(angle), height / 2.0f, radius * sin(angle) });
+        }
+
+       /* Xplor::Vertex bot_center{ 0, height / 2.0f, 0 };
+        out_geometry.push_back(bot_center);*/
+        // bottom
+        //for (int i = 0; i < faces; ++i)
+        //{
+        //    float angle = i * face_step; // radians for current face
+        //    out_geometry.push_back({ radius * cos(angle), -height / 2.0f, radius * sin(angle) });
+        //}
+
+        // Create index order for the circle drawing
+        // top
+        for (int i = 1; i <= faces; ++i)
+        {
+            int next = i + 1;
+            next = next > faces ? 1 : next; // loop back to 1 to fix index
+
+            out_indices.insert(out_indices.end(), {0, i, next});
+        }
+        // bottom
+        //for (int i = 1; i <= faces; ++i)
+        //{
+        //    int j = i + faces; // need advance to the second circle geometry
+        //    int next = j + 1;
+        //    next = next > 2 * faces ? 1 : next; // loop back to 1 to fix index
+
+        //    out_indices.insert(out_indices.end(), { 0, i, next });
+        //}
     }
 
     
