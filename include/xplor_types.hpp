@@ -8,6 +8,13 @@ using json = nlohmann::json;
 
 namespace Xplor {
 
+	struct Vertex
+	{
+		float x;
+		float y;
+		float z;
+	};
+
 	enum class ImageFormat
 	{
 		jpg = 0,

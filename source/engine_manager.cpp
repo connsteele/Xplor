@@ -53,8 +53,8 @@ bool Xplor::EngineManager::run()
     Gizmo gizmo; // Selected object transformation gizmo
     float radius = 2;
     float height = 5;
-    int slices = 3;
-    std::vector<float> cyl_geom;
+    int slices = 8;
+    std::vector<Vertex> cyl_geom;
     std::vector<int> cyl_indices;
     GeometryGenerator::generateCylinder(radius, height, slices, cyl_geom, cyl_indices);
     gizmo.initCylinderVAO(cyl_geom, cyl_indices);
