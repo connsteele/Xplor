@@ -181,83 +181,51 @@ public:
         return data;
     }
 
-    static std::vector<float> generateUnitCircleVertices(int num_faces)
+
+    static void generateCylinder(float radius, float height, int faces, 
+        std::vector<float> &out_geometry, std::vector<int>& out_indices)
     {
-        float face_step = 2 * PI / num_faces;
-        float face_angle; // radians
+        std::vector<float> unit_circle = generateUnitCircleVertices(faces);
 
-        std::vector<float> vertices;
-        for (int i = 0; i <= num_faces; ++i)
+        height /= 2.0f;
+        int flip_height = 1; // when this hits two reset to 0 then inverse height
+
+        // Create two triangles per rectangular face
+        int k = 0; // unit circle index
+        int k_next = 3; // unit circle index one spot ahead
+        for (int i = 0, k = 0; i <= faces; ++i)
         {
-            face_angle = i * face_step;
-            // might want to swap the y and z for my unit system
-            vertices.push_back(cos(face_angle)); // x
-            vertices.push_back(sin(face_angle)); // y
-            vertices.push_back(0.0f); // z
+            // If the elements of the unit circle are exhausted wrap around it
+            k_next = k_next > (faces * 3) ? 0 : k_next;
+            
+
+            // Position data for a rectangle, keep index order in mind
+            // top left 1
+            out_geometry.push_back(unit_circle[k] * radius);   // x
+            out_geometry.push_back(height);                    // y
+            out_geometry.push_back(unit_circle[k+2] * radius); // z
+            // bottom left 2
+            out_geometry.push_back(unit_circle[k] * radius);     // x
+            out_geometry.push_back(-height);                     // y
+            out_geometry.push_back(unit_circle[k + 2] * radius); // z
+            // bottom right 3
+            out_geometry.push_back(unit_circle[k_next] * radius);     // x
+            out_geometry.push_back(-height);                          // y
+            out_geometry.push_back(unit_circle[k_next + 2] * radius); // z
+            // top right 4
+            out_geometry.push_back(unit_circle[k_next] * radius);     // x
+            out_geometry.push_back(height);                           // y
+            out_geometry.push_back(unit_circle[k_next + 2] * radius); // z
+
+            // index order of points for CCW winding on both triangles
+            out_indices.insert(out_indices.end(), { k, k + 1, k + 2 }); // 1, 2, 3
+            out_indices.insert(out_indices.end(), { k+2, k+3, k });     // 3, 4, 1
+
+            // iterate over the unit circle
+            k += 3;
+            k_next += 3;
 
         }
-
-        return vertices;
-    }
-
-    static std::vector<float> generateCylinder(float radius, float height, int faces)
-    {
-        float step_angle = (2 * PI) / faces; // angle between faces in radians
-
-        // Create the top and bottom circles of the cylinder
-        std::vector<float> unit_circle;
-        for (int i = 0; i < faces; ++i)
-        {
-            float angle = i * step_angle;
-
-            // Top
-            unit_circle.push_back(radius * cos(angle)); // x
-            unit_circle.push_back(height / 2.f);        // y
-            unit_circle.push_back(radius * sin(angle)); // z
-
-            // Bottom
-            unit_circle.push_back(radius * cos(angle)); // x
-            unit_circle.push_back(-height / 2.f);       // y
-            unit_circle.push_back(radius * sin(angle)); // z
-
-        }
-
-        std::vector<float> vertices;
-        // Generate the sides of the cylinder in counter clock wise winding
-        for (int i = 0; i < faces; ++i)
-        {
-            int next_i = (i + 1) % faces;
-
-            // Indices for the top and bottom vertex positions
-            int top_i = 3 * (2 * i);
-            int bottom_i = 3 * (2 * i + 1);
-            int top_next = 3 * (2 * next_i);
-            int bottom_next = 3 * (2 * next_i + 1);
-
-            // Triangle 1 - Counter-clockwise
-            vertices.push_back(unit_circle[top_i]);        // Top i
-            vertices.push_back(unit_circle[top_i + 1]);    // Top i
-            vertices.push_back(unit_circle[top_i + 2]);    // Top i
-            vertices.push_back(unit_circle[bottom_next]);  // Bottom next
-            vertices.push_back(unit_circle[bottom_next + 1]); // Bottom next
-            vertices.push_back(unit_circle[bottom_next + 2]); // Bottom next
-            vertices.push_back(unit_circle[bottom_i]);     // Bottom i
-            vertices.push_back(unit_circle[bottom_i + 1]); // Bottom i
-            vertices.push_back(unit_circle[bottom_i + 2]); // Bottom i
-
-            // Triangle 2 - Counter-clockwise
-            vertices.push_back(unit_circle[top_i]);        // Top i
-            vertices.push_back(unit_circle[top_i + 1]);    // Top i
-            vertices.push_back(unit_circle[top_i + 2]);    // Top i
-            vertices.push_back(unit_circle[top_next]);     // Top next
-            vertices.push_back(unit_circle[top_next + 1]); // Top next
-            vertices.push_back(unit_circle[top_next + 2]); // Top next
-            vertices.push_back(unit_circle[bottom_next]);  // Bottom next
-            vertices.push_back(unit_circle[bottom_next + 1]); // Bottom next
-            vertices.push_back(unit_circle[bottom_next + 2]); // Bottom next
-        }
-
-        return vertices;
     }
 
     
@@ -265,5 +233,22 @@ public:
     //static std::array<float, 0> generateCone();
 
 private:
+    static std::vector<float> generateUnitCircleVertices(int num_faces)
+    {
+        float face_step = 2 * PI / num_faces; // radians to rotate by for each face
+        float current_angle; // radians for current face
 
+        std::vector<float> vertices;
+        for (int i = 0; i <= num_faces; ++i)
+        {
+            current_angle = i * face_step;
+            // might want to swap the y and z for my unit system
+            vertices.push_back(cos(current_angle)); // x
+            vertices.push_back(0.0f);               // y
+            vertices.push_back(sin(current_angle)); // z
+
+        }
+
+        return vertices;
+    }
 };

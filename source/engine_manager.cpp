@@ -51,10 +51,13 @@ bool Xplor::EngineManager::run()
     rebuildFontAtlas(fontSize);
 
     Gizmo gizmo; // Selected object transformation gizmo
-    float radius = 3;
-    float height = 10;
-    int slices = 14;
-    gizmo.initCylinderVAO(GeometryGenerator::generateCylinder(radius, height, slices));
+    float radius = 2;
+    float height = 5;
+    int slices = 3;
+    std::vector<float> cyl_geom;
+    std::vector<int> cyl_indices;
+    GeometryGenerator::generateCylinder(radius, height, slices, cyl_geom, cyl_indices);
+    gizmo.initCylinderVAO(cyl_geom, cyl_indices);
     gizmo.initGizmoShaders();
 
     auto window_manager = WindowManager::getInstance();
