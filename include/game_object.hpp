@@ -295,11 +295,11 @@ namespace Xplor {
 
 			// Draw an simple arrow along an axis
 			glBindVertexArray(VAO);
-			glDrawElements(GL_LINE_STRIP, index_count, GL_UNSIGNED_INT, 0);
+			glDrawElements(GL_TRIANGLES, index_count, GL_UNSIGNED_INT, 0);
 			glBindVertexArray(0);
 			// Draw cylinder cap
 			glBindVertexArray(capVAO);
-			glDrawElements(GL_LINE_STRIP, index_count, GL_UNSIGNED_INT, 0);
+			glDrawElements(GL_TRIANGLES, index_count, GL_UNSIGNED_INT, 0);
 			glBindVertexArray(0);
 
 			shader->endProgram();

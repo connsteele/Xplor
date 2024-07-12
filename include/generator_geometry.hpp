@@ -222,14 +222,15 @@ public:
             out_geometry.push_back({ radius * cos(angle), height / 2.0f, radius * sin(angle) });
         }
 
-       /* Xplor::Vertex bot_center{ 0, height / 2.0f, 0 };
-        out_geometry.push_back(bot_center);*/
+        Xplor::Vertex bot_center{ 0, -height / 2.0f, 0 };
+        out_geometry.push_back(bot_center);
         // bottom
-        //for (int i = 0; i < faces; ++i)
-        //{
-        //    float angle = i * face_step; // radians for current face
-        //    out_geometry.push_back({ radius * cos(angle), -height / 2.0f, radius * sin(angle) });
-        //}
+        for (int i = 0; i < faces; ++i)
+        {
+            float angle = i * face_step; // radians for current face
+            out_geometry.push_back({ radius * cos(angle), -height / 2.0f, radius * sin(angle) });
+        }
+
 
         // Create index order for the circle drawing
         // top
@@ -241,14 +242,15 @@ public:
             out_indices.insert(out_indices.end(), {0, i, next});
         }
         // bottom
-        //for (int i = 1; i <= faces; ++i)
-        //{
-        //    int j = i + faces; // need advance to the second circle geometry
-        //    int next = j + 1;
-        //    next = next > 2 * faces ? 1 : next; // loop back to 1 to fix index
-
-        //    out_indices.insert(out_indices.end(), { 0, i, next });
-        //}
+        for (int i = 1; i <= faces; ++i)
+        {
+            int offset = faces + 1; // offset to start of second circle (bottom center index)
+            int j = i + offset; // need advance to the second circle geometry
+            int next = j + 1;
+            next = next >= 2 * offset ? offset + 1 : next; // loop back to starting edge
+            
+            out_indices.insert(out_indices.end(), {offset, j, next });
+        }
     }
 
     
