@@ -2,6 +2,7 @@
 #include <glm/glm.hpp>
 #include <math.h>
 
+#define PI    3.1415926f
 
 class GeometryGenerator {
 public:
@@ -180,97 +181,88 @@ public:
         return data;
     }
 
-    //static std::vector<unsigned int> GenerateBoundingBoxIndices()
-    //{
-    //    return {
-    //        // Front face
-    //        0, 1,
-    //        1, 2,
-    //        2, 3,
-    //        3, 0,
-    //        // Back face
-    //        4, 5,
-    //        5, 6,
-    //        6, 7,
-    //        7, 4,
-    //        // Connect front and back faces
-    //        0, 4,
-    //        1, 5,
-    //        2, 6,
-    //        3, 7
-    //    };
-    //}
-
-    static std::vector<float> generateCylinderVertices(float radius, float height, int slices)
+    static std::vector<float> generateUnitCircleVertices(int num_faces)
     {
-        std::vector<float> vertices{};
+        float face_step = 2 * PI / num_faces;
+        float face_angle; // radians
 
-        // Top center
-                                         // pos                  // normal
-        vertices.insert(vertices.end(), {0.f, height / 2.f, 0.f, 0.f, 1.f, 0.f });
-
-        // Bottom center                // pos                     // normal
-        vertices.insert(vertices.end(), { 0.f, -height / 2.f, 0.f, 0.f, -1.f, 0.f });
-
-        for (int i = 0; i <= slices; ++i)
+        std::vector<float> vertices;
+        for (int i = 0; i <= num_faces; ++i)
         {
-            float theta = 2.0f * glm::pi<float>() * static_cast<float>(i) / static_cast<float>(slices);
-            float x = radius * cosf(theta);
-            float z = radius * sinf(theta);
-            
-            // Top Circle Vertices
-            vertices.insert(vertices.end(), {x, height / 2.f, z, 0.f, 1.f, 0.f}); // pos then normals
+            face_angle = i * face_step;
+            // might want to swap the y and z for my unit system
+            vertices.push_back(cos(face_angle)); // x
+            vertices.push_back(sin(face_angle)); // y
+            vertices.push_back(0.0f); // z
 
-            // Bottom Circle Vertices
-            vertices.insert(vertices.end(), { x, height / -2.f, z, 0.f, -1.f, 0.f});
-
-            // Side Vertices (two per segment)
-            vertices.insert(vertices.end(), {x, height / 2.f, z, x, 0.f, z});
-            vertices.insert(vertices.end(), { x, height / -2.f, z, x, 0.f, z });
         }
 
         return vertices;
     }
 
-    static std::vector<unsigned int> generateCylinderIndices(int slices)
+    static std::vector<float> generateCylinder(float radius, float height, int faces)
     {
-        std::vector<unsigned int> indices;
+        float step_angle = (2 * PI) / faces; // angle between faces in radians
 
-        // top circle indices
-        for (int i = 2; i <= slices + 1; ++i)
+        // Create the top and bottom circles of the cylinder
+        std::vector<float> unit_circle;
+        for (int i = 0; i < faces; ++i)
         {
-            indices.push_back(0); // Center top
-            indices.push_back(i);
-            indices.push_back(i + 1);
+            float angle = i * step_angle;
+
+            // Top
+            unit_circle.push_back(radius * cos(angle)); // x
+            unit_circle.push_back(height / 2.f);        // y
+            unit_circle.push_back(radius * sin(angle)); // z
+
+            // Bottom
+            unit_circle.push_back(radius * cos(angle)); // x
+            unit_circle.push_back(-height / 2.f);       // y
+            unit_circle.push_back(radius * sin(angle)); // z
+
         }
 
-        // bottom circle indices
-        for (int i = slices + 3; i <= 2 * slices + 2; ++i) {
-            indices.push_back(1); // Center bottom
-            indices.push_back(i);
-            indices.push_back(i + 1);
+        std::vector<float> vertices;
+        // Generate the sides of the cylinder in counter clock wise winding
+        for (int i = 0; i < faces; ++i)
+        {
+            int next_i = (i + 1) % faces;
+
+            // Indices for the top and bottom vertex positions
+            int top_i = 3 * (2 * i);
+            int bottom_i = 3 * (2 * i + 1);
+            int top_next = 3 * (2 * next_i);
+            int bottom_next = 3 * (2 * next_i + 1);
+
+            // Triangle 1 - Counter-clockwise
+            vertices.push_back(unit_circle[top_i]);        // Top i
+            vertices.push_back(unit_circle[top_i + 1]);    // Top i
+            vertices.push_back(unit_circle[top_i + 2]);    // Top i
+            vertices.push_back(unit_circle[bottom_next]);  // Bottom next
+            vertices.push_back(unit_circle[bottom_next + 1]); // Bottom next
+            vertices.push_back(unit_circle[bottom_next + 2]); // Bottom next
+            vertices.push_back(unit_circle[bottom_i]);     // Bottom i
+            vertices.push_back(unit_circle[bottom_i + 1]); // Bottom i
+            vertices.push_back(unit_circle[bottom_i + 2]); // Bottom i
+
+            // Triangle 2 - Counter-clockwise
+            vertices.push_back(unit_circle[top_i]);        // Top i
+            vertices.push_back(unit_circle[top_i + 1]);    // Top i
+            vertices.push_back(unit_circle[top_i + 2]);    // Top i
+            vertices.push_back(unit_circle[top_next]);     // Top next
+            vertices.push_back(unit_circle[top_next + 1]); // Top next
+            vertices.push_back(unit_circle[top_next + 2]); // Top next
+            vertices.push_back(unit_circle[bottom_next]);  // Bottom next
+            vertices.push_back(unit_circle[bottom_next + 1]); // Bottom next
+            vertices.push_back(unit_circle[bottom_next + 2]); // Bottom next
         }
 
-        // side indices
-        int start = 2 * slices + 4;
-        for (int i = 0; i < slices; ++i) {
-            int top1 = start + 2 * i;
-            int top2 = start + 2 * (i + 1);
-            int bottom1 = top1 + 1;
-            int bottom2 = top2 + 1;
-
-            indices.push_back(top1);
-            indices.push_back(bottom1);
-            indices.push_back(top2);
-
-            indices.push_back(bottom1);
-            indices.push_back(bottom2);
-            indices.push_back(top2);
-        }
-        return indices;
+        return vertices;
     }
 
-    static std::array<float, 0> generateCone();
+    
+
+    //static std::array<float, 0> generateCone();
 
 private:
 

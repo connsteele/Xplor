@@ -51,12 +51,10 @@ bool Xplor::EngineManager::run()
     rebuildFontAtlas(fontSize);
 
     Gizmo gizmo; // Selected object transformation gizmo
-    float radius = 50;
-    float height = 100;
-    int slices = 30;
-    //gizmo.initCylinderVAO(GeometryGenerator::generateCylinderVertices(radius, height, slices),
-     //   GeometryGenerator::generateCylinderIndices(slices));
-    gizmo.initCylinderVAO(GeometryGenerator::generatePlainCubeData());
+    float radius = 3;
+    float height = 10;
+    int slices = 14;
+    gizmo.initCylinderVAO(GeometryGenerator::generateCylinder(radius, height, slices));
     gizmo.initGizmoShaders();
 
     auto window_manager = WindowManager::getInstance();
@@ -118,6 +116,7 @@ bool Xplor::EngineManager::run()
         render_objects(m_active_camera->m_view_matrix, m_active_camera->m_projection_matrix);
         if (!m_selected.empty())
         {
+            // Draw transformation gizmo for selected object
             auto selected = *m_selected.begin(); // deref the iterator to get the first selected game object
             gizmo.draw(selected, m_active_camera->m_view_matrix, m_active_camera->m_projection_matrix);
         }
