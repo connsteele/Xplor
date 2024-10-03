@@ -194,14 +194,14 @@ public:
             int next = (i + 1) % faces; // loop back around when hitting the edge
 
             // Triangle 1
-            out_indices.push_back(i * 2); // top left
-            out_indices.push_back(next * 2 + 1); // bottom right
-            out_indices.push_back(i * 2 + 1); // bottom left
+            out_indices.emplace_back(i * 2); // top left
+            out_indices.emplace_back(next * 2 + 1); // bottom right
+            out_indices.emplace_back(i * 2 + 1); // bottom left
             
             // Triangle 2
-            out_indices.push_back(i * 2); // top left
-            out_indices.push_back(next * 2); // top right
-            out_indices.push_back(next * 2 + 1); // bottom right
+            out_indices.emplace_back(i * 2); // top left
+            out_indices.emplace_back(next * 2); // top right
+            out_indices.emplace_back(next * 2 + 1); // bottom right
         }
     }
 
