@@ -57,6 +57,8 @@ namespace Xplor {
 	struct BoundingBox {
 		glm::vec3 min;
 		glm::vec3 max;
+
+		// Creating an explicit constructor creates issues for some reason here
 	};
 
 	struct Ray {

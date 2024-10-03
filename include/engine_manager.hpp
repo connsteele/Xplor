@@ -25,7 +25,7 @@ namespace Xplor
 
         void createWindow(int width, int height, bool fullscreen);
 
-        void createCamera(CameraVectors vectors, float speed = 3.f, float fov = 90.f);
+        void createCamera(const CameraVectors& vectors, float speed = 3.f, float fov = 90.f);
 
         bool run();
 
@@ -34,7 +34,7 @@ namespace Xplor
         void update(float deltaTime);
 
         // Render all game objects
-        void render_objects(glm::mat4 viewMatrix, glm::mat4 projectionMatrix);
+        void render_objects(const glm::mat4& view_matrix, const glm::mat4& projection_matrix);
 
 
         // We want a method that will add an object into our vector to keep track of
@@ -46,7 +46,7 @@ namespace Xplor
 
         bool rayIntersect(const Xplor::Ray & ray, const BoundingBox& bbox, float& out_t);
 
-        void exportScene(std::string filepath)
+        void exportScene(const std::string& filepath)
         {
             json scene_json = SerializeScene();
             std::ofstream file(filepath);

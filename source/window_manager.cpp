@@ -4,6 +4,8 @@
 #include "shader_manager.hpp"
 #include <iostream>
 
+constexpr bool DEBUG = false; // Spawn debugging objects where clicked
+
 //--------- GLFW Function Prototypes Impls 
 //------------------------------------------------------------------------------------------
 
@@ -180,7 +182,6 @@ void WindowManager::mouseButtonCallback(GLFWwindow* window, int button, int acti
 void WindowManager::leftMouseClickCallback(GLFWwindow* window, int mods)
 {
 	bool CURSOR_RAYCAST = true; // This should probably be a member variable
-	constexpr bool DEBUG = false; // Spawn debugging objects where clicked
 
 	if (CURSOR_RAYCAST)
 	{

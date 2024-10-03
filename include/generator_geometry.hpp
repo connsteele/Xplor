@@ -134,7 +134,7 @@ public:
     }
 
 
-    static std::array<float, 108> GenerateBoundingBoxVertices(const glm::vec3& min, const glm::vec3& max)
+    static std::array<float, 108> GenBoundingBoxVertices(const glm::vec3& min, const glm::vec3& max)
     {
         std::array<float, 108> data{
             min.x, min.y, min.z,  
@@ -186,7 +186,8 @@ public:
         std::vector<Xplor::Vertex>& out_geometry, std::vector<int>& out_indices)
     {
         // Create top and bottom data
-        out_geometry = generateUnitCircleVertices(faces, height, radius);
+        out_geometry.clear();
+        out_geometry = std::move(generateUnitCircleVertices(faces, height, radius));
 
         // Create indices for rectangle sides of the cylinder
         for (int i = 0; i < faces; ++i)
@@ -211,6 +212,7 @@ public:
         float face_step = 2 * PI / faces; // radians to rotate by for each 
         
         // create the top center and push it back
+        out_geometry.clear();
         out_geometry.emplace_back(0, height / 2.0f, 0); // top center
 
         // Create two circles
@@ -253,7 +255,7 @@ public:
 
     
 
-    //static std::array<float, 0> generateCone();
+    //static std::vector<float> generateCone();
 
 private:
     static std::vector<Xplor::Vertex> generateUnitCircleVertices(int num_faces, float height,

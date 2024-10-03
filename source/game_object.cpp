@@ -9,7 +9,7 @@ namespace Xplor
 
 	//----------------------------------------------- Game Object -----------------------------------------------
 
-	void GameObject::addTexture(std::string imagePath, ImageFormat format)
+	void GameObject::addTexture(const std::string& imagePath, ImageFormat format)
 	{
 		m_texture_paths.emplace_back(imagePath, format);
 	}
@@ -120,7 +120,7 @@ namespace Xplor
 		{
 			// Get bounding box vertices and indices
 			updateBoundingBox();
-			auto vertices = GeometryGenerator::GenerateBoundingBoxVertices(m_bbox.min, m_bbox.max);
+			auto vertices = GeometryGenerator::GenBoundingBoxVertices(m_bbox.min, m_bbox.max);
 
 			// Generate relevant buffers
 			glGenVertexArrays(1, &m_bboxVAO);
@@ -163,9 +163,9 @@ namespace Xplor
 
 	void GameObject::updateBoundingBox()
 	{
-		glm::vec3 min = m_position - glm::vec3(0.5f) * m_scale;
-		glm::vec3 max = m_position + glm::vec3(0.5f) * m_scale;
-		m_bbox = { min, max };
+		// Update bbox dimensions
+		m_bbox.min = m_position - glm::vec3(0.5f) * m_scale;
+		m_bbox.max = m_position + glm::vec3(0.5f) * m_scale;
 
 		//// old method
 		// Currently this is assuming the object is a cube
@@ -178,16 +178,17 @@ namespace Xplor
 	{
 		// NEED TO UPDATE TO TAKE SCALE AND ROT INTO ACCOUNT
 
-		glm::mat4 model = glm::mat4(1.0f);
+		glm::mat4& model = glm::mat4(1.0f);
 		model = glm::translate(model, m_position);
 		if (m_rotation_amount)
 		{
 			model = glm::rotate(model, glm::radians(m_rotation_amount), m_rotation_axis);
 		}
-		m_model_matrix = model;
+		m_model_matrix = std::move(model); // could just use member model from start
 	}
 
-	void GameObject::draw(glm::mat4 view_matrix, glm::mat4 projection_matrix, const std::string & shader_name)
+	void GameObject::draw(const glm::mat4& view_matrix, const glm::mat4& projection_matrix, 
+		const std::string & shader_name)
 	{
 		std::shared_ptr<Shader> shader;
 
@@ -269,7 +270,7 @@ namespace Xplor
 		{
 			m_last_position = m_position;
 			updateBoundingBox();
-			auto vertices = GeometryGenerator::GenerateBoundingBoxVertices(m_bbox.min, m_bbox.max);
+			auto vertices = GeometryGenerator::GenBoundingBoxVertices(m_bbox.min, m_bbox.max);
 			glBindBuffer(GL_ARRAY_BUFFER, m_bboxVBO);
 			glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
 		}
@@ -292,6 +293,9 @@ namespace Xplor
 		glLineWidth(1.0f); // restore line width
 	}
 
+	/// <summary>
+	/// Change all deletes to custom destructors
+	/// </summary>
 	void GameObject::Delete()
 	{
 		if (m_shader)
@@ -303,7 +307,7 @@ namespace Xplor
 		glDeleteBuffers(1, &m_EBO);
 	}
 
-	void GameObject::addImpulse(glm::vec3 impulse)
+	void GameObject::addImpulse(const glm::vec3& impulse)
 	{
 		m_velocity += impulse;
 	}

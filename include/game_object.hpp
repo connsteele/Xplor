@@ -45,7 +45,7 @@ namespace Xplor {
 
 		void init();
 		
-		void addTexture(std::string imagePath, ImageFormat format);
+		void addTexture(const std::string& imagePath, ImageFormat format);
 
 		void initTextures();
 
@@ -79,13 +79,13 @@ namespace Xplor {
 
 		void updateModelMatrix();
 
-		void draw(glm::mat4 view_matrix, glm::mat4 projection_matrix, const std::string & name = "");
+		void draw(const glm::mat4& view_matrix, const glm::mat4& projection_matrix, const std::string & name = "");
 
 		void drawBoundingBox(const glm::mat4& view_matrix, const glm::mat4& projection_matrix);
 
 		void Delete();
 
-		void addImpulse(glm::vec3 impulse);
+		void addImpulse(const glm::vec3& impulse);
 
 		/// <summary>
 		/// Set the position of the object. Also updates the object's bounding box.
@@ -150,9 +150,14 @@ namespace Xplor {
 			return m_model_matrix;
 		}
 
-		void setName(std::string name)
+		void setName(const char* name)
 		{
-			m_name = name;
+			m_name = std::move(std::string(name));
+		}
+
+		void setName(std::string& name)
+		{
+			m_name = std::move(name);
 		}
 
 		void setVelocity(const glm::vec3& velocity)
@@ -268,7 +273,7 @@ namespace Xplor {
 		mode current_mode{ NONE };
 		glm::vec3 axis; // axis being manipulated
 		GLuint VAO, capVAO;
-		unsigned int index_count, cap_index_count;
+		size_t index_count, cap_index_count;
 		std::shared_ptr<Shader> shader;
 
 		bool is_hovered{ false };
@@ -282,11 +287,10 @@ namespace Xplor {
 		/// <param name="object">Selected game object to draw the gizmo on</param>
 		/// <param name="view_matrix"></param>
 		/// <param name="projection_matrix"></param>
-		void draw(const std::shared_ptr<GameObject> object, glm::mat4 view_matrix, glm::mat4 projection_matrix)
+		void draw(std::shared_ptr<GameObject> object, const glm::mat4& view_matrix, const glm::mat4& projection_matrix)
 		{
-			glm::mat4 mat_model = object->getModelMatrix();
 
-			drawAxisArrow(glm::vec3(1, 0, 0), mat_model, view_matrix, projection_matrix); // X
+			drawAxisArrow(glm::vec3(1, 0, 0), object->getModelMatrix(), view_matrix, projection_matrix); // X
 			//drawArrow(glm::vec3(0, 1, 0), mat_model, view_matrix, projection_matrix); // Y
 			//drawArrow(glm::vec3(0, 0, 1), mat_model, view_matrix, projection_matrix); // Z
 		}
@@ -299,7 +303,8 @@ namespace Xplor {
 		/// <param name="model_matrix"></param>
 		/// <param name="view_matrix"></param>
 		/// <param name="projection_matrix"></param>
-		void drawAxisArrow(glm::vec3 axis, glm::mat4 model_matrix, glm::mat4 view_matrix, glm::mat4 projection_matrix)
+		void drawAxisArrow(const glm::vec3& axis, const glm::mat4& model_matrix, 
+			const glm::mat4& view_matrix, const glm::mat4& projection_matrix)
 		{
 			// pick a shader (refactor this to be included with the gizmo so its faster)
 			shader->useProgram();
