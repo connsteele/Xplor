@@ -11,7 +11,7 @@ namespace Xplor
 
 	void GameObject::addTexture(std::string imagePath, ImageFormat format)
 	{
-		m_texture_paths.push_back({ imagePath, format });
+		m_texture_paths.emplace_back(imagePath, format);
 	}
 
 	void GameObject::initTextures()
@@ -53,7 +53,8 @@ namespace Xplor
 			// Free the image data once the texture has been created
 			stbi_image_free(imageBox.data);
 
-			m_textures.push_back(texture1);
+			//m_textures.push_back(texture1);
+			m_textures.emplace_back(texture1);
 		}
 	}
 

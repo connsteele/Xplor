@@ -182,7 +182,7 @@ namespace Xplor
 		std::string m_vertexPath{};
 		std::string m_fragmentPath{};
 
-		std::vector<std::tuple<std::string, int>> m_uniformInts{};
+		std::vector<std::pair<std::string, int>> m_uniformInts{};
 
 
 

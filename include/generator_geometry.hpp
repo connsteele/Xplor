@@ -211,24 +211,22 @@ public:
         float face_step = 2 * PI / faces; // radians to rotate by for each 
         
         // create the top center and push it back
-        Xplor::Vertex top_center{0, height / 2.0f, 0};
-        out_geometry.push_back(top_center);
+        out_geometry.emplace_back(0, height / 2.0f, 0); // top center
 
         // Create two circles
         // top
         for (int i = 0; i < faces; ++i)
         {
             float angle = i * face_step; // radians for current face
-            out_geometry.push_back({ radius * cos(angle), height / 2.0f, radius * sin(angle) });
+            out_geometry.emplace_back( radius * cos(angle), height / 2.0f, radius * sin(angle));
         }
 
-        Xplor::Vertex bot_center{ 0, -height / 2.0f, 0 };
-        out_geometry.push_back(bot_center);
+        out_geometry.emplace_back(0, -height / 2.0f, 0); // bottom center
         // bottom
         for (int i = 0; i < faces; ++i)
         {
             float angle = i * face_step; // radians for current face
-            out_geometry.push_back({ radius * cos(angle), -height / 2.0f, radius * sin(angle) });
+            out_geometry.emplace_back( radius * cos(angle), -height / 2.0f, radius * sin(angle));
         }
 
 
@@ -269,9 +267,9 @@ private:
             float angle = i * face_step; // radians for current face
             
             // top circle
-            vertices.push_back({ radius * cos(angle), height / 2.0f, radius * sin(angle)});
+            vertices.emplace_back(radius * cos(angle), height / 2.0f, radius * sin(angle));
             // bottom circle
-            vertices.push_back({ radius * cos(angle), -height / 2.0f, radius * sin(angle) });
+            vertices.emplace_back(radius * cos(angle), -height / 2.0f, radius * sin(angle));
 
         }
 

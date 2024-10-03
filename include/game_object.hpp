@@ -19,7 +19,12 @@ struct ImageData
 	int width;
 	int height;
 	int channels;
-	unsigned char* data;
+	unsigned char* data{nullptr};
+
+	~ImageData()
+	{
+		// delete data;
+	}
 };
 
 namespace Xplor {
@@ -29,6 +34,15 @@ namespace Xplor {
 	class GameObject
 	{
 	public:
+
+		/// <summary>
+		/// Virtual destructor for base class
+		/// </summary>
+		virtual ~GameObject()
+		{
+
+		}
+
 		void init();
 		
 		void addTexture(std::string imagePath, ImageFormat format);
@@ -207,7 +221,7 @@ namespace Xplor {
 		
 		const std::string resources = "..//resources//";
 		std::vector<uint32_t> m_textures{};
-		std::vector<std::tuple<std::string, ImageFormat>> m_texture_paths;
+		std::vector<std::pair<std::string, ImageFormat>> m_texture_paths;
 		std::shared_ptr<Shader> m_shader{};
 		uint32_t m_VBO{}, m_VAO{}, m_EBO{};
 

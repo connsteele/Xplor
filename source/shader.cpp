@@ -29,7 +29,7 @@ void Xplor::Shader::endProgram()
 void Xplor::Shader::setUniform(const std::string& name, int value)
 {
 	glUniform1i(glGetUniformLocation(m_shaderID, name.c_str()), value);
-	m_uniformInts.push_back(std::make_tuple(name, value));
+	m_uniformInts.emplace_back(name, value);
 }
 
 void Xplor::Shader::setUniform(const std::string& name, glm::mat4 value) const

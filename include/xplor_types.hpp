@@ -13,6 +13,9 @@ namespace Xplor {
 		float x;
 		float y;
 		float z;
+
+		Vertex(const float& inX, const float& inY, const float& inZ) : 
+			x(inX), y(inY), z(inZ) {};
 	};
 
 	enum class ImageFormat
