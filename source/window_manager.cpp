@@ -209,9 +209,9 @@ void WindowManager::leftMouseClickCallback(GLFWwindow* window, int mods)
 		y_pos = window_height - y_pos;
 
 		// Convert Normalized Device Coordinates (NDC) -> Homogenous Clip Space -> Eye Coordinates -> World Coordinates
-		glm::vec3 ray_start = glm::unProject(glm::vec3(x_pos, y_pos, 0.0f), view, projection, viewport);
-		glm::vec3 ray_end = glm::unProject(glm::vec3(x_pos, y_pos, 1.0f), view, projection, viewport);
-		glm::vec3 ray_direction = glm::normalize(ray_end - ray_start);
+		glm::vec3& ray_start = glm::unProject(glm::vec3(x_pos, y_pos, 0.0f), view, projection, viewport);
+		glm::vec3& ray_end = glm::unProject(glm::vec3(x_pos, y_pos, 1.0f), view, projection, viewport);
+		glm::vec3& ray_direction = glm::normalize(ray_end - ray_start);
 
 		Xplor::Ray cursor_ray{ ray_start, ray_direction, 1.0f / ray_direction };
 
