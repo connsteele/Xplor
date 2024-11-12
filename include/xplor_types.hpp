@@ -14,6 +14,7 @@ namespace Xplor {
 		float y;
 		float z;
 
+		// Copy constructor
 		Vertex(const float& inX, const float& inY, const float& inZ) : 
 			x(inX), y(inY), z(inZ) {};
 	};
@@ -29,6 +30,12 @@ namespace Xplor {
 		glm::vec3 camera_position{};
 		glm::vec3 camera_front{};
 		glm::vec3 camera_up{};
+
+		CameraVectors() {};
+
+		CameraVectors(const glm::vec3& camera_pos, const glm::vec3& camera_front, const glm::vec3& camera_up) :
+			camera_position(camera_pos), camera_front(camera_front), camera_up(camera_up) {};
+
 	};
 
 	enum class GameObjectType
@@ -55,10 +62,12 @@ namespace Xplor {
 
 	// Simple Axis Aligned Bounding Box
 	struct BoundingBox {
-		glm::vec3 min;
-		glm::vec3 max;
+		glm::vec3 min{};
+		glm::vec3 max{};
 
-		// Creating an explicit constructor creates issues for some reason here
+		// Creating an explicit constructor creates issues for some reason 
+		BoundingBox() {};
+		BoundingBox(glm::vec3 min, glm::vec3 max) : min(min), max(max) {};
 	};
 
 	struct Ray {

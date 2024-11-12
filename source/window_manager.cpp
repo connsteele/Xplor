@@ -425,7 +425,7 @@ void WindowManager::createEditorFrame(const std::vector<std::shared_ptr<Xplor::G
 		ImGui::Separator();
 
 		// Position 
-		auto pos = selected_object->getPosition();
+		glm::vec3 pos = selected_object->getPosition();
 		// ImGui::Text("Position: (%.2f, %.2f, %.2f)", pos.x, pos.y, pos.z);
 		float arr_pos[3] = {pos.x, pos.y, pos.z};
 		labeledDragFloat3("Position", arr_pos, 0.01f, -100.f, 100.f);

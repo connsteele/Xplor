@@ -93,7 +93,7 @@ private:
 	GLFWwindow* m_window{};
 	float m_cursorOffsetX{}, m_cursorOffsetY{};
 	bool m_activeMouse{};
-	float m_FOV = 90.0f;
+	float m_FOV = 70.0f;
 	
 
 	bool createSelectShader();

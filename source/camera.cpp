@@ -2,10 +2,10 @@
 
 #include "GLFW/glfw3.h"
 
-Xplor::Camera::Camera(Xplor::CameraVectors cameraVecs, float speed, float fov)
+Xplor::Camera::Camera(Xplor::CameraVectors camera_vectors, float speed, float fov)
 {
-	m_vectors = cameraVecs;
-	m_target = cameraVecs.camera_position + cameraVecs.camera_front;
+	m_vectors = camera_vectors;
+	m_target = camera_vectors.camera_position + camera_vectors.camera_front;
 	m_speed = speed;
 
 	// Get the current aspect ratio

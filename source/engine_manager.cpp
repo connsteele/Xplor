@@ -50,9 +50,9 @@ bool Xplor::EngineManager::run()
 
     // --------------------------- transformation gizmo ---------------------------
     Gizmo gizmo; // Selected object transformation gizmo
-    float radius = 2;
-    float height = 5;
-    int slices = 8;
+    float radius = 0.04f;
+    float height = 0.5f;
+    int slices = 10;
     std::vector<Vertex> cyl_geom, cap_geom;
     std::vector<int> cyl_indices, cap_indices;
     // Much of the following code seems like it only needs to be created once then can be reused

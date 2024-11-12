@@ -190,6 +190,7 @@ public:
         out_geometry = std::move(generateUnitCircleVertices(faces, height, radius));
 
         // Create indices for rectangle sides of the cylinder
+        out_indices.clear();
         for (int i = 0; i < faces; ++i)
         {
             int next = (i + 1) % faces; // loop back around when hitting the edge

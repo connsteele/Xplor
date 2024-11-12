@@ -290,9 +290,9 @@ namespace Xplor {
 		void draw(std::shared_ptr<GameObject> object, const glm::mat4& view_matrix, const glm::mat4& projection_matrix)
 		{
 
-			drawAxisArrow(glm::vec3(1, 0, 0), object->getModelMatrix(), view_matrix, projection_matrix); // X
-			//drawArrow(glm::vec3(0, 1, 0), mat_model, view_matrix, projection_matrix); // Y
-			//drawArrow(glm::vec3(0, 0, 1), mat_model, view_matrix, projection_matrix); // Z
+			drawAxisArrow(glm::vec3(0, 0, 1), object->getModelMatrix(), view_matrix, projection_matrix); // X
+			drawAxisArrow(glm::vec3(0, 1, 0), object->getModelMatrix(), view_matrix, projection_matrix); // Y
+			drawAxisArrow(glm::vec3(1, 0, 0), object->getModelMatrix(), view_matrix, projection_matrix); // Z
 		}
 
 
@@ -303,16 +303,36 @@ namespace Xplor {
 		/// <param name="model_matrix"></param>
 		/// <param name="view_matrix"></param>
 		/// <param name="projection_matrix"></param>
-		void drawAxisArrow(const glm::vec3& axis, const glm::mat4& model_matrix, 
+		void drawAxisArrow(const glm::vec3& direction, const glm::mat4& model_matrix, 
 			const glm::mat4& view_matrix, const glm::mat4& projection_matrix)
 		{
 			// pick a shader (refactor this to be included with the gizmo so its faster)
 			shader->useProgram();
-			shader->setUniform("model", model_matrix);
+			// rotate the model to point in direction of the axis
+			const float angle_radians = glm::radians(90.0f);
+			const float offset = 0.25f;
+			glm::mat4 updated_model_matrix;
+			// Change color depending on the direction of the arrow
+			// Render a small white sphere in the center
+			// Render cones to cap the cylinders
+			if (direction == glm::vec3(0, 0, 1)) // X
+			{
+				updated_model_matrix = glm::translate(model_matrix, glm::vec3(-1 * offset, 0.f, 0.f));
+			}
+			else if (direction == glm::vec3(0, 1, 0)) // Y
+			{
+				updated_model_matrix = glm::translate(model_matrix, glm::vec3(0.f, offset, 0.f));
+			}
+			else if (direction == glm::vec3(1, 0, 0)) // Z
+			{
+				updated_model_matrix = glm::translate(model_matrix, glm::vec3(0.0f, 0.f, offset));
+			}
+			updated_model_matrix = glm::rotate(updated_model_matrix, angle_radians, direction);
+			shader->setUniform("model", updated_model_matrix);
 			shader->setUniform("view", view_matrix);
 			shader->setUniform("projection", projection_matrix);
 
-			// Draw an simple arrow along an axis
+			// Draw an simple arrow in a diretion
 			glBindVertexArray(VAO);
 			glDrawElements(GL_TRIANGLES, index_count, GL_UNSIGNED_INT, 0);
 			glBindVertexArray(0);

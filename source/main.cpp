@@ -57,17 +57,17 @@ void createSceneA()
 
 
     //------ Shader Creation
-    const std::string resources = "..//resources";
-    std::string fullVertexPath = resources + "//shaders//simple.vs";
-    std::string fullFragmentPath = resources + "//shaders//simple.fs";
-    std::string fullFragOneTexPath = resources + "//shaders//simpleOneTex.fs";
-    std::string fullFragFlatColorPath = resources + "//shaders//flatColor.fs";
-    std::string bbox_vertex_full_path = resources + "//shaders//bounding.vs";
-    std::string bbox_fragment_full_path = resources + "//shaders//bounding_color.fs";
+    const std::string resources{ "..//resources" };
+    std::string full_vertex_path{ resources + "//shaders//simple.vs" };
+    std::string full_frag_path{ resources + "//shaders//simple.fs" };
+    std::string full_frag_one_tex_path{ resources + "//shaders//simpleOneTex.fs" };
+    std::string full_frag_flat_color_path{ resources + "//shaders//flatColor.fs" };
+    std::string bbox_vertex_full_path{ resources + "//shaders//bounding.vs" };
+    std::string bbox_fragment_full_path{ resources + "//shaders//bounding_color.fs" };
     std::vector<Xplor::ShaderInfo> shader_paths { 
-        {"simple", fullVertexPath, fullFragmentPath},
-        {"one texture", fullVertexPath, fullFragOneTexPath}, 
-        {"flat color", fullVertexPath, fullFragFlatColorPath},
+        {"simple", full_vertex_path, full_frag_path},
+        {"one texture", full_vertex_path, full_frag_one_tex_path}, 
+        {"flat color", full_vertex_path, full_frag_flat_color_path},
         {"bounding", bbox_vertex_full_path, bbox_fragment_full_path}
     };
 
@@ -130,18 +130,20 @@ void createSceneA()
     cubeB->updateBoundingBox();
 
 
-    std::shared_ptr<Xplor::EngineManager> xplorM = Xplor::EngineManager::getInstance();
-    xplorM->addGameObject(planeA);
-    xplorM->addGameObject(cubeA);
-    xplorM->addGameObject(cubeB);
+    std::shared_ptr<Xplor::EngineManager> xplor_manager = Xplor::EngineManager::getInstance();
+    // Should create a moveable version of this also (perf benefits of avoiding a copy).
+    //xplor_manager->addGameObject(planeA);
+    xplor_manager->addGameObject(std::move(planeA));
+    xplor_manager->addGameObject(std::move(cubeA));
+    xplor_manager->addGameObject(std::move(cubeB));
 }
 
 int main(/*int argc, char **argv*/) {
    
     //---- Setup ----
-    std::shared_ptr<Xplor::EngineManager> xplorM = Xplor::EngineManager::getInstance();
+    std::shared_ptr<Xplor::EngineManager> xplor_manager = Xplor::EngineManager::getInstance();
 
-    xplorM->createWindow(1920, 1080, false);
+    xplor_manager->createWindow(1920, 1080, false);
     std::shared_ptr<WindowManager> windowManager = WindowManager::getInstance();
     glEnable(GL_DEPTH_TEST);
 
@@ -153,27 +155,30 @@ int main(/*int argc, char **argv*/) {
     constexpr bool EXPORT_SCENE = true;
     constexpr bool IMPORT_SCENE = false;
     if (IMPORT_SCENE)
-        xplorM->importScene("test.json");
+        xplor_manager->importScene("test.json");
     else
         createSceneA();
         
 
     //---- Camera Setup
-    Xplor::CameraVectors camVecs;
-    camVecs.camera_position = glm::vec3(0.0f, 0.0f, 3.0f);
-    camVecs.camera_front = glm::vec3(0.0f, 0.0f, -1.0f);
-    camVecs.camera_up = glm::vec3(0.f , 1.f, 0.f);
+    glm::vec3 cam_pos = glm::vec3(0.0f, 0.0f, 3.0f);
+    glm::vec3 cam_front  = glm::vec3(0.0f, 0.0f, -1.0f);
+    glm::vec3 cam_up = glm::vec3(0.f , 1.f, 0.f);
+    Xplor::CameraVectors camVecs(
+        std::move(cam_pos), 
+        std::move(cam_front),
+        std::move(cam_up));
     // float cameraSpeed = 3.f;
 
-    xplorM->createCamera(camVecs);
+    xplor_manager->createCamera(camVecs);
 
 
     //---- Engine Main Loop ----
     //-----------------------------------------------------
-    xplorM->run();
+    xplor_manager->run();
 
     if (EXPORT_SCENE)
-        xplorM->exportScene("test.json");
+        xplor_manager->exportScene("test.json");
 
     
     //---- Cleanup ----
